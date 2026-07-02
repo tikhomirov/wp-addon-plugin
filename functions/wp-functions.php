@@ -464,7 +464,11 @@ function wptweaker_setting_35() {
 }
 
 function wptweaker_setting_36() {
-	add_filter( 'pre_site_transient_browser_' . md5( $_SERVER['HTTP_USER_AGENT'] ), '__return_null' );
+	$user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+	if ( $user_agent === '' ) {
+		return;
+	}
+	add_filter( 'pre_site_transient_browser_' . md5( $user_agent ), '__return_null' );
 }
 
 function wptweaker_setting_38() {
