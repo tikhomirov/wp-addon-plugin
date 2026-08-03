@@ -39,7 +39,7 @@ class PostFactory extends Factory
     {
         global $db;
 
-        $stmt = $db->prepare("
+        $stmt = $db->prepare('
             INSERT INTO wp_posts (
                 post_author, post_date, post_date_gmt, post_content, post_title,
                 post_excerpt, post_status, comment_status, ping_status, post_password,
@@ -47,9 +47,10 @@ class PostFactory extends Factory
                 post_content_filtered, post_parent, guid, menu_order, post_type,
                 post_mime_type, comment_count
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
+        ');
 
         $stmt->execute(array_values($data));
+
         return $db->lastInsertId();
     }
 
@@ -83,6 +84,7 @@ class PostFactory extends Factory
     protected function state(array $state): self
     {
         $this->attributes = array_merge($this->attributes, $state);
+
         return $this;
     }
 }

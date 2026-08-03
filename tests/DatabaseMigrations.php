@@ -14,19 +14,19 @@ trait DatabaseMigrations
     {
         global $db;
 
-        if (!$db) {
+        if (! $db) {
             return; // Skip if database not initialized
         }
 
         // Clear all tables
-        $db->exec("DELETE FROM wp_options");
-        $db->exec("DELETE FROM wp_posts");
-        $db->exec("DELETE FROM wp_postmeta");
-        $db->exec("DELETE FROM wp_users");
-        $db->exec("DELETE FROM wp_usermeta");
+        $db->exec('DELETE FROM wp_options');
+        $db->exec('DELETE FROM wp_posts');
+        $db->exec('DELETE FROM wp_postmeta');
+        $db->exec('DELETE FROM wp_users');
+        $db->exec('DELETE FROM wp_usermeta');
 
         // Reset auto-increment counters
-        $db->exec("DELETE FROM sqlite_sequence");
+        $db->exec('DELETE FROM sqlite_sequence');
 
         // Insert default WordPress options
         $this->seedDefaultOptions();
@@ -48,7 +48,7 @@ trait DatabaseMigrations
     {
         global $db;
 
-        if (!$db) {
+        if (! $db) {
             return; // Skip if database not initialized
         }
 
@@ -62,7 +62,7 @@ trait DatabaseMigrations
             ['option_name' => 'stylesheet', 'option_value' => 'twentytwentyone'],
         ];
 
-        $stmt = $db->prepare("INSERT INTO wp_options (option_name, option_value) VALUES (?, ?)");
+        $stmt = $db->prepare('INSERT INTO wp_options (option_name, option_value) VALUES (?, ?)');
         foreach ($defaultOptions as $option) {
             $stmt->execute([$option['option_name'], $option['option_value']]);
         }
@@ -72,7 +72,7 @@ trait DatabaseMigrations
     {
         global $db;
 
-        if (!$db) {
+        if (! $db) {
             throw new \Exception('Database not initialized');
         }
 
@@ -103,7 +103,7 @@ trait DatabaseMigrations
 
         $data = array_merge($defaults, $attributes);
 
-        $stmt = $db->prepare("
+        $stmt = $db->prepare('
             INSERT INTO wp_posts (
                 post_author, post_date, post_date_gmt, post_content, post_title,
                 post_excerpt, post_status, comment_status, ping_status, post_password,
@@ -111,9 +111,10 @@ trait DatabaseMigrations
                 post_content_filtered, post_parent, guid, menu_order, post_type,
                 post_mime_type, comment_count
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
+        ');
 
         $stmt->execute(array_values($data));
+
         return $db->lastInsertId();
     }
 
@@ -124,7 +125,7 @@ trait DatabaseMigrations
     {
         global $db;
 
-        if (!$db) {
+        if (! $db) {
             throw new \Exception('Database not initialized');
         }
 
@@ -142,14 +143,15 @@ trait DatabaseMigrations
 
         $data = array_merge($defaults, $attributes);
 
-        $stmt = $db->prepare("
+        $stmt = $db->prepare('
             INSERT INTO wp_users (
                 user_login, user_pass, user_nicename, user_email, user_url,
                 user_registered, user_activation_key, user_status, display_name
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
+        ');
 
         $stmt->execute(array_values($data));
+
         return $db->lastInsertId();
     }
 }

@@ -7,6 +7,8 @@
 ## 🎯 Цели CI Pipeline
 
 - **Автоматизированное тестирование** на множестве версий PHP
+- **Проверка стиля кода** через Laravel Pint с Laravel preset
+- **Статический анализ** через PHPStan и WordPress stubs
 - **Проверка совместимости** с WordPress test suite
 - **Анализ покрытия кода** и загрузка отчетов
 - **Предотвращение регрессий** перед merge в main/develop
@@ -200,21 +202,30 @@ services:
 - wp-tests-config.php правильно настроен
 - База данных доступна
 
-### Шаг 9: Запуск тестов
+### Шаг 9: Запуск quality gate
 
 ```yaml
-- name: Run tests
-  run: composer test -- --exclude-group problematic
+- name: Run quality checks
+  run: composer quality
 ```
 
 **Что делает:**
+- Проверяет `composer.json`, форматирование Laravel Pint и PHPStan
 - Запускает все тесты через Composer скрипт
-- Исключает тесты с группой @group problematic
 
 **Требования:**
 - composer.json с настроенным скриптом test
 - Все зависимости установлены
 - WP_TESTS_DIR настроена
+
+### Локальные проверки качества
+
+```bash
+composer format        # исправить форматирование Laravel preset
+composer format:check  # проверить форматирование без изменений
+composer static-analysis
+composer quality       # полный quality gate
+```
 
 ### Шаг 10: Запуск тестов с покрытием (только PHP 8.2)
 

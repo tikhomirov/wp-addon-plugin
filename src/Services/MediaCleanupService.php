@@ -2,8 +2,8 @@
 
 namespace WpAddon\Services;
 
-use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RegexIterator;
 
 /**
@@ -13,8 +13,6 @@ class MediaCleanupService
 {
     /**
      * Get registered image sizes (static)
-     *
-     * @return array
      */
     public static function getRegisteredSizesStatic(): array
     {
@@ -45,7 +43,7 @@ class MediaCleanupService
                     }
                     break;
             }
-            $registeredSizes[] = $width . 'x' . $height;
+            $registeredSizes[] = $width.'x'.$height;
         }
 
         return $registeredSizes;
@@ -53,14 +51,11 @@ class MediaCleanupService
 
     /**
      * Check if file should be deleted
-     *
-     * @param string $basename
-     * @return bool
      */
     public function isFileToDelete(string $basename): bool
     {
         if (preg_match('/-(\d+)x(\d+)\.(jpg|jpeg|png|gif)$/i', $basename, $matches)) {
-            $sizeKey = $matches[1] . 'x' . $matches[2];
+            $sizeKey = $matches[1].'x'.$matches[2];
 
             // Exclude scaled and other special files
             if (strpos($basename, '-scaled') !== false) {
@@ -68,7 +63,8 @@ class MediaCleanupService
             }
 
             $activeSizes = self::getRegisteredSizesStatic();
-            return !in_array($sizeKey, $activeSizes);
+
+            return ! in_array($sizeKey, $activeSizes);
         }
 
         return false;
@@ -76,9 +72,6 @@ class MediaCleanupService
 
     /**
      * Get all image files in directory
-     *
-     * @param string $directory
-     * @return array
      */
     public function getAllImageFiles(string $directory): array
     {
@@ -98,7 +91,6 @@ class MediaCleanupService
     /**
      * Get files to delete with total size
      *
-     * @param string $uploadPath
      * @return array ['files' => array, 'totalSize' => int]
      */
     public function getFilesToDelete(string $uploadPath): array
@@ -118,15 +110,13 @@ class MediaCleanupService
 
         return [
             'files' => $toDelete,
-            'totalSize' => $totalSize
+            'totalSize' => $totalSize,
         ];
     }
 
     /**
      * Delete files
      *
-     * @param array $files
-     * @param string $uploadPath
      * @return array ['deleted' => int, 'errors' => int]
      */
     public function deleteFiles(array $files, string $uploadPath = ''): array
@@ -144,7 +134,7 @@ class MediaCleanupService
 
         return [
             'deleted' => $deleted,
-            'errors' => $errors
+            'errors' => $errors,
         ];
     }
 }

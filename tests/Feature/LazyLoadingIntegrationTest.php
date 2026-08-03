@@ -5,8 +5,9 @@
  */
 describe('LazyLoading Integration', function () {
     // Пропустить тесты, если WordPress не загружен
-    if (!function_exists('wp_die')) {
+    if (! function_exists('wp_die')) {
         test('skipped - requires WordPress environment', function () {})->skip('WordPress environment not available');
+
         return;
     }
 
@@ -14,11 +15,11 @@ describe('LazyLoading Integration', function () {
         // Убираем Brain Monkey, чтобы избежать конфликтов с Patchwork
         // Monkey\setUp();
 
-        $this->mockOptionService = \Mockery::mock('\WpAddon\Services\OptionService');
+        $this->mockOptionService = Mockery::mock('\WpAddon\Services\OptionService');
 
         // Mock option service для настроек
         $this->mockOptionService->shouldReceive('getSetting')
-            ->andReturnUsing(function($key, $default = null) {
+            ->andReturnUsing(function ($key, $default = null) {
                 $config = [
                     'enable_lazy_loading' => true,
                     'lazy_types' => ['img'],
@@ -27,13 +28,14 @@ describe('LazyLoading Integration', function () {
                     'threshold' => 0.1,
                     'enable_fallback' => true,
                 ];
+
                 return $config[$key] ?? $default;
             });
     });
 
     afterEach(function () {
         // Monkey\tearDown();
-        \Mockery::close();
+        Mockery::close();
     });
 
     it('activates module without errors', function () {
@@ -44,7 +46,7 @@ describe('LazyLoading Integration', function () {
         expect($lazyLoading)->toBeInstanceOf('\WpAddon\Interfaces\ModuleInterface');
 
         // Инициализация не должна вызывать ошибки
-        expect(function() use ($lazyLoading) {
+        expect(function () use ($lazyLoading) {
             $lazyLoading->init();
         })->not->toThrow(Exception::class);
     });
@@ -104,7 +106,7 @@ describe('LazyLoading Integration', function () {
         // Измеряем время выполнения
         $startTime = microtime(true);
 
-        $content = str_repeat('<img src="test' . rand() . '.jpg" alt="Test">', 5);
+        $content = str_repeat('<img src="test'.rand().'.jpg" alt="Test">', 5);
 
         $lazyLoading = new LazyLoading($this->mockOptionService);
         $lazyLoading->init();
@@ -125,7 +127,7 @@ describe('LazyLoading Integration', function () {
         $lazyLoading->init();
 
         // Обработка не должна вызывать исключения
-        expect(function() use ($lazyLoading, $contentWithErrors) {
+        expect(function () use ($lazyLoading, $contentWithErrors) {
             $lazyLoading->processContent($contentWithErrors);
         })->not->toThrow(Exception::class);
     });

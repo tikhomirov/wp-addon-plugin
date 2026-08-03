@@ -10,8 +10,8 @@ class AssetFactory extends Factory
     protected function definition(): array
     {
         return [
-            'handle' => $this->faker->word() . '-asset',
-            'src' => $this->faker->url() . '/assets/' . $this->faker->word() . '.' . $this->faker->randomElement(['css', 'js']),
+            'handle' => $this->faker->word().'-asset',
+            'src' => $this->faker->url().'/assets/'.$this->faker->word().'.'.$this->faker->randomElement(['css', 'js']),
             'deps' => [],
             'ver' => $this->faker->randomFloat(1, 1, 9),
             'media' => 'all',
@@ -82,7 +82,7 @@ class AssetFactory extends Factory
     {
         return $this->state([
             'type' => 'style',
-            'src' => $this->faker->url() . '/assets/' . $this->faker->word() . '.css',
+            'src' => $this->faker->url().'/assets/'.$this->faker->word().'.css',
             'content' => $this->generateCssContent(),
         ]);
     }
@@ -94,7 +94,7 @@ class AssetFactory extends Factory
     {
         return $this->state([
             'type' => 'script',
-            'src' => $this->faker->url() . '/assets/' . $this->faker->word() . '.js',
+            'src' => $this->faker->url().'/assets/'.$this->faker->word().'.js',
             'content' => $this->generateJsContent(),
             'media' => null,
         ]);
@@ -106,11 +106,11 @@ class AssetFactory extends Factory
     public function minified(): self
     {
         $content = $this->attributes['content'] ?? $this->generateAssetContent();
-        $minifiedContent = str_replace(["\n", "\t", "  "], '', $content);
+        $minifiedContent = str_replace(["\n", "\t", '  '], '', $content);
 
         return $this->state([
             'content' => $minifiedContent,
-            'src' => str_replace('.css', '.min.css', $this->attributes['src'] ?? $this->faker->url() . '/assets/' . $this->faker->word() . '.css'),
+            'src' => str_replace('.css', '.min.css', $this->attributes['src'] ?? $this->faker->url().'/assets/'.$this->faker->word().'.css'),
         ]);
     }
 
@@ -132,7 +132,7 @@ class AssetFactory extends Factory
     {
         return $this->state([
             'size' => $this->faker->numberBetween(100, 999),
-            'content' => $this->faker->word() . '{}',
+            'content' => $this->faker->word().'{}',
         ]);
     }
 
@@ -142,6 +142,7 @@ class AssetFactory extends Factory
     protected function state(array $state): self
     {
         $this->attributes = array_merge($this->attributes, $state);
+
         return $this;
     }
 }

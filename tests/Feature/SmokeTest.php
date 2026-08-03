@@ -1,5 +1,8 @@
 <?php
 
+use WpAddon\Services\MediaCleanupService;
+use WpAddon\Services\OptionService;
+
 describe('Smoke Test', function () {
     it('tests plugin initialization', function () {
         // Test that autoloader is registered
@@ -13,10 +16,10 @@ describe('Smoke Test', function () {
     });
 
     it('tests services instantiation', function () {
-        $optionService = new \WpAddon\Services\OptionService();
-        expect($optionService)->toBeInstanceOf(\WpAddon\Services\OptionService::class);
+        $optionService = new OptionService;
+        expect($optionService)->toBeInstanceOf(OptionService::class);
 
-        $mediaCleanupService = new \WpAddon\Services\MediaCleanupService();
-        expect($mediaCleanupService)->toBeInstanceOf(\WpAddon\Services\MediaCleanupService::class);
+        $mediaCleanupService = new MediaCleanupService;
+        expect($mediaCleanupService)->toBeInstanceOf(MediaCleanupService::class);
     });
 });

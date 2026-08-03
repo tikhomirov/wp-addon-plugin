@@ -7,14 +7,15 @@ use WpAddon\Interfaces\CacheInterface;
 class CacheService implements CacheInterface
 {
     private string $cacheDir;
+
     private int $ttl;
 
     public function __construct(string $cacheDir = '', int $ttl = 3600)
     {
-        $this->cacheDir = $cacheDir ?: WP_CONTENT_DIR . '/cache/pages/';
+        $this->cacheDir = $cacheDir ?: WP_CONTENT_DIR.'/cache/pages/';
         $this->ttl = $ttl;
-        if (!is_dir($this->cacheDir)) {
-            mkdir($this->cacheDir, 0755, true);
+        if (! is_dir($this->cacheDir) && ! mkdir($this->cacheDir, 0755, true) && ! is_dir($this->cacheDir)) {
+            throw new \RuntimeException(sprintf('Unable to create cache directory: %s', $this->cacheDir));
         }
     }
 
@@ -25,8 +26,8 @@ class CacheService implements CacheInterface
 
     public function getCachedContent(string $key): ?string
     {
-        $file = $this->cacheDir . $key . '.gz';
-        if (!is_file($file)) {
+        $file = $this->cacheDir.$key.'.gz';
+        if (! is_file($file)) {
             return null;
         }
 
@@ -50,7 +51,7 @@ class CacheService implements CacheInterface
 
     public function cleanup(int $maxEntries, int $maxAge, int $batchSize): void
     {
-        $files = glob($this->cacheDir . '*.gz') ?: [];
+        $files = glob($this->cacheDir.'*.gz') ?: [];
         $now = time();
         $removed = 0;
 
@@ -66,12 +67,12 @@ class CacheService implements CacheInterface
             }
         }
 
-        $files = glob($this->cacheDir . '*.gz') ?: [];
+        $files = glob($this->cacheDir.'*.gz') ?: [];
         if (count($files) <= $maxEntries) {
             return;
         }
 
-        usort($files, static fn(string $left, string $right): int => (filemtime($left) ?: 0) <=> (filemtime($right) ?: 0));
+        usort($files, static fn (string $left, string $right): int => (filemtime($left) ?: 0) <=> (filemtime($right) ?: 0));
         $entriesToRemove = min(count($files) - $maxEntries, max(0, $batchSize - $removed));
         foreach (array_slice($files, 0, $entriesToRemove) as $file) {
             $this->deleteFile($file);
@@ -81,21 +82,33 @@ class CacheService implements CacheInterface
     private function deleteFile(string $file): void
     {
         if (is_file($file)) {
-            unlink($file);
+            @unlink($file);
         }
     }
 
     public function saveCachedContent(string $key, string $content): void
     {
-        $file = $this->cacheDir . $key . '.gz';
-        file_put_contents($file, gzcompress($content, 6));
+        $file = $this->cacheDir.$key.'.gz';
+        $compressed = gzcompress($content, 6);
+        if ($compressed === false) {
+            return;
+        }
+
+        $temporaryFile = tempnam($this->cacheDir, $key.'.');
+        if ($temporaryFile === false) {
+            return;
+        }
+
+        if (file_put_contents($temporaryFile, $compressed, LOCK_EX) === false || ! rename($temporaryFile, $file)) {
+            @unlink($temporaryFile);
+        }
     }
 
     public function clearCache(): void
     {
-        $files = glob($this->cacheDir . '*.gz');
+        $files = glob($this->cacheDir.'*.gz') ?: [];
         foreach ($files as $file) {
-            unlink($file);
+            $this->deleteFile($file);
         }
     }
 }

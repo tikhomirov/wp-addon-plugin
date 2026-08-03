@@ -7,12 +7,11 @@ use WpAddon\Services\OptionService;
 final class ControllerWP
 {
     private OptionService $optionService;
+
     private array $options;
 
     /**
      * Constructor
-     *
-     * @param OptionService $optionService
      */
     public function __construct(OptionService $optionService)
     {
@@ -25,15 +24,15 @@ final class ControllerWP
      */
     public function options_loader()
     {
-        if (!is_array($this->options)) {
+        if (! is_array($this->options)) {
             return;
         }
 
-		/**
-		 * @var string $key Option name
-		 * @var int|array|false $value Option value
-		 */
-	    foreach ($this->options as $key => $value) {
+        /**
+         * @var string $key Option name
+         * @var int|array|false $value Option value
+         */
+        foreach ($this->options as $key => $value) {
             if ($value == 1) {
                 $this->run($key); // 'plugins_loaded'
             } elseif (is_array($value)) { // block options
@@ -49,8 +48,7 @@ final class ControllerWP
     /**
      * Запускаем если есть такая функция
      *
-     * @param $function
-     * @param $settings
+     * @param  $settings
      */
     protected function run($function)
     {
@@ -59,6 +57,4 @@ final class ControllerWP
             add_action('init', $function, 1);
         }
     }
-
-
 }

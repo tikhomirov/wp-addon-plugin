@@ -2,7 +2,6 @@
 
 class DisableAutoUpdate
 {
-
     public function __construct()
     {
         add_action('admin_init', [&$this, 'admin_init']);
@@ -17,7 +16,6 @@ class DisableAutoUpdate
          */
         add_filter('pre_site_transient_update_themes', [$this, 'last_checked_atm']);
 
-
         /*
          * Disable Plugin Updates
          * 2.8 to 3.0
@@ -28,7 +26,6 @@ class DisableAutoUpdate
          */
         add_filter('pre_site_transient_update_plugins', [$this, 'last_checked_atm']);
 
-
         /*
          * Disable Core Updates
          * 2.8 to 3.0
@@ -38,7 +35,6 @@ class DisableAutoUpdate
          * 3.0
          */
         add_filter('pre_site_transient_update_core', [$this, 'last_checked_atm']);
-
 
         /*
          * Filter schedule checks
@@ -75,24 +71,23 @@ class DisableAutoUpdate
 
         add_filter('automatic_updates_send_debug_email ', '__return_false', 1);
 
-        if (!defined('AUTOMATIC_UPDATER_DISABLED')) {
+        if (! defined('AUTOMATIC_UPDATER_DISABLED')) {
             define('AUTOMATIC_UPDATER_DISABLED', true);
         }
 
-        if (!defined('WP_AUTO_UPDATE_CORE')) {
+        if (! defined('WP_AUTO_UPDATE_CORE')) {
             define('WP_AUTO_UPDATE_CORE', false);
         }
 
         add_filter('pre_http_request', [$this, 'block_request'], 10, 3);
     }
 
-
     /**
      * Initialize and load the plugin stuff
      */
-    function admin_init()
+    public function admin_init()
     {
-        if (!function_exists("remove_action")) {
+        if (! function_exists('remove_action')) {
             return;
         }
 
@@ -116,7 +111,6 @@ class DisableAutoUpdate
         remove_action('admin_notices', 'maintenance_nag');
         remove_action('network_admin_notices', 'maintenance_nag');
 
-
         /*
          * Disable Theme Updates
          * 2.8 to 3.0
@@ -127,13 +121,11 @@ class DisableAutoUpdate
         remove_action('wp_update_themes', 'wp_update_themes');
         wp_clear_scheduled_hook('wp_update_themes');
 
-
         /*
          * 3.0
          */
         remove_action('load-update-core.php', 'wp_update_themes');
         wp_clear_scheduled_hook('wp_update_themes');
-
 
         /*
          * Disable Plugin Updates
@@ -151,7 +143,6 @@ class DisableAutoUpdate
         remove_action('load-update-core.php', 'wp_update_plugins');
         wp_clear_scheduled_hook('wp_update_plugins');
 
-
         /*
          * Disable Core Updates
          * 2.8 to 3.0
@@ -162,12 +153,10 @@ class DisableAutoUpdate
         remove_action('admin_init', '_maybe_update_core');
         wp_clear_scheduled_hook('wp_version_check');
 
-
         /*
          * 3.0
          */
         wp_clear_scheduled_hook('wp_version_check');
-
 
         /*
          * 3.7+
@@ -180,7 +169,6 @@ class DisableAutoUpdate
         remove_all_filters('plugins_api');
     }
 
-
     /**
      * Hide update checks in the Site Health screen
      *
@@ -190,9 +178,9 @@ class DisableAutoUpdate
     {
         unset($tests['async']['background_updates']);
         unset($tests['direct']['plugin_theme_auto_updates']);
+
         return $tests;
     }
-
 
     /**
      * Add notice to admin bar when plugin is active
@@ -212,7 +200,6 @@ class DisableAutoUpdate
         ]);
     }
 
-
     /**
      * Apply CSS styles to admin bar notice
      *
@@ -225,7 +212,6 @@ class DisableAutoUpdate
             '.wp-admin-bar-dwuos-notice { background-color: rgba(190, 0, 0, 0.4) !important; } .wp-admin-bar-dwuos-notice .dashicons { font-family: dashicons !important; }'
         );
     }
-
 
     /**
      * Check the outgoing request
@@ -240,25 +226,24 @@ class DisableAutoUpdate
         }
 
         /* Invalid host */
-        if (!$host = parse_url($url, PHP_URL_HOST)) {
+        if (! $host = parse_url($url, PHP_URL_HOST)) {
             return $pre;
         }
 
         $url_data = parse_url($url);
 
         /* block request */
-        if (false !== stripos($host, 'api.wordpress.org') &&
+        if (stripos($host, 'api.wordpress.org') !== false &&
             isset($url_data['path']) &&
-            (false !== stripos($url_data['path'], 'update-check') ||
-                false !== stripos($url_data['path'], 'version-check') ||
-                false !== stripos($url_data['path'], 'browse-happy') ||
-                false !== stripos($url_data['path'], 'serve-happy'))) {
+            (stripos($url_data['path'], 'update-check') !== false ||
+                stripos($url_data['path'], 'version-check') !== false ||
+                stripos($url_data['path'], 'browse-happy') !== false ||
+                stripos($url_data['path'], 'serve-happy') !== false)) {
             return true;
         }
 
         return $pre;
     }
-
 
     /**
      * Filter cron events
@@ -275,9 +260,9 @@ class DisableAutoUpdate
                 $event = false;
                 break;
         }
+
         return $event;
     }
-
 
     /**
      * Override version check info
@@ -286,7 +271,7 @@ class DisableAutoUpdate
      */
     public function last_checked_atm($t)
     {
-        include(ABSPATH . WPINC . '/version.php');
+        include ABSPATH.WPINC.'/version.php';
         global $wp_version;
 
         $current = new stdClass;
@@ -298,6 +283,7 @@ class DisableAutoUpdate
     }
 }
 
-function disable_auto_update(){
-    return new DisableAutoUpdate();
+function disable_auto_update()
+{
+    return new DisableAutoUpdate;
 }

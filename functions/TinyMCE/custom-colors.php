@@ -5,10 +5,11 @@ function tiny_custom_colors()
 
     /**
      * Change Base colors for Tiny MCE
-     * @param $init
+     *
+     * @param  $init
      * @return mixed
      */
-    add_filter('tiny_mce_before_init', function( array $init){
+    add_filter('tiny_mce_before_init', function (array $init) {
         $media_colors = '
             "319cde", "Primary",
             "1f2e3f", "Secondary",
@@ -28,8 +29,9 @@ function tiny_custom_colors()
             "8E8E8E", "Base Emails"
           ';
 
-        $init['textcolor_map'] = '[ ' . $media_colors . ', ' . $colors . ']';
+        $init['textcolor_map'] = '[ '.$media_colors.', '.$colors.']';
         $init['textcolor_rows'] = 2;
+
         return $init;
     });
 }

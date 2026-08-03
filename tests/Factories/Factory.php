@@ -11,6 +11,7 @@ use Faker\Generator;
 abstract class Factory
 {
     protected Generator $faker;
+
     protected array $attributes = [];
 
     public function __construct()
@@ -24,6 +25,7 @@ abstract class Factory
     public function create(array $attributes = []): mixed
     {
         $data = array_merge($this->definition(), $attributes);
+
         return $this->createInstance($data);
     }
 
@@ -36,6 +38,7 @@ abstract class Factory
         for ($i = 0; $i < $count; $i++) {
             $instances[] = $this->create($attributes);
         }
+
         return $instances;
     }
 

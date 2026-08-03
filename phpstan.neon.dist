@@ -1,0 +1,15 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 2
+    paths:
+        - src/Core/Plugin.php
+        - src/Services/CacheService.php
+        - src/Services/ImageOptimizationService.php
+        - functions/PageCache.php
+        - functions/LazyLoading.php
+        - functions/Redirects.php
+    scanFiles:
+        - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+        - phpstan-bootstrap.php

@@ -1,11 +1,11 @@
 <?php
+
 /*
 Plugin Name: Disable nofollow
 Description: Disable nofollow for this blog
 Author: Alex Tikhomirov
 Version: 1.0
 */
-
 
 function disable_comment_nofollow()
 {

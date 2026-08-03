@@ -2,25 +2,29 @@
 
 namespace WpAddon;
 
-use WpAddon\Services\OptionService;
 use WpAddon\Services\AssetService;
+use WpAddon\Services\OptionService;
 
 final class FrontWP
 {
     private OptionService $optionService;
+
     private AssetService $assetService;
+
     private array $options;
+
     private string $file;
+
     private string $path;
+
     private string $url;
+
     private string $name;
+
     private string $ver;
 
     /**
      * Constructor
-     *
-     * @param OptionService $optionService
-     * @param AssetService $assetService
      */
     public function __construct(OptionService $optionService, AssetService $assetService)
     {
@@ -47,7 +51,6 @@ final class FrontWP
         add_action('wp_footer', [__CLASS__, 'add_wp_footer'], 10, 0);
     }
 
-
     public function action_add_meta()
     {
         if (empty($this->options)) {
@@ -55,15 +58,15 @@ final class FrontWP
         }
         foreach ($this->options as $option => $value) {
             if (is_string($option) && $option === 'meta_tags') {
-                if (!is_array($value)) {
+                if (! is_array($value)) {
                     continue;
                 }
                 foreach ($value as $val) {
-                    if (!is_array($val)) {
+                    if (! is_array($val)) {
                         continue;
                     }
                     foreach ($val as $item) {
-                        if (!is_array($item)) {
+                        if (! is_array($item)) {
                             continue;
                         }
                         echo $item;
@@ -75,31 +78,30 @@ final class FrontWP
 
     public function add_header_js()
     {
-        if (!empty($this->options['rw_header_js'])) {
+        if (! empty($this->options['rw_header_js'])) {
             echo '<script>'.$this->options['rw_header_js'].'</script>';
         }
     }
 
     public function add_header_css()
     {
-        if (!empty($this->options['rw_header_css'])) {
+        if (! empty($this->options['rw_header_css'])) {
             echo '<style type="text/css">'.
                 $this->options['rw_header_css'].
                 '</style>';
         }
     }
 
-
     public function rw_header_html()
     {
-        if (!empty($this->options['rw_header_html'])) {
+        if (! empty($this->options['rw_header_html'])) {
             echo $this->options['rw_header_html'];
         }
     }
 
     public function rw_footer_html()
     {
-        if (!empty($this->options['rw_footer_html'])) {
+        if (! empty($this->options['rw_footer_html'])) {
             echo $this->options['rw_footer_html'];
         }
     }
@@ -109,10 +111,8 @@ final class FrontWP
         $this->assetService->enqueueScripts();
     }
 
-
     public static function add_wp_footer()
     {
         do_action('add_front');
     }
-
 }

@@ -16,6 +16,6 @@ return [
         'jquery',
         'jquery-core',
     ],
-    'cache_dir' => WP_CONTENT_DIR . '/cache/assets/',
+    'cache_dir' => WP_CONTENT_DIR.'/cache/assets/',
     'version_salt' => 'wp-addon-v1',
 ];

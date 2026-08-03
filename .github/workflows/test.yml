@@ -74,8 +74,8 @@ jobs:
         cd /tmp/wordpress-develop
         php tests/phpunit/includes/install.php wp-tests-config.php
 
-    - name: Run tests
-      run: composer test -- --exclude-group problematic
+    - name: Run quality checks
+      run: composer quality
 
     - name: Run tests with coverage
       run: composer test:coverage

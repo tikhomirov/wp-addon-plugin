@@ -1,18 +1,18 @@
 <?php
 
-use WpAddon\Tests\Factories\PostFactory;
 use WpAddon\Tests\Factories\AssetFactory;
+use WpAddon\Tests\Factories\PostFactory;
 
 describe('Factories', function () {
     beforeEach(function () {
         global $db;
-        if (!isset($db)) {
+        if (! isset($db)) {
             $db = new PDO('sqlite::memory:');
             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         }
     });
     it('creates posts with PostFactory', function () {
-        $factory = new PostFactory();
+        $factory = new PostFactory;
         $post = $factory->create(['post_title' => 'Test Post']);
 
         expect($post)->toBeInt();
@@ -20,7 +20,7 @@ describe('Factories', function () {
     });
 
     it('creates multiple posts', function () {
-        $factory = new PostFactory();
+        $factory = new PostFactory;
         $posts = $factory->createMany(3);
 
         expect($posts)->toBeArray();
@@ -33,7 +33,7 @@ describe('Factories', function () {
     });
 
     it('creates assets with AssetFactory', function () {
-        $factory = new AssetFactory();
+        $factory = new AssetFactory;
         $asset = $factory->create(['handle' => 'test-asset']);
 
         expect($asset)->toBeArray();
@@ -42,7 +42,7 @@ describe('Factories', function () {
     });
 
     it('creates CSS assets', function () {
-        $factory = new AssetFactory();
+        $factory = new AssetFactory;
         $factory->asCss();
         $asset = $factory->create();
 
@@ -52,7 +52,7 @@ describe('Factories', function () {
     });
 
     it('creates JS assets', function () {
-        $factory = new AssetFactory();
+        $factory = new AssetFactory;
         $factory->asJs();
         $asset = $factory->create();
 

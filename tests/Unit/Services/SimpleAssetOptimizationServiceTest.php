@@ -1,11 +1,11 @@
 <?php
 
+use WpAddon\Services\AssetOptimizationService;
+
 describe('SimpleAssetOptimizationService', function () {
-    $service;
-    $cacheDir;
 
     beforeEach(function () {
-        $this->cacheDir = sys_get_temp_dir() . '/wp_addon_simple_test_cache_' . uniqid();
+        $this->cacheDir = sys_get_temp_dir().'/wp_addon_simple_test_cache_'.uniqid();
         mkdir($this->cacheDir, 0755, true);
 
         $config = [
@@ -17,16 +17,16 @@ describe('SimpleAssetOptimizationService', function () {
             'combine_js' => true,
             'critical_css_enabled' => true,
             'exclude_css' => [],
-            'exclude_js' => []
+            'exclude_js' => [],
         ];
 
-        $this->service = new \WpAddon\Services\AssetOptimizationService($config);
+        $this->service = new AssetOptimizationService($config);
     });
 
     afterEach(function () {
         // Clean up cache directory
         if (is_dir($this->cacheDir)) {
-            $files = glob($this->cacheDir . '/*');
+            $files = glob($this->cacheDir.'/*');
             foreach ($files as $file) {
                 unlink($file);
             }
@@ -35,24 +35,24 @@ describe('SimpleAssetOptimizationService', function () {
     });
 
     it('minifies basic CSS', function () {
-        $css = "
+        $css = '
         .test-class {
             color: #ff0000;
             font-size: 14px;
         }
         .another { margin: 0; }
-        ";
+        ';
 
         $minified = $this->service->minifyCss($css);
 
         // Check that CSS is minified
         expect(strpos($minified, "\n"))->toBeFalse();
-        expect(strpos($minified, "  "))->toBeFalse();
+        expect(strpos($minified, '  '))->toBeFalse();
         expect(strpos($minified, '.test-class{color:#ff0000;font-size:14px}.another{margin:0}'))->not->toBeFalse();
     });
 
     it('removes comments from CSS', function () {
-        $css = "/* This is a comment */ .test { color: red; } /* Another comment */";
+        $css = '/* This is a comment */ .test { color: red; } /* Another comment */';
         $minified = $this->service->minifyCss($css);
 
         expect(strpos($minified, '/*'))->toBeFalse();
@@ -61,23 +61,23 @@ describe('SimpleAssetOptimizationService', function () {
     });
 
     it('minifies basic JS', function () {
-        $js = "
+        $js = '
         function test() {
             var a = 1;
             return a + 2;
         }
-        ";
+        ';
 
         $minified = $this->service->minifyJs($js);
 
         // Check that JS is minified
         expect(strpos($minified, "\n"))->toBeFalse();
-        expect(strpos($minified, "  "))->toBeFalse();
+        expect(strpos($minified, '  '))->toBeFalse();
         expect(strpos($minified, 'function test(){var a=1;return a+2;}'))->not->toBeFalse();
     });
 
     it('removes comments from JS', function () {
-        $js = "/* Block comment */ function test() { return 1; } // Line comment";
+        $js = '/* Block comment */ function test() { return 1; } // Line comment';
         $minified = $this->service->minifyJs($js);
 
         expect(strpos($minified, '/*'))->toBeFalse();
@@ -126,12 +126,12 @@ describe('SimpleAssetOptimizationService', function () {
     });
 
     it('extracts critical CSS', function () {
-        $css = "
+        $css = '
         .header { position: fixed; background: white; }
         .content { margin-top: 100px; }
         .footer { position: absolute; bottom: 0; }
         .nav { display: block; }
-        ";
+        ';
 
         $criticalCss = $this->service->extractCriticalCss($css);
 

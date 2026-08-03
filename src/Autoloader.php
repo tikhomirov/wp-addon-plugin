@@ -17,14 +17,12 @@ class Autoloader
 
     /**
      * Autoload function
-     *
-     * @param string $class
      */
     public static function autoload(string $class): void
     {
         if (strpos($class, 'WpAddon\\') === 0) {
             $relativePath = str_replace('WpAddon\\', '', $class);
-            $filePath = __DIR__ . '/' . str_replace('\\', '/', $relativePath) . '.php';
+            $filePath = __DIR__.'/'.str_replace('\\', '/', $relativePath).'.php';
 
             if (file_exists($filePath)) {
                 require_once $filePath;

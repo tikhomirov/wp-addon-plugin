@@ -9,8 +9,9 @@ describe('LazyLoading Unit Tests', function () {
     beforeEach(function () {
         $this->mockOptionService = Mockery::mock('WpAddon\Services\OptionService');
         $this->mockOptionService->shouldReceive('getSetting')
-            ->andReturnUsing(function($key, $default = null) {
+            ->andReturnUsing(function ($key, $default = null) {
                 $config = ['enable_lazy_loading' => true];
+
                 return $config[$key] ?? $default;
             });
     });
@@ -109,5 +110,33 @@ describe('LazyLoading Unit Tests', function () {
         expect($result)->toContain('height="100"');
         expect($result)->toContain('class="existing-class lazy-img"');
         expect($result)->toContain('id="test-img"');
+    });
+
+    it('defers responsive images without losing sizes', function () {
+        $lazyLoading = new LazyLoading($this->mockOptionService);
+
+        $result = $lazyLoading->processContent('<img src="/image.jpg" srcset="/image-400.jpg 400w, /image-800.jpg 800w" sizes="(max-width: 600px) 100vw, 600px">');
+
+        expect($result)->toContain('data-src="/image.jpg"');
+        expect($result)->toContain('data-srcset="/image-400.jpg 400w, /image-800.jpg 800w"');
+        expect($result)->toContain('sizes="(max-width: 600px) 100vw, 600px"');
+        expect($result)->not()->toMatch('/\ssrcset=/');
+    });
+
+    it('supports single quoted attributes and remains idempotent', function () {
+        $lazyLoading = new LazyLoading($this->mockOptionService);
+
+        $result = $lazyLoading->processContent("<img src='/image.jpg' alt='A &quot;quoted&quot; image'>");
+
+        expect($result)->toContain('data-src="/image.jpg"');
+        expect($lazyLoading->processContent($result))->toBe($result);
+    });
+
+    it('matches no-lazy as a complete CSS class', function () {
+        $lazyLoading = new LazyLoading($this->mockOptionService);
+
+        $result = $lazyLoading->processContent('<img src="/image.jpg" class="not-no-lazy">');
+
+        expect($result)->toContain('data-src="/image.jpg"');
     });
 });
