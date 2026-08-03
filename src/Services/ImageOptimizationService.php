@@ -10,10 +10,10 @@ class ImageOptimizationService
     /**
      * Generate blur placeholder for image
      *
-     * @param string $imagePath Path to the image file
-     * @param int $blurIntensity Blur intensity (1-20, default 5)
-     * @param int $thumbnailSize Maximum thumbnail size in pixels (default 50)
-     * @param int $quality JPEG quality (1-100, default 70)
+     * @param  string  $imagePath  Path to the image file
+     * @param  int  $blurIntensity  Blur intensity (1-20, default 5)
+     * @param  int  $thumbnailSize  Maximum thumbnail size in pixels (default 50)
+     * @param  int  $quality  JPEG quality (1-100, default 70)
      * @return string Base64 encoded blur placeholder or empty string on error
      */
     public function generateBlurPlaceholder(
@@ -23,8 +23,12 @@ class ImageOptimizationService
         int $quality = 70
     ): string {
         try {
+            if (! $this->isGdAvailable()) {
+                return '';
+            }
+
             // Validate input parameters
-            if (!file_exists($imagePath) || !is_readable($imagePath)) {
+            if (! file_exists($imagePath) || ! is_readable($imagePath)) {
                 return '';
             }
 
@@ -34,17 +38,20 @@ class ImageOptimizationService
 
             // Get image info
             $imageInfo = @getimagesize($imagePath);
-            if (!$imageInfo) {
+            if (! $imageInfo) {
                 return '';
             }
 
             $originalWidth = $imageInfo[0];
             $originalHeight = $imageInfo[1];
+            if ($originalWidth < 1 || $originalHeight < 1) {
+                return '';
+            }
             $mimeType = $imageInfo['mime'] ?? '';
 
             // Load image based on type
             $sourceImage = $this->loadImage($imagePath, $mimeType);
-            if (!$sourceImage) {
+            if (! $sourceImage) {
                 return '';
             }
 
@@ -53,17 +60,18 @@ class ImageOptimizationService
             if ($aspectRatio > 1) {
                 // Landscape
                 $thumbWidth = $thumbnailSize;
-                $thumbHeight = (int)($thumbnailSize / $aspectRatio);
+                $thumbHeight = (int) ($thumbnailSize / $aspectRatio);
             } else {
                 // Portrait or square
-                $thumbWidth = (int)($thumbnailSize * $aspectRatio);
+                $thumbWidth = (int) ($thumbnailSize * $aspectRatio);
                 $thumbHeight = $thumbnailSize;
             }
 
             // Create thumbnail
             $thumbnail = imagecreatetruecolor($thumbWidth, $thumbHeight);
-            if (!$thumbnail) {
+            if (! $thumbnail) {
                 imagedestroy($sourceImage);
+
                 return '';
             }
 
@@ -76,9 +84,10 @@ class ImageOptimizationService
             }
 
             // Resize image
-            if (!imagecopyresampled($thumbnail, $sourceImage, 0, 0, 0, 0, $thumbWidth, $thumbHeight, $originalWidth, $originalHeight)) {
+            if (! imagecopyresampled($thumbnail, $sourceImage, 0, 0, 0, 0, $thumbWidth, $thumbHeight, $originalWidth, $originalHeight)) {
                 imagedestroy($sourceImage);
                 imagedestroy($thumbnail);
+
                 return '';
             }
 
@@ -87,19 +96,20 @@ class ImageOptimizationService
             // Apply blur effect
             if ($blurIntensity > 1) {
                 $thumbnail = $this->applyBlur($thumbnail, $blurIntensity);
-                if (!$thumbnail) {
+                if (! $thumbnail) {
                     return '';
                 }
             }
 
             // Convert to base64
-            $base64Data = $this->imageToBase64($thumbnail, $quality);
+            $base64Data = $this->imageToBase64($thumbnail, $quality, $mimeType);
             imagedestroy($thumbnail);
 
             return $base64Data;
 
-        } catch (\Exception $e) {
-            error_log('ImageOptimizationService error: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            error_log('ImageOptimizationService error: '.$e->getMessage());
+
             return '';
         }
     }
@@ -107,8 +117,6 @@ class ImageOptimizationService
     /**
      * Load image from file based on MIME type
      *
-     * @param string $imagePath
-     * @param string $mimeType
      * @return resource|\GdImage|null
      */
     private function loadImage(string $imagePath, string $mimeType)
@@ -131,18 +139,27 @@ class ImageOptimizationService
         return null;
     }
 
+    private function isGdAvailable(): bool
+    {
+        return function_exists('imagecreatetruecolor')
+            && function_exists('imagecopyresampled')
+            && function_exists('imagefilter')
+            && function_exists('imagejpeg')
+            && function_exists('imagepng')
+            && function_exists('imagedestroy');
+    }
+
     /**
      * Apply blur effect to image
      *
-     * @param resource|\GdImage $image
-     * @param int $intensity
+     * @param  resource|\GdImage  $image
      * @return resource|\GdImage|null
      */
     private function applyBlur($image, int $intensity)
     {
         // Simple blur implementation using imagefilter
         for ($i = 0; $i < $intensity; $i++) {
-            if (!imagefilter($image, IMG_FILTER_GAUSSIAN_BLUR)) {
+            if (! imagefilter($image, IMG_FILTER_GAUSSIAN_BLUR)) {
                 return null;
             }
         }
@@ -153,55 +170,61 @@ class ImageOptimizationService
     /**
      * Convert image to base64 string
      *
-     * @param resource|\GdImage $image
-     * @param int $quality
-     * @return string
+     * @param  resource|\GdImage  $image
      */
-    private function imageToBase64($image, int $quality): string
+    private function imageToBase64($image, int $quality, string $mimeType = 'image/jpeg'): string
     {
         ob_start();
-        imagejpeg($image, null, $quality);
+        if ($mimeType === 'image/png') {
+            imagepng($image, null, 8);
+        } else {
+            imagejpeg($image, null, $quality);
+        }
         $imageData = ob_get_clean();
 
-        if (!$imageData) {
+        if (! $imageData) {
             return '';
         }
 
-        return 'data:image/jpeg;base64,' . base64_encode($imageData);
+        return 'data:'.($mimeType === 'image/png' ? 'image/png' : 'image/jpeg').';base64,'.base64_encode($imageData);
     }
 
     /**
      * Optimize image file (reduce size without quality loss)
      *
-     * @param string $imagePath
-     * @param int $quality JPEG quality (1-100, default 85)
+     * @param  int  $quality  JPEG quality (1-100, default 85)
      * @return bool Success
      */
     public function optimizeImage(string $imagePath, int $quality = 85): bool
     {
         try {
-            if (!file_exists($imagePath) || !is_writable($imagePath)) {
+            if (! $this->isGdAvailable()) {
+                return false;
+            }
+
+            if (! file_exists($imagePath) || ! is_writable($imagePath)) {
                 return false;
             }
 
             $imageInfo = @getimagesize($imagePath);
-            if (!$imageInfo) {
+            if (! $imageInfo) {
                 return false;
             }
 
             $mimeType = $imageInfo['mime'] ?? '';
             $sourceImage = $this->loadImage($imagePath, $mimeType);
 
-            if (!$sourceImage) {
+            if (! $sourceImage) {
                 return false;
             }
 
             $quality = max(1, min(100, $quality));
 
             // Create temporary file
-            $tempFile = tempnam(sys_get_temp_dir(), 'wp_addon_opt_');
-            if (!$tempFile) {
+            $tempFile = tempnam(dirname($imagePath), '.wp_addon_opt_');
+            if (! $tempFile) {
                 imagedestroy($sourceImage);
+
                 return false;
             }
 
@@ -227,17 +250,18 @@ class ImageOptimizationService
 
             if ($success && filesize($tempFile) < filesize($imagePath)) {
                 // Replace original file if optimized version is smaller
-                if (copy($tempFile, $imagePath)) {
-                    unlink($tempFile);
+                if (rename($tempFile, $imagePath)) {
                     return true;
                 }
             }
 
             unlink($tempFile);
-            return $success;
 
-        } catch (\Exception $e) {
-            error_log('ImageOptimizationService optimizeImage error: ' . $e->getMessage());
+            return false;
+
+        } catch (\Throwable $e) {
+            error_log('ImageOptimizationService optimizeImage error: '.$e->getMessage());
+
             return false;
         }
     }
@@ -245,8 +269,7 @@ class ImageOptimizationService
     /**
      * Generate responsive image thumbnails
      *
-     * @param string $imagePath
-     * @param array $sizes Array of sizes ['width' => height] or ['width']
+     * @param  array  $sizes  Array of sizes ['width' => height] or ['width']
      * @return array Array of generated thumbnail paths
      */
     public function generateThumbnails(string $imagePath, array $sizes): array
@@ -254,12 +277,12 @@ class ImageOptimizationService
         $thumbnails = [];
 
         try {
-            if (!file_exists($imagePath)) {
+            if (! file_exists($imagePath)) {
                 return $thumbnails;
             }
 
             $imageInfo = @getimagesize($imagePath);
-            if (!$imageInfo) {
+            if (! $imageInfo) {
                 return $thumbnails;
             }
 
@@ -268,7 +291,7 @@ class ImageOptimizationService
             $mimeType = $imageInfo['mime'] ?? '';
 
             $sourceImage = $this->loadImage($imagePath, $mimeType);
-            if (!$sourceImage) {
+            if (! $sourceImage) {
                 return $thumbnails;
             }
 
@@ -281,18 +304,18 @@ class ImageOptimizationService
                     $thumbHeight = null;
                 }
 
-                if (!$thumbWidth) {
+                if (! $thumbWidth) {
                     continue;
                 }
 
                 // Calculate height maintaining aspect ratio if not specified
-                if (!$thumbHeight) {
+                if (! $thumbHeight) {
                     $aspectRatio = $originalWidth / $originalHeight;
-                    $thumbHeight = (int)($thumbWidth / $aspectRatio);
+                    $thumbHeight = (int) ($thumbWidth / $aspectRatio);
                 }
 
                 $thumbnail = imagecreatetruecolor($thumbWidth, $thumbHeight);
-                if (!$thumbnail) {
+                if (! $thumbnail) {
                     continue;
                 }
 
@@ -308,7 +331,7 @@ class ImageOptimizationService
                 if (imagecopyresampled($thumbnail, $sourceImage, 0, 0, 0, 0, $thumbWidth, $thumbHeight, $originalWidth, $originalHeight)) {
                     // Generate filename
                     $pathInfo = pathinfo($imagePath);
-                    $thumbnailPath = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '-' . $thumbWidth . 'x' . $thumbHeight . '.' . $pathInfo['extension'];
+                    $thumbnailPath = $pathInfo['dirname'].'/'.$pathInfo['filename'].'-'.$thumbWidth.'x'.$thumbHeight.'.'.$pathInfo['extension'];
 
                     // Save thumbnail
                     $saved = false;
@@ -338,7 +361,7 @@ class ImageOptimizationService
             imagedestroy($sourceImage);
 
         } catch (\Exception $e) {
-            error_log('ImageOptimizationService generateThumbnails error: ' . $e->getMessage());
+            error_log('ImageOptimizationService generateThumbnails error: '.$e->getMessage());
         }
 
         return $thumbnails;

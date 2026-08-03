@@ -3,7 +3,6 @@
 use WpAddon\Interfaces\ModuleInterface;
 use WpAddon\Traits\AjaxTrait;
 use WpAddon\Traits\WidgetTrait;
-use WpAddon\Traits\HookTrait;
 
 describe('Module System', function () {
     it('has ModuleInterface', function () {
@@ -17,9 +16,12 @@ describe('Module System', function () {
     });
 
     it('AjaxTrait has methods', function () {
-        $mock = new class implements ModuleInterface {
+        $mock = new class implements ModuleInterface
+        {
             use AjaxTrait;
+
             public function init(): void {}
+
             public function handleAjax(): void {}
         };
 
@@ -27,9 +29,12 @@ describe('Module System', function () {
     });
 
     it('WidgetTrait has methods', function () {
-        $mock = new class implements ModuleInterface {
+        $mock = new class implements ModuleInterface
+        {
             use WidgetTrait;
+
             public function init(): void {}
+
             public function widget($args, $instance): void {}
         };
 
@@ -37,17 +42,13 @@ describe('Module System', function () {
     });
 
     it('Redirects module works', function () {
-        // Assume class is autoloaded
-        if (class_exists('Redirects')) {
-            expect(class_exists('Redirects'))->toBeTrue();
-            expect(is_subclass_of('Redirects', 'WpAddon\Interfaces\ModuleInterface'))->toBeTrue();
+        require_once dirname(__DIR__, 2).'/functions/Redirects.php';
 
-            $redirects = new Redirects();
-            expect($redirects)->toBeInstanceOf(ModuleInterface::class);
-            expect(method_exists($redirects, 'init'))->toBeTrue();
-        } else {
-            // Skip if not available
-            expect(true)->toBeTrue();
-        }
+        expect(class_exists('Redirects'))->toBeTrue();
+        expect(is_subclass_of('Redirects', 'WpAddon\Interfaces\ModuleInterface'))->toBeTrue();
+
+        $redirects = new Redirects;
+        expect($redirects)->toBeInstanceOf(ModuleInterface::class);
+        expect(method_exists($redirects, 'init'))->toBeTrue();
     });
 });
