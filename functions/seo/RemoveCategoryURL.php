@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name: Remove Category URL
  * Description: This plugin removes '/category' from your category permalinks. (e.g. `/category/my-category/` to `/my-category/`)
@@ -6,26 +7,25 @@
  * Text Domain: remove-category-url
  * Domain Path: /languages
  */
-
 class RemoveCategoryURL
 {
-
     /**
      * Class constructor.
      */
-    public function __construct() {
-        
-        add_filter( 'query_vars',   [ $this, 'query_vars' ] );
-        add_filter( 'term_link',    [ $this, 'no_category_base' ], 10, 3 );
-        add_filter( 'request',      [ $this, 'request' ] );
+    public function __construct()
+    {
 
-        add_filter( 'category_rewrite_rules', [ $this, 'category_rewrite_rules' ] );
+        add_filter('query_vars', [$this, 'query_vars']);
+        add_filter('term_link', [$this, 'no_category_base'], 10, 3);
+        add_filter('request', [$this, 'request']);
 
-        add_action( 'created_category', [ $this, 'schedule_flush' ] );
-        add_action( 'edited_category',  [ $this, 'schedule_flush' ] );
-        add_action( 'delete_category',  [ $this, 'schedule_flush' ] );
+        add_filter('category_rewrite_rules', [$this, 'category_rewrite_rules']);
 
-        add_action( 'init', [ $this, 'flush' ], PHP_INT_MAX );
+        add_action('created_category', [$this, 'schedule_flush']);
+        add_action('edited_category', [$this, 'schedule_flush']);
+        add_action('delete_category', [$this, 'schedule_flush']);
+
+        add_action('init', [$this, 'flush'], PHP_INT_MAX);
     }
 
     /**
@@ -33,8 +33,9 @@ class RemoveCategoryURL
      *
      * @since 1.2.8
      */
-    public function schedule_flush() {
-        update_option( 'flush_rewrite', 1 );
+    public function schedule_flush()
+    {
+        update_option('flush_rewrite', 1);
     }
 
     /**
@@ -44,10 +45,12 @@ class RemoveCategoryURL
      *
      * @return bool
      */
-    public function flush() {
-        if ( get_option( 'flush_rewrite' ) ) {
-            add_action( 'shutdown', 'flush_rewrite_rules' );
-            delete_option( 'flush_rewrite' );
+    public function flush()
+    {
+        if (get_option('flush_rewrite')) {
+            add_action('shutdown', 'flush_rewrite_rules');
+            delete_option('flush_rewrite');
+
             return true;
         }
 
@@ -57,56 +60,58 @@ class RemoveCategoryURL
     /**
      * Override the category link to remove the category base.
      *
-     * @param string  $link     Term link, overridden by the function for categories.
-     * @param WP_Term $term     Unused, term object.
-     * @param string  $taxonomy Taxonomy slug.
-     *
+     * @param  string  $link  Term link, overridden by the function for categories.
+     * @param  WP_Term  $term  Unused, term object.
+     * @param  string  $taxonomy  Taxonomy slug.
      * @return string
      */
-    public function no_category_base( $link, $term, $taxonomy ) {
-        if ( $taxonomy !== 'category' ) {
+    public function no_category_base($link, $term, $taxonomy)
+    {
+        if ($taxonomy !== 'category') {
             return $link;
         }
-        $category_base = get_option( 'category_base' );
-        if ( empty( $category_base ) ) {
+        $category_base = get_option('category_base');
+        if (empty($category_base)) {
             $category_base = 'category';
         }
         /*
          * Remove initial slash, if there is one (we remove the trailing slash
          * in the regex replacement and don't want to end up short a slash).
          */
-        if ( substr( $category_base, 0, 1 ) === '/' ) {
-            $category_base = substr( $category_base, 1 );
+        if (substr($category_base, 0, 1) === '/') {
+            $category_base = substr($category_base, 1);
         }
         $category_base .= '/';
-        return preg_replace( '`' . preg_quote( $category_base, '`' ) . '`u', '', $link, 1 );
+
+        return preg_replace('`'.preg_quote($category_base, '`').'`u', '', $link, 1);
     }
 
     /**
      * Update the query vars with the redirect var when stripcategorybase is active.
      *
-     * @param array $query_vars Main query vars to filter.
-     *
+     * @param  array  $query_vars  Main query vars to filter.
      * @return array
      */
-    public function query_vars( $query_vars ) {
+    public function query_vars($query_vars)
+    {
         $query_vars[] = 'category_redirect';
+
         return $query_vars;
     }
 
     /**
      * Checks whether the redirect needs to be created.
      *
-     * @param array $query_vars Query vars to check for existence of redirect var.
-     *
+     * @param  array  $query_vars  Query vars to check for existence of redirect var.
      * @return array|void The query vars.
      */
-    public function request( $query_vars ) {
-        if ( ! isset( $query_vars['category_redirect'] ) ) {
+    public function request($query_vars)
+    {
+        if (! isset($query_vars['category_redirect'])) {
             return $query_vars;
         }
 
-        $this->redirect( $query_vars['category_redirect'] );
+        $this->redirect($query_vars['category_redirect']);
     }
 
     /**
@@ -114,52 +119,52 @@ class RemoveCategoryURL
      *
      * @return array
      */
-    public function category_rewrite_rules() {
+    public function category_rewrite_rules()
+    {
         global $wp_rewrite;
 
         $category_rewrite = [];
 
-        $taxonomy            = get_taxonomy( 'category' );
-        $permalink_structure = get_option( 'permalink_structure' );
+        $taxonomy = get_taxonomy('category');
+        $permalink_structure = get_option('permalink_structure');
 
         $blog_prefix = '';
-        if ( is_multisite() && ! is_subdomain_install() && is_main_site() && strpos( $permalink_structure, '/blog/' ) === 0 ) {
+        if (is_multisite() && ! is_subdomain_install() && is_main_site() && strpos($permalink_structure, '/blog/') === 0) {
             $blog_prefix = 'blog/';
         }
 
-        $categories = get_categories( [ 'hide_empty' => false ] );
-        if ( is_array( $categories ) && $categories !== [] ) {
-            foreach ( $categories as $category ) {
+        $categories = get_categories(['hide_empty' => false]);
+        if (is_array($categories) && $categories !== []) {
+            foreach ($categories as $category) {
                 $category_nicename = $category->slug;
-                if ( $category->parent === $category->cat_ID ) {
+                if ($category->parent === $category->cat_ID) {
                     // Recursive recursion.
                     $category->parent = 0;
-                }
-                elseif ( $taxonomy->rewrite['hierarchical'] !== false && $category->parent !== 0 ) {
-                    $parents = get_category_parents( $category->parent, false, '/', true );
-                    if ( ! is_wp_error( $parents ) ) {
-                        $category_nicename = $parents . $category_nicename;
+                } elseif ($taxonomy->rewrite['hierarchical'] !== false && $category->parent !== 0) {
+                    $parents = get_category_parents($category->parent, false, '/', true);
+                    if (! is_wp_error($parents)) {
+                        $category_nicename = $parents.$category_nicename;
                     }
-                    unset( $parents );
+                    unset($parents);
                 }
 
-                $category_rewrite = $this->add_category_rewrites( $category_rewrite, $category_nicename, $blog_prefix, $wp_rewrite->pagination_base );
+                $category_rewrite = $this->add_category_rewrites($category_rewrite, $category_nicename, $blog_prefix, $wp_rewrite->pagination_base);
 
                 // Adds rules for the uppercase encoded URIs.
-                $category_nicename_filtered = $this->convert_encoded_to_upper( $category_nicename );
+                $category_nicename_filtered = $this->convert_encoded_to_upper($category_nicename);
 
-                if ( $category_nicename_filtered !== $category_nicename ) {
-                    $category_rewrite = $this->add_category_rewrites( $category_rewrite, $category_nicename_filtered, $blog_prefix, $wp_rewrite->pagination_base );
+                if ($category_nicename_filtered !== $category_nicename) {
+                    $category_rewrite = $this->add_category_rewrites($category_rewrite, $category_nicename_filtered, $blog_prefix, $wp_rewrite->pagination_base);
                 }
             }
-            unset( $categories, $category, $category_nicename, $category_nicename_filtered );
+            unset($categories, $category, $category_nicename, $category_nicename_filtered);
         }
 
         // Redirect support from Old Category Base.
-        $old_base                            = $wp_rewrite->get_category_permastruct();
-        $old_base                            = str_replace( '%category%', '(.+)', $old_base );
-        $old_base                            = trim( $old_base, '/' );
-        $category_rewrite[ $old_base . '$' ] = 'index.php?category_redirect=$matches[1]';
+        $old_base = $wp_rewrite->get_category_permastruct();
+        $old_base = str_replace('%category%', '(.+)', $old_base);
+        $old_base = trim($old_base, '/');
+        $category_rewrite[$old_base.'$'] = 'index.php?category_redirect=$matches[1]';
 
         return $category_rewrite;
     }
@@ -167,19 +172,19 @@ class RemoveCategoryURL
     /**
      * Adds required category rewrites rules.
      *
-     * @param array  $rewrites        The current set of rules.
-     * @param string $category_name   Category nicename.
-     * @param string $blog_prefix     Multisite blog prefix.
-     * @param string $pagination_base WP_Query pagination base.
-     *
+     * @param  array  $rewrites  The current set of rules.
+     * @param  string  $category_name  Category nicename.
+     * @param  string  $blog_prefix  Multisite blog prefix.
+     * @param  string  $pagination_base  WP_Query pagination base.
      * @return array The added set of rules.
      */
-    protected function add_category_rewrites( $rewrites, $category_name, $blog_prefix, $pagination_base ) {
-        $rewrite_name = $blog_prefix . '(' . $category_name . ')';
+    protected function add_category_rewrites($rewrites, $category_name, $blog_prefix, $pagination_base)
+    {
+        $rewrite_name = $blog_prefix.'('.$category_name.')';
 
-        $rewrites[ $rewrite_name . '/(?:feed/)?(feed|rdf|rss|rss2|atom)/?$' ]    = 'index.php?category_name=$matches[1]&feed=$matches[2]';
-        $rewrites[ $rewrite_name . '/' . $pagination_base . '/?([0-9]{1,})/?$' ] = 'index.php?category_name=$matches[1]&paged=$matches[2]';
-        $rewrites[ $rewrite_name . '/?$' ]                                       = 'index.php?category_name=$matches[1]';
+        $rewrites[$rewrite_name.'/(?:feed/)?(feed|rdf|rss|rss2|atom)/?$'] = 'index.php?category_name=$matches[1]&feed=$matches[2]';
+        $rewrites[$rewrite_name.'/'.$pagination_base.'/?([0-9]{1,})/?$'] = 'index.php?category_name=$matches[1]&paged=$matches[2]';
+        $rewrites[$rewrite_name.'/?$'] = 'index.php?category_name=$matches[1]';
 
         return $rewrites;
     }
@@ -188,35 +193,35 @@ class RemoveCategoryURL
      * Walks through category nicename and convert encoded parts
      * into uppercase using $this->encode_to_upper().
      *
-     * @param string $name The encoded category URI string.
-     *
+     * @param  string  $name  The encoded category URI string.
      * @return string The convered URI string.
      */
-    protected function convert_encoded_to_upper( $name ) {
+    protected function convert_encoded_to_upper($name)
+    {
         // Checks if name has any encoding in it.
-        if ( strpos( $name, '%' ) === false ) {
+        if (strpos($name, '%') === false) {
             return $name;
         }
 
-        $names = explode( '/', $name );
-        $names = array_map( [ $this, 'encode_to_upper' ], $names );
+        $names = explode('/', $name);
+        $names = array_map([$this, 'encode_to_upper'], $names);
 
-        return implode( '/', $names );
+        return implode('/', $names);
     }
 
     /**
      * Converts the encoded URI string to uppercase.
      *
-     * @param string $encoded The encoded string.
-     *
+     * @param  string  $encoded  The encoded string.
      * @return string The uppercased string.
      */
-    public function encode_to_upper( $encoded ) {
-        if ( strpos( $encoded, '%' ) === false ) {
+    public function encode_to_upper($encoded)
+    {
+        if (strpos($encoded, '%') === false) {
             return $encoded;
         }
 
-        return strtoupper( $encoded );
+        return strtoupper($encoded);
     }
 
     /**
@@ -224,16 +229,18 @@ class RemoveCategoryURL
      *
      * @codeCoverageIgnore
      *
-     * @param string $category_redirect The category page to redirect to.
+     * @param  string  $category_redirect  The category page to redirect to.
      * @return void
      */
-    protected function redirect( $category_redirect ) {
-        $catlink = trailingslashit( get_option( 'home' ) ) . user_trailingslashit( $category_redirect, 'category' );
-        wp_safe_redirect( $catlink, 301, 'RW-ADDON' );
+    protected function redirect($category_redirect)
+    {
+        $catlink = trailingslashit(get_option('home')).user_trailingslashit($category_redirect, 'category');
+        wp_safe_redirect($catlink, 301, 'RW-ADDON');
         exit;
     }
 }
 
-function remove_category_url(){
-    return new RemoveCategoryURL();
+function remove_category_url()
+{
+    return new RemoveCategoryURL;
 }

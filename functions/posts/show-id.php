@@ -1,13 +1,14 @@
 <?php
+
 /**
  * Showing ID of posts
  */
-
 function show_id()
 {
     function true_id($args)
     {
         $args['post_page_id'] = 'ID';
+
         return $args;
     }
 
@@ -21,10 +22,9 @@ function show_id()
     add_filter('manage_pages_columns', 'true_id', 99);
     add_action('manage_pages_custom_column', 'true_custom', 99, 2);
 
-    //manage_(post_type)_custom_column
+    // manage_(post_type)_custom_column
     add_filter('manage_posts_columns', 'true_id', 99);
     add_action('manage_posts_custom_column', 'true_custom', 99, 2);
-
 
     add_filter('manage_media_columns', 'posts_columns_attachment_id', 999);
     add_action('manage_media_custom_column', 'posts_custom_columns_attachment_id', 999, 2);

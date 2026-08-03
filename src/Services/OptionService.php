@@ -14,8 +14,6 @@ class OptionService
 
     /**
      * Constructor
-     *
-     * @param string $optionKey
      */
     public function __construct(string $optionKey = 'wp-addon')
     {
@@ -24,8 +22,6 @@ class OptionService
 
     /**
      * Get plugin settings from DB
-     *
-     * @return array
      */
     public function getSettings(): array
     {
@@ -34,9 +30,6 @@ class OptionService
 
     /**
      * Update plugin settings
-     *
-     * @param array $settings
-     * @return bool
      */
     public function updateSettings(array $settings): bool
     {
@@ -46,13 +39,13 @@ class OptionService
     /**
      * Get specific setting value
      *
-     * @param string $key
-     * @param mixed $default
+     * @param  mixed  $default
      * @return mixed
      */
     public function getSetting(string $key, $default = null)
     {
         $settings = $this->getSettings();
+
         return $settings[$key] ?? $default;
     }
 }

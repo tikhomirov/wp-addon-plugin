@@ -8,18 +8,19 @@ namespace WpAddon\Services;
 class AssetOptimizationService
 {
     private string $cacheDir;
+
     private array $config;
 
     public function __construct(array $config)
     {
         $this->config = $config;
-        $this->cacheDir = rtrim($config['cache_dir'], '/') . '/';
+        $this->cacheDir = rtrim($config['cache_dir'], '/').'/';
         $this->ensureCacheDir();
     }
 
     private function ensureCacheDir(): void
     {
-        if (!is_dir($this->cacheDir)) {
+        if (! is_dir($this->cacheDir)) {
             mkdir($this->cacheDir, 0755, true);
         }
     }
@@ -29,7 +30,7 @@ class AssetOptimizationService
      */
     public function minifyCss(string $css): string
     {
-        if (!$this->config['minify_css']) {
+        if (! $this->config['minify_css']) {
             return $css;
         }
 
@@ -49,7 +50,7 @@ class AssetOptimizationService
      */
     public function minifyJs(string $js): string
     {
-        if (!$this->config['minify_js']) {
+        if (! $this->config['minify_js']) {
             return $js;
         }
 
@@ -67,14 +68,14 @@ class AssetOptimizationService
      */
     public function combineCss(array $files): string
     {
-        if (!$this->config['combine_css']) {
+        if (! $this->config['combine_css']) {
             return '';
         }
 
         $combined = '';
         foreach ($files as $file) {
             if (file_exists($file)) {
-                $combined .= file_get_contents($file) . "\n";
+                $combined .= file_get_contents($file)."\n";
             }
         }
 
@@ -86,14 +87,14 @@ class AssetOptimizationService
      */
     public function combineJs(array $files): string
     {
-        if (!$this->config['combine_js']) {
+        if (! $this->config['combine_js']) {
             return '';
         }
 
         $combined = '';
         foreach ($files as $file) {
             if (file_exists($file)) {
-                $combined .= file_get_contents($file) . ";\n";
+                $combined .= file_get_contents($file).";\n";
             }
         }
 
@@ -105,7 +106,7 @@ class AssetOptimizationService
      */
     public function generateVersion(string $content): string
     {
-        return substr(md5($content . $this->config['version_salt']), 0, 8);
+        return substr(md5($content.$this->config['version_salt']), 0, 8);
     }
 
     /**
@@ -113,8 +114,9 @@ class AssetOptimizationService
      */
     public function saveToCache(string $key, string $content): string
     {
-        $file = $this->cacheDir . $key . '.gz';
+        $file = $this->cacheDir.$key.'.gz';
         file_put_contents($file, gzcompress($content, 6));
+
         return $key;
     }
 
@@ -123,8 +125,8 @@ class AssetOptimizationService
      */
     public function getFromCache(string $key): ?string
     {
-        $file = $this->cacheDir . $key . '.gz';
-        if (!is_file($file)) {
+        $file = $this->cacheDir.$key.'.gz';
+        if (! is_file($file)) {
             return null;
         }
 
@@ -141,7 +143,7 @@ class AssetOptimizationService
 
     public function cleanupCache(int $maxAge = 604800, int $maxFiles = 500): void
     {
-        $files = glob($this->cacheDir . '*.gz') ?: [];
+        $files = glob($this->cacheDir.'*.gz') ?: [];
         $now = time();
 
         foreach ($files as $file) {
@@ -151,12 +153,12 @@ class AssetOptimizationService
             }
         }
 
-        $files = glob($this->cacheDir . '*.gz') ?: [];
+        $files = glob($this->cacheDir.'*.gz') ?: [];
         if (count($files) <= $maxFiles) {
             return;
         }
 
-        usort($files, static fn(string $left, string $right): int => (filemtime($left) ?: 0) <=> (filemtime($right) ?: 0));
+        usort($files, static fn (string $left, string $right): int => (filemtime($left) ?: 0) <=> (filemtime($right) ?: 0));
         foreach (array_slice($files, 0, count($files) - $maxFiles) as $file) {
             unlink($file);
         }
@@ -167,7 +169,7 @@ class AssetOptimizationService
      */
     public function extractCriticalCss(string $css, array $selectors = []): string
     {
-        if (!$this->config['critical_css_enabled']) {
+        if (! $this->config['critical_css_enabled']) {
             return '';
         }
 
@@ -177,7 +179,7 @@ class AssetOptimizationService
         foreach ($lines as $line) {
             // Simple check for common critical selectors
             if (preg_match('/^(body|html|\.site|\.header|\.nav|\.main|\.footer)/i', trim($line))) {
-                $critical .= $line . "\n";
+                $critical .= $line."\n";
             }
         }
 

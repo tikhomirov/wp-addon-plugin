@@ -34,11 +34,6 @@ class AssetService
 
     /**
      * Constructor
-     *
-     * @param string $file
-     * @param string $url
-     * @param string $name
-     * @param string $version
      */
     public function __construct(string $file, string $url, string $name, string $version)
     {
@@ -60,7 +55,7 @@ class AssetService
 
         wp_enqueue_style(
             $this->name,
-            $this->url . 'assets/css/min/wp-addon.min.css',
+            $this->url.'assets/css/min/wp-addon.min.css',
             [],
             $this->version
         );

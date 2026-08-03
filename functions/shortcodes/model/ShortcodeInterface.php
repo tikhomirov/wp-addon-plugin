@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Shortcode interface
  */
@@ -6,7 +7,6 @@
 // Объявим интерфейс 'iTemplate'
 interface ShortcodeInterface
 {
-
     public function __construct($tag, $title, $description, $icon = null);
 
     public function html($atts);

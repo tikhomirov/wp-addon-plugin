@@ -9,6 +9,7 @@ describe('MediaCleanupService', function () {
     // Пропускаем эти тесты в CI из-за проблем с mock'ами
     if (getenv('CI') === 'true' || getenv('GITHUB_ACTIONS') === 'true') {
         test('skipped in CI', function () {})->skip('Mock issues in CI');
+
         return;
     }
     beforeEach(function () {
@@ -16,7 +17,7 @@ describe('MediaCleanupService', function () {
         $mock_functions = [];
 
         // Mock get_option
-        $mock_functions['get_option'] = function($key, $default = '') {
+        $mock_functions['get_option'] = function ($key, $default = '') {
             $options = [
                 'thumbnail_size_w' => 150,
                 'thumbnail_size_h' => 150,
@@ -25,10 +26,11 @@ describe('MediaCleanupService', function () {
                 'large_size_w' => 1024,
                 'large_size_h' => 1024,
             ];
+
             return $options[$key] ?? $default;
         };
 
-        $this->service = new MediaCleanupService();
+        $this->service = new MediaCleanupService;
     });
 
     it('returns registered sizes', function () {

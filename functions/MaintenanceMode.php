@@ -3,21 +3,25 @@
 use WpAddon\Interfaces\ModuleInterface;
 use WpAddon\Traits\HookTrait;
 
-class MaintenanceMode implements ModuleInterface {
+class MaintenanceMode implements ModuleInterface
+{
     use HookTrait;
 
-    public function __construct() {
+    public function __construct()
+    {
         // Constructor
     }
 
-    public function init(): void {
+    public function init(): void
+    {
         $options = get_option('wp-addon', []);
-        if (!empty($options['enable_maintenance'])) {
+        if (! empty($options['enable_maintenance'])) {
             $this->addHook('template_redirect', [$this, 'checkMaintenance']);
         }
     }
 
-    public function checkMaintenance() {
+    public function checkMaintenance()
+    {
         // Allow admin access
         if (is_admin()) {
             return;
@@ -38,13 +42,14 @@ class MaintenanceMode implements ModuleInterface {
             return;
         }
 
-        if (!current_user_can('manage_options')) {
+        if (! current_user_can('manage_options')) {
             $this->showMaintenancePage();
         }
     }
 
-    public function showMaintenancePage() {
-        add_action('wp_enqueue_scripts', function() {
+    public function showMaintenancePage()
+    {
+        add_action('wp_enqueue_scripts', function () {
             wp_enqueue_style('dashicons');
         });
 
@@ -80,7 +85,8 @@ class MaintenanceMode implements ModuleInterface {
         exit;
     }
 
-    public function getTemplate() {
+    public function getTemplate()
+    {
         return $html ?? '';
     }
 }

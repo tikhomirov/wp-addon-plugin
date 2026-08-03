@@ -3,7 +3,6 @@
  * Adv
  */
 
-
 /*newdocument
 bold
 italic
@@ -96,26 +95,26 @@ quicklink*/
 function tiny_advanced()
 {
 
-    add_filter('tiny_mce_before_init', function( $in ) {
+    add_filter('tiny_mce_before_init', function ($in) {
 
         $in['font_formats'] = 'Arial=arial,helvetica,sans-serif;Arial Black=arial black,avant garde;Courier New=courier new,courier;';
 
         $in['toolbar1'] = 'insertfile undo redo | blockquote styleselect | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify alignnone | bullist numlist outdent indent | link image | print preview media fullpage | forecolor backcolor emoticons | wp_more';
-       /* if(class_exists('\JsonFileManager\Model\JsonFile')) {
-            $file = new \JsonFileManager\Model\JsonFile(null,null,'buttons.json',
-                ['basedir' => RW_PLUGIN_DIR . 'functions/TinyMCE/',
-                    'baseurl' => RW_PLUGIN_URL . 'functions/TinyMCE/',
-                ]);
-            $buttons = $file->read();
-            if(!empty($buttons)){
-                $in['toolbar2'] = '';
-                foreach ($buttons as $button){
-                    if( false == strpos($in['toolbar1'], $button['control']) ){
-                        $in['toolbar2'] .= $button['control'] . ' ';
-                    }
-                }
-            }
-        }*/
+        /* if(class_exists('\JsonFileManager\Model\JsonFile')) {
+             $file = new \JsonFileManager\Model\JsonFile(null,null,'buttons.json',
+                 ['basedir' => RW_PLUGIN_DIR . 'functions/TinyMCE/',
+                     'baseurl' => RW_PLUGIN_URL . 'functions/TinyMCE/',
+                 ]);
+             $buttons = $file->read();
+             if(!empty($buttons)){
+                 $in['toolbar2'] = '';
+                 foreach ($buttons as $button){
+                     if( false == strpos($in['toolbar1'], $button['control']) ){
+                         $in['toolbar2'] .= $button['control'] . ' ';
+                     }
+                 }
+             }
+         }*/
         $in['toolbar2'] = 'formatselect fontselect fontsizeselect | table | subscript superscript removeformat | insert unlink openlink charmap code | cut copy paste pastetext';
 
         $in['fontsize_formats'] = '10px 12px 14px 15px 18px 20px 24px 28px 30px 32px 36px 48px';
@@ -126,10 +125,10 @@ function tiny_advanced()
     }, 9, 1);
 
     // Add Google Scripts for use with the editor
-    add_action('init', function(){
+    add_action('init', function () {
         $fonts_url = [
             'https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800',
-            'https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css'
+            'https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css',
         ];
         foreach ($fonts_url as $font_url) {
             add_editor_style(str_replace(',', '%2C', $font_url));
@@ -137,24 +136,25 @@ function tiny_advanced()
     });
 }
 
-
 function tiny_table_plugin()
 {
-    add_filter('mce_buttons_2', function($buttons){
-        array_push($buttons, 'separator', '| table |' );
+    add_filter('mce_buttons_2', function ($buttons) {
+        array_push($buttons, 'separator', '| table |');
+
         return $buttons;
     }, 10, 1);
 
-    add_filter('mce_external_plugins', function($plugins){
+    add_filter('mce_external_plugins', function ($plugins) {
         global $tinymce_version;
-        $plugins['icofonts'] = RW_PLUGIN_URL . 'functions/TinyMCE/plugins/icofonts/plugin.min.js';
-        $plugins['table']    = RW_PLUGIN_URL . 'functions/TinyMCE/plugins/table/plugin.min.js';
+        $plugins['icofonts'] = RW_PLUGIN_URL.'functions/TinyMCE/plugins/icofonts/plugin.min.js';
+        $plugins['table'] = RW_PLUGIN_URL.'functions/TinyMCE/plugins/table/plugin.min.js';
+
         return $plugins;
     }, 10, 1);
 
-    add_filter('tiny_mce_before_init', function ( $settings, $editor_id){
+    add_filter('tiny_mce_before_init', function ($settings, $editor_id) {
 
-        //$tinymce_settings['menubar'] = true;
+        // $tinymce_settings['menubar'] = true;
         /*$tinymce_settings = [
                 'table_tab_navigation'     => false,
                 'table_resize_bars'        => false,
@@ -217,8 +217,7 @@ function tiny_table_plugin()
         return array_merge($settings, $tinymce_settings);
     }, 10, 2);
 
-
-    add_action('admin_footer', function (){
+    add_action('admin_footer', function () {
         ?>
         <style>
             .mce-floatpanel.mce-arrow-up {
@@ -230,34 +229,38 @@ function tiny_table_plugin()
     });
 }
 
-
-function tiny_visual_block(){
-    add_filter('tiny_mce_before_init', function( $in ) {
+function tiny_visual_block()
+{
+    add_filter('tiny_mce_before_init', function ($in) {
         $in['toolbar2'] .= ',visualblocks';
         $in['visualblocks_default_state'] = true;
+
         return $in;
     });
-    add_filter('mce_external_plugins', function($plugins){
-        $plugins['visualblocks'] = RW_PLUGIN_URL .  'functions/TinyMCE/plugins/visualblocks/plugin.min.js';
+    add_filter('mce_external_plugins', function ($plugins) {
+        $plugins['visualblocks'] = RW_PLUGIN_URL.'functions/TinyMCE/plugins/visualblocks/plugin.min.js';
+
         return $plugins;
     }, 10, 1);
 }
 
-
-function upload_feature(){
-    add_filter( 'media_upload_tabs', function ( $tabs){
+function upload_feature()
+{
+    add_filter('media_upload_tabs', function ($tabs) {
         $tabs['g_drive'] = 'Google Drive';
-        return  $tabs;
-    } );
+
+        return $tabs;
+    });
 
     // call the new tab with wp_iframe
-    add_action('media_upload_' . 'g_drive', function() {
-        wp_iframe( 'my_new_form' );
+    add_action('media_upload_'.'g_drive', function () {
+        wp_iframe('my_new_form');
     });
 
     // the tab content
-    function my_new_form() {
-       media_upload_header(); // This function is used for print media uploader headers etc.
-       echo '<div style=" margin: 10px auto;text-align: center;"><h3>Coming soon..</h3></div>';
+    function my_new_form()
+    {
+        media_upload_header(); // This function is used for print media uploader headers etc.
+        echo '<div style=" margin: 10px auto;text-align: center;"><h3>Coming soon..</h3></div>';
     }
 }

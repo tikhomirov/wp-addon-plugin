@@ -7,9 +7,13 @@ use WpAddon\Services\OptionService;
 class AssetMinification implements ModuleInterface
 {
     private AssetOptimizationService $optimizationService;
+
     private OptionService $optionService;
+
     private array $config;
+
     private array $cssQueue = [];
+
     private array $jsQueue = [];
 
     public function __construct(OptionService $optionService)
@@ -20,8 +24,8 @@ class AssetMinification implements ModuleInterface
 
     private function loadConfig(): void
     {
-        $configPath = plugin_dir_path(dirname(__FILE__)) . 'src/Config/optimization.php';
-        if (!file_exists($configPath)) {
+        $configPath = plugin_dir_path(dirname(__FILE__)).'src/Config/optimization.php';
+        if (! file_exists($configPath)) {
             throw new Exception("Config file not found: {$configPath}");
         }
         $defaultConfig = require $configPath;
@@ -46,7 +50,7 @@ class AssetMinification implements ModuleInterface
         $this->loadConfig();
         $this->optimizationService = new AssetOptimizationService($this->config);
 
-        if (!$this->config['enabled']) {
+        if (! $this->config['enabled']) {
             return;
         }
 
@@ -97,7 +101,7 @@ class AssetMinification implements ModuleInterface
     {
         global $wp_styles;
 
-        if (!$wp_styles || !$this->config['minify_css'] && !$this->config['combine_css']) {
+        if (! $wp_styles || ! $this->config['minify_css'] && ! $this->config['combine_css']) {
             return;
         }
 
@@ -105,14 +109,14 @@ class AssetMinification implements ModuleInterface
         $handlesToRemove = [];
 
         foreach ($wp_styles->queue as $handle) {
-            if (!isset($wp_styles->registered[$handle])) {
+            if (! isset($wp_styles->registered[$handle])) {
                 continue;
             }
 
             $style = $wp_styles->registered[$handle];
 
             // Использовать умную проверку
-            if (!$this->shouldProcessAsset($handle, $style->src, $this->config['exclude_css'])) {
+            if (! $this->shouldProcessAsset($handle, $style->src, $this->config['exclude_css'])) {
                 continue;
             }
 
@@ -128,11 +132,11 @@ class AssetMinification implements ModuleInterface
             $handlesToRemove[] = $handle;
         }
 
-        if (!empty($cssFiles) && $this->config['combine_css']) {
+        if (! empty($cssFiles) && $this->config['combine_css']) {
             $combinedCss = $this->optimizationService->combineCss(array_values($cssFiles));
-            if (!empty($combinedCss)) {
+            if (! empty($combinedCss)) {
                 $version = $this->optimizationService->generateVersion($combinedCss);
-                $cacheKey = 'css-' . $version;
+                $cacheKey = 'css-'.$version;
                 $this->optimizationService->saveToCache($cacheKey, $combinedCss);
 
                 wp_enqueue_style(
@@ -162,7 +166,7 @@ class AssetMinification implements ModuleInterface
                 $minified = $this->optimizationService->minifyCss($content);
 
                 $version = $this->optimizationService->generateVersion($minified);
-                $cacheKey = 'css-' . $handle . '-' . $version;
+                $cacheKey = 'css-'.$handle.'-'.$version;
                 $this->optimizationService->saveToCache($cacheKey, $minified);
 
                 // Replace src
@@ -176,7 +180,7 @@ class AssetMinification implements ModuleInterface
     {
         global $wp_scripts;
 
-        if (!$wp_scripts || !$this->config['minify_js'] && !$this->config['combine_js']) {
+        if (! $wp_scripts || ! $this->config['minify_js'] && ! $this->config['combine_js']) {
             return;
         }
 
@@ -187,14 +191,14 @@ class AssetMinification implements ModuleInterface
         $handlesToRemove = [];
 
         foreach ($wp_scripts->queue as $handle) {
-            if (!isset($wp_scripts->registered[$handle])) {
+            if (! isset($wp_scripts->registered[$handle])) {
                 continue;
             }
 
             $script = $wp_scripts->registered[$handle];
 
             // Использовать умную проверку
-            if (!$this->shouldProcessAsset($handle, $script->src, $this->config['exclude_js'])) {
+            if (! $this->shouldProcessAsset($handle, $script->src, $this->config['exclude_js'])) {
                 continue;
             }
 
@@ -210,11 +214,11 @@ class AssetMinification implements ModuleInterface
             $handlesToRemove[] = $handle;
         }
 
-        if (!empty($jsFiles) && $this->config['combine_js']) {
+        if (! empty($jsFiles) && $this->config['combine_js']) {
             $combinedJs = $this->optimizationService->combineJs(array_values($jsFiles));
-            if (!empty($combinedJs)) {
+            if (! empty($combinedJs)) {
                 $version = $this->optimizationService->generateVersion($combinedJs);
-                $cacheKey = 'js-' . $version;
+                $cacheKey = 'js-'.$version;
                 $this->optimizationService->saveToCache($cacheKey, $combinedJs);
 
                 wp_enqueue_script(
@@ -245,7 +249,7 @@ class AssetMinification implements ModuleInterface
                 $minified = $this->optimizationService->minifyJs($content);
 
                 $version = $this->optimizationService->generateVersion($minified);
-                $cacheKey = 'js-' . $handle . '-' . $version;
+                $cacheKey = 'js-'.$handle.'-'.$version;
                 $this->optimizationService->saveToCache($cacheKey, $minified);
 
                 // Replace src
@@ -257,25 +261,25 @@ class AssetMinification implements ModuleInterface
 
     public function injectCriticalCss(): void
     {
-        if (!$this->config['critical_css_enabled']) {
+        if (! $this->config['critical_css_enabled']) {
             return;
         }
 
         // Get theme stylesheet
-        $themeCss = get_template_directory() . '/style.css';
+        $themeCss = get_template_directory().'/style.css';
         if (file_exists($themeCss)) {
             $content = file_get_contents($themeCss);
             $criticalCss = $this->optimizationService->extractCriticalCss($content);
 
-            if (!empty($criticalCss)) {
-                echo '<style id="wp-addon-critical-css">' . $criticalCss . '</style>';
+            if (! empty($criticalCss)) {
+                echo '<style id="wp-addon-critical-css">'.$criticalCss.'</style>';
             }
         }
     }
 
     public function deferCssLoading(): void
     {
-        if (!$this->config['defer_non_critical_css']) {
+        if (! $this->config['defer_non_critical_css']) {
             return;
         }
 
@@ -327,7 +331,7 @@ class AssetMinification implements ModuleInterface
             'inline-edit-tax', 'plugin-install', 'farbtastic', 'jcrop',
             'colors', 'ie', 'import', 'export', 'install', 'widgets',
             'site-icon', 'svg-painter', 'wp-auth-check', 'wp-jquery-ui-dialog',
-            'wp-embed', 'wp-emoji', 'wp-emoji-loader'
+            'wp-embed', 'wp-emoji', 'wp-emoji-loader',
         ];
 
         return in_array($handle, $systemAssets);
@@ -346,13 +350,13 @@ class AssetMinification implements ModuleInterface
         }
 
         // Только локальные файлы
-        if (!$src || strpos($src, site_url()) !== 0) {
+        if (! $src || strpos($src, site_url()) !== 0) {
             return false;
         }
 
         // Проверить существование файла
         $filePath = $this->urlToPath($src);
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return false;
         }
 
@@ -369,10 +373,10 @@ class AssetMinification implements ModuleInterface
         if ($type === 'css') {
             // Проверить на признаки минификации CSS
             return preg_match('/^[^{}]+{[^}]+}/', trim($content)) &&
-                   !preg_match('/\\n/', $content);
+                   ! preg_match('/\\n/', $content);
         } elseif ($type === 'js') {
             // Проверить на признаки минификации JS
-            return !preg_match('/\\n\\s*\\n/', $content) &&
+            return ! preg_match('/\\n\\s*\\n/', $content) &&
                    preg_match('/[a-zA-Z_$][a-zA-Z0-9_$]*\\s*[=:]\\s*function/', $content);
         }
 
@@ -385,7 +389,7 @@ class AssetMinification implements ModuleInterface
             'critical' => ['theme-styles', 'style', 'main-style', 'custom-css'],
             'high' => ['bootstrap', 'foundation', 'font-awesome', 'icons'],
             'normal' => [],
-            'low' => ['social-share', 'comments', 'related-posts']
+            'low' => ['social-share', 'comments', 'related-posts'],
         ];
 
         foreach ($priorities as $level => $assets) {
@@ -399,21 +403,22 @@ class AssetMinification implements ModuleInterface
 
     private function urlToPath(string $url): string
     {
-        if (!$url) {
+        if (! $url) {
             return '';
         }
         $path = str_replace(site_url(), '', $url);
-        return rtrim(ABSPATH, '/') . '/' . ltrim($path, '/');
+
+        return rtrim(ABSPATH, '/').'/'.ltrim($path, '/');
     }
 
     private function getCacheUrl(string $key): string
     {
-        return content_url('/cache/assets/' . $key . '.gz');
+        return content_url('/cache/assets/'.$key.'.gz');
     }
 
     public function scheduleCacheCleanup(): void
     {
-        if (!wp_next_scheduled('wp_addon_asset_cache_cleanup')) {
+        if (! wp_next_scheduled('wp_addon_asset_cache_cleanup')) {
             wp_schedule_event(time(), 'daily', 'wp_addon_asset_cache_cleanup');
         }
     }
@@ -426,7 +431,7 @@ class AssetMinification implements ModuleInterface
     public function clearCache(): void
     {
         // Clear asset cache directory
-        $files = glob($this->config['cache_dir'] . '*.gz');
+        $files = glob($this->config['cache_dir'].'*.gz');
         foreach ($files as $file) {
             unlink($file);
         }

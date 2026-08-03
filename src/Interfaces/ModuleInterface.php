@@ -1,6 +1,8 @@
 <?php
+
 namespace WpAddon\Interfaces;
 
-interface ModuleInterface {
+interface ModuleInterface
+{
     public function init(): void;
 }

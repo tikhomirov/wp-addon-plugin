@@ -1,13 +1,12 @@
 <?php
+
 /*
  *  Code Editor for Contact Form 7 (WordPress / CodeMirror)
 */
 
-
-
 function cf7_show_shortcode()
 {
-    if(!defined('WPCF7_PLUGIN')){
+    if (! defined('WPCF7_PLUGIN')) {
         return;
     }
     /* Notice */

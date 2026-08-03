@@ -2,23 +2,25 @@
 
 /**
  * Test AssetMinification smart logic
+ *
  * @group problematic
  */
 describe('AssetMinification Smart Logic', function () {
     // Пропускаем эти тесты в CI из-за Patchwork конфликтов
     if (getenv('CI') === 'true' || getenv('GITHUB_ACTIONS') === 'true') {
         test('skipped in CI', function () {})->skip('Patchwork conflicts in CI');
+
         return;
     }
     beforeEach(function () {
         global $mock_functions;
         $mock_functions = [];
 
-        $this->mockOptionService = \Mockery::mock('\WpAddon\Services\OptionService');
+        $this->mockOptionService = Mockery::mock('\WpAddon\Services\OptionService');
 
         // Mock option service to return default config
         $this->mockOptionService->shouldReceive('getSetting')
-            ->andReturnUsing(function($key, $default = null) {
+            ->andReturnUsing(function ($key, $default = null) {
                 $config = [
                     'enabled' => true,
                     'minify_css' => true,
@@ -29,9 +31,10 @@ describe('AssetMinification Smart Logic', function () {
                     'defer_non_critical_css' => true,
                     'exclude_css' => ['admin-bar', 'dashicons'],
                     'exclude_js' => ['jquery', 'jquery-core'],
-                    'cache_dir' => sys_get_temp_dir() . '/wp_addon_cache',
+                    'cache_dir' => sys_get_temp_dir().'/wp_addon_cache',
                     'version_salt' => 'wp-addon-v1',
                 ];
+
                 return $config[$key] ?? $default;
             });
 
@@ -40,7 +43,7 @@ describe('AssetMinification Smart Logic', function () {
     });
 
     afterEach(function () {
-        \Mockery::close();
+        Mockery::close();
     });
 
     it('excludes system assets', function () {
@@ -57,7 +60,7 @@ describe('AssetMinification Smart Logic', function () {
             'wp-emoji',
         ];
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('shouldProcessAsset');
         $method->setAccessible(true);
 
@@ -70,7 +73,7 @@ describe('AssetMinification Smart Logic', function () {
     it('excludes explicitly excluded assets', function () {
         $excludes = ['custom-plugin-css', 'theme-style'];
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('shouldProcessAsset');
         $method->setAccessible(true);
 
@@ -89,7 +92,7 @@ describe('AssetMinification Smart Logic', function () {
             'https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js',
         ];
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('shouldProcessAsset');
         $method->setAccessible(true);
 
@@ -111,7 +114,7 @@ describe('AssetMinification Smart Logic', function () {
         $mock_functions['file_exists'] = true;
         $mock_functions['filesize'] = 2048;
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('shouldProcessAsset');
         $method->setAccessible(true);
 
@@ -126,7 +129,7 @@ describe('AssetMinification Smart Logic', function () {
         global $mock_functions;
         $mock_functions['filesize'] = 500; // 500 bytes
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('shouldProcessAsset');
         $method->setAccessible(true);
 
@@ -140,7 +143,7 @@ describe('AssetMinification Smart Logic', function () {
         $mock_functions['file_exists'] = true;
         $mock_functions['filesize'] = 2048; // 2KB
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('shouldProcessAsset');
         $method->setAccessible(true);
 
@@ -153,7 +156,7 @@ describe('AssetMinification Smart Logic', function () {
         global $mock_functions;
         $mock_functions['file_exists'] = false;
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('shouldProcessAsset');
         $method->setAccessible(true);
 
@@ -167,7 +170,7 @@ describe('AssetMinification Smart Logic', function () {
         $mock_functions['file_exists'] = true;
         $mock_functions['filesize'] = 2048;
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('shouldProcessAsset');
         $method->setAccessible(true);
 
@@ -179,7 +182,7 @@ describe('AssetMinification Smart Logic', function () {
         // Test minified CSS
         $minifiedCss = '.class{color:#fff;font-size:14px}.another{margin:0}';
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('isAlreadyMinified');
         $method->setAccessible(true);
 
@@ -196,7 +199,7 @@ describe('AssetMinification Smart Logic', function () {
         // Test minified JS
         $minifiedJs = 'function test(){var a=1;return a*2}document.addEventListener("load",test)';
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('isAlreadyMinified');
         $method->setAccessible(true);
 
@@ -210,7 +213,7 @@ describe('AssetMinification Smart Logic', function () {
     });
 
     it('handles minification edge cases', function () {
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('isAlreadyMinified');
         $method->setAccessible(true);
 
@@ -230,10 +233,10 @@ describe('AssetMinification Smart Logic', function () {
         // Test known system assets
         $systemAssets = [
             'jquery', 'jquery-core', 'jquery-migrate', 'jquery-ui',
-            'admin-bar', 'dashicons', 'heartbeat', 'wp-embed'
+            'admin-bar', 'dashicons', 'heartbeat', 'wp-embed',
         ];
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('isSystemAsset');
         $method->setAccessible(true);
 
@@ -244,7 +247,7 @@ describe('AssetMinification Smart Logic', function () {
 
         // Test non-system assets
         $nonSystemAssets = [
-            'custom-script', 'theme-style', 'plugin-css', 'bootstrap'
+            'custom-script', 'theme-style', 'plugin-css', 'bootstrap',
         ];
 
         foreach ($nonSystemAssets as $asset) {
@@ -254,7 +257,7 @@ describe('AssetMinification Smart Logic', function () {
     });
 
     it('returns correct asset priorities', function () {
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('getAssetPriority');
         $method->setAccessible(true);
 
@@ -289,9 +292,9 @@ describe('AssetMinification Smart Logic', function () {
 
     it('converts URL to path', function () {
         $url = 'http://localhost/wp-content/themes/theme/style.css';
-        $expectedPath = ABSPATH . 'wp-content/themes/theme/style.css';
+        $expectedPath = ABSPATH.'wp-content/themes/theme/style.css';
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('urlToPath');
         $method->setAccessible(true);
 
@@ -303,7 +306,7 @@ describe('AssetMinification Smart Logic', function () {
         $key = 'test-cache-key';
         $expectedUrl = 'http://localhost/wp-content/cache/assets/test-cache-key.gz';
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('getCacheUrl');
         $method->setAccessible(true);
 

@@ -1,20 +1,23 @@
 <?php
 
 use WpAddon\Interfaces\ModuleInterface;
-use WpAddon\Traits\AjaxTrait;
 use WpAddon\Services\MediaCleanupService;
+use WpAddon\Traits\AjaxTrait;
 
-class MediaCleanup implements ModuleInterface {
+class MediaCleanup implements ModuleInterface
+{
     use AjaxTrait;
 
     private MediaCleanupService $service;
 
-    public function __construct(MediaCleanupService $service) {
+    public function __construct(MediaCleanupService $service)
+    {
         $this->service = $service;
     }
 
-    public function init(): void {
-        if (!$this->isEnabled()) {
+    public function init(): void
+    {
+        if (! $this->isEnabled()) {
             return;
         }
 
@@ -22,8 +25,9 @@ class MediaCleanup implements ModuleInterface {
         add_action('wp_ajax_wp_addon_cleanup_images_dry_run', [$this, 'dryRun']);
     }
 
-    public function dryRun(): void {
-        if (!$this->isEnabled() || !current_user_can('manage_options')) {
+    public function dryRun(): void
+    {
+        if (! $this->isEnabled() || ! current_user_can('manage_options')) {
             wp_die(__('Access denied.', 'wp-addon'));
         }
         check_ajax_referer('cleanup_images', 'nonce');
@@ -36,18 +40,19 @@ class MediaCleanup implements ModuleInterface {
         $totalSize = $result['totalSize'];
         $sizeMb = round($totalSize / 1024 / 1024, 2);
 
-        $fileListHtml = !empty($files)
-            ? '<ul>' . implode('', array_map(fn($f) => '<li>' . esc_html(basename($f)) . '</li>', $files)) . '</ul>'
-            : '<p>' . __('No files to delete.', 'wp-addon') . '</p>';
-        $totalSizeHtml = '<p><strong>' . sprintf(__('Total size: %s MB', 'wp-addon'), $sizeMb) . '</strong></p>';
+        $fileListHtml = ! empty($files)
+            ? '<ul>'.implode('', array_map(fn ($f) => '<li>'.esc_html(basename($f)).'</li>', $files)).'</ul>'
+            : '<p>'.__('No files to delete.', 'wp-addon').'</p>';
+        $totalSizeHtml = '<p><strong>'.sprintf(__('Total size: %s MB', 'wp-addon'), $sizeMb).'</strong></p>';
 
-        $output = '<div class="notice notice-info"><p><strong>' . __('Files to delete:', 'wp-addon') . '</strong></p>' . $fileListHtml . $totalSizeHtml . '</div>';
+        $output = '<div class="notice notice-info"><p><strong>'.__('Files to delete:', 'wp-addon').'</strong></p>'.$fileListHtml.$totalSizeHtml.'</div>';
 
         wp_die($output);
     }
 
-    public function cleanup(): void {
-        if (!$this->isEnabled() || !current_user_can('manage_options')) {
+    public function cleanup(): void
+    {
+        if (! $this->isEnabled() || ! current_user_can('manage_options')) {
             wp_die(__('Access denied.', 'wp-addon'));
         }
         check_ajax_referer('cleanup_images', 'nonce');
@@ -65,12 +70,13 @@ class MediaCleanup implements ModuleInterface {
         }
 
         $class = $deleteResult['errors'] > 0 ? 'notice-warning' : 'notice-success';
-        $output = '<div class="notice ' . $class . '"><p>' . $message . '</p></div>';
+        $output = '<div class="notice '.$class.'"><p>'.$message.'</p></div>';
 
         wp_die($output);
     }
 
-    private function isEnabled(): bool {
+    private function isEnabled(): bool
+    {
         $options = get_option('wp-addon', []);
 
         return isset($options['media_cleanup_enabled'])

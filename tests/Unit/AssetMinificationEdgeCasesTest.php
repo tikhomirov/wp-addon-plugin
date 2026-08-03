@@ -2,23 +2,25 @@
 
 /**
  * Test AssetMinification edge cases and error handling
+ *
  * @group problematic
  */
 describe('AssetMinification Edge Cases', function () {
     // Пропускаем эти тесты в CI из-за Patchwork конфликтов
     if (getenv('CI') === 'true' || getenv('GITHUB_ACTIONS') === 'true') {
         test('skipped in CI', function () {})->skip('Patchwork conflicts in CI');
+
         return;
     }
     beforeEach(function () {
         global $mock_functions;
         $mock_functions = [];
 
-        $this->mockOptionService = \Mockery::mock('\WpAddon\Services\OptionService');
+        $this->mockOptionService = Mockery::mock('\WpAddon\Services\OptionService');
 
         // Mock option service with default config
         $this->mockOptionService->shouldReceive('getSetting')
-            ->andReturnUsing(function($key, $default = null) {
+            ->andReturnUsing(function ($key, $default = null) {
                 $config = [
                     'enabled' => true,
                     'minify_css' => true,
@@ -29,9 +31,10 @@ describe('AssetMinification Edge Cases', function () {
                     'defer_non_critical_css' => true,
                     'exclude_css' => [],
                     'exclude_js' => [],
-                    'cache_dir' => sys_get_temp_dir() . '/wp_addon_cache',
+                    'cache_dir' => sys_get_temp_dir().'/wp_addon_cache',
                     'version_salt' => 'wp-addon-v1',
                 ];
+
                 return $config[$key] ?? $default;
             });
 
@@ -40,15 +43,15 @@ describe('AssetMinification Edge Cases', function () {
     });
 
     afterEach(function () {
-        \Mockery::close();
+        Mockery::close();
     });
 
     it('processes assets with empty queue', function () {
         // Setup: Empty queues
         global $wp_styles, $wp_scripts;
-        $wp_styles = new \stdClass();
+        $wp_styles = new stdClass;
         $wp_styles->queue = [];
-        $wp_scripts = new \stdClass();
+        $wp_scripts = new stdClass;
         $wp_scripts->queue = [];
 
         // Execute - should not throw any errors
@@ -86,7 +89,7 @@ describe('AssetMinification Edge Cases', function () {
     });
 
     it('does not process assets with empty src', function () {
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('shouldProcessAsset');
         $method->setAccessible(true);
         $result = $method->invokeArgs($this->assetMinification, ['test-handle', '', []]);
@@ -94,7 +97,7 @@ describe('AssetMinification Edge Cases', function () {
     });
 
     it('does not process assets with null src', function () {
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('shouldProcessAsset');
         $method->setAccessible(true);
         $result = $method->invokeArgs($this->assetMinification, ['test-handle', '', []]);
@@ -105,20 +108,20 @@ describe('AssetMinification Edge Cases', function () {
         global $mock_functions;
         $mock_functions['file_exists'] = false;
 
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('shouldProcessAsset');
         $method->setAccessible(true);
         $result = $method->invokeArgs($this->assetMinification, [
             'test-handle',
             'http://example.com/wp-content/themes/theme/invalid.css',
-            []
+            [],
         ]);
         expect($result)->toBeFalse();
     });
 
     it('handles malformed CSS gracefully', function () {
         $malformedCss = '.class { color: #fff; font-size: 14px; /* unclosed comment ';
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('isAlreadyMinified');
         $method->setAccessible(true);
         $result = $method->invokeArgs($this->assetMinification, [$malformedCss, 'css']);
@@ -129,7 +132,7 @@ describe('AssetMinification Edge Cases', function () {
 
     it('handles malformed JS gracefully', function () {
         $malformedJs = 'function test() { console.log("test"); /* unclosed comment ';
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('isAlreadyMinified');
         $method->setAccessible(true);
         $result = $method->invokeArgs($this->assetMinification, [$malformedJs, 'js']);
@@ -139,7 +142,7 @@ describe('AssetMinification Edge Cases', function () {
     });
 
     it('returns empty string for empty URL', function () {
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('urlToPath');
         $method->setAccessible(true);
         $result = $method->invokeArgs($this->assetMinification, ['']);
@@ -148,7 +151,7 @@ describe('AssetMinification Edge Cases', function () {
 
     it('handles non-matching URL', function () {
         $url = 'https://cdn.example.com/style.css';
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('urlToPath');
         $method->setAccessible(true);
         $result = $method->invokeArgs($this->assetMinification, [$url]);
@@ -159,7 +162,7 @@ describe('AssetMinification Edge Cases', function () {
     });
 
     it('generates cache URL with empty key', function () {
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('getCacheUrl');
         $method->setAccessible(true);
         $result = $method->invokeArgs($this->assetMinification, ['']);
@@ -169,7 +172,7 @@ describe('AssetMinification Edge Cases', function () {
 
     it('handles special characters in cache key', function () {
         $key = 'test@key#with$special%chars';
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('getCacheUrl');
         $method->setAccessible(true);
         $result = $method->invokeArgs($this->assetMinification, [$key]);
@@ -193,7 +196,7 @@ describe('AssetMinification Edge Cases', function () {
 
     it('handles empty theme CSS file', function () {
         // Create empty theme CSS file
-        $emptyCssFile = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.css';
+        $emptyCssFile = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.css';
         file_put_contents($emptyCssFile, '');
         $themeDir = dirname($emptyCssFile);
 
@@ -215,7 +218,7 @@ describe('AssetMinification Edge Cases', function () {
     it('handles corrupt theme CSS file', function () {
         // Create corrupt CSS file
         $corruptCss = 'this is not css {{{ }}} }}}';
-        $corruptCssFile = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.css';
+        $corruptCssFile = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.css';
         file_put_contents($corruptCssFile, $corruptCss);
         $themeDir = dirname($corruptCssFile);
 
@@ -249,11 +252,11 @@ describe('AssetMinification Edge Cases', function () {
 
     it('handles clearing cache with non-existent directory', function () {
         // Mock cache directory that doesn't exist
-        $nonExistentDir = '/tmp/non_existent_wp_addon_cache_' . uniqid();
+        $nonExistentDir = '/tmp/non_existent_wp_addon_cache_'.uniqid();
 
-        $mockOptionService = \Mockery::mock('\WpAddon\Services\OptionService');
+        $mockOptionService = Mockery::mock('\WpAddon\Services\OptionService');
         $mockOptionService->shouldReceive('getSetting')
-            ->andReturnUsing(function($key) use ($nonExistentDir) {
+            ->andReturnUsing(function ($key) use ($nonExistentDir) {
                 return $key === 'cache_dir' ? $nonExistentDir : true;
             });
 
@@ -269,12 +272,12 @@ describe('AssetMinification Edge Cases', function () {
 
     it('handles clearing cache with permission denied', function () {
         // Create cache directory and make it read-only
-        $cacheDir = sys_get_temp_dir() . '/wp_addon_readonly_cache_' . uniqid();
+        $cacheDir = sys_get_temp_dir().'/wp_addon_readonly_cache_'.uniqid();
         mkdir($cacheDir, 0444, true); // Read-only
 
-        $mockOptionService = \Mockery::mock('\WpAddon\Services\OptionService');
+        $mockOptionService = Mockery::mock('\WpAddon\Services\OptionService');
         $mockOptionService->shouldReceive('getSetting')
-            ->andReturnUsing(function($key) use ($cacheDir) {
+            ->andReturnUsing(function ($key) use ($cacheDir) {
                 return $key === 'cache_dir' ? $cacheDir : true;
             });
 
@@ -298,7 +301,7 @@ describe('AssetMinification Edge Cases', function () {
 
         // Setup some assets
         global $wp_styles, $wp_scripts;
-        $wp_styles = new \stdClass();
+        $wp_styles = new stdClass;
         $wp_styles->queue = ['test-style'];
         $wp_styles->registered = [
             'test-style' => (object) [
@@ -306,10 +309,10 @@ describe('AssetMinification Edge Cases', function () {
                 'src' => 'http://example.com/style.css',
                 'deps' => [],
                 'ver' => false,
-                'args' => 'all'
-            ]
+                'args' => 'all',
+            ],
         ];
-        $wp_scripts = new \stdClass();
+        $wp_scripts = new stdClass;
         $wp_scripts->queue = ['test-script'];
         $wp_scripts->registered = [
             'test-script' => (object) [
@@ -317,8 +320,8 @@ describe('AssetMinification Edge Cases', function () {
                 'src' => 'http://example.com/script.js',
                 'deps' => [],
                 'ver' => false,
-                'args' => false
-            ]
+                'args' => false,
+            ],
         ];
 
         // Execute
@@ -335,7 +338,7 @@ describe('AssetMinification Edge Cases', function () {
 
         // Setup some assets
         global $wp_styles, $wp_scripts;
-        $wp_styles = new \stdClass();
+        $wp_styles = new stdClass;
         $wp_styles->queue = ['test-style'];
         $wp_styles->registered = [
             'test-style' => (object) [
@@ -343,10 +346,10 @@ describe('AssetMinification Edge Cases', function () {
                 'src' => 'http://example.com/style.css',
                 'deps' => [],
                 'ver' => false,
-                'args' => 'all'
-            ]
+                'args' => 'all',
+            ],
         ];
-        $wp_scripts = new \stdClass();
+        $wp_scripts = new stdClass;
         $wp_scripts->queue = ['test-script'];
         $wp_scripts->registered = [
             'test-script' => (object) [
@@ -354,8 +357,8 @@ describe('AssetMinification Edge Cases', function () {
                 'src' => 'http://example.com/script.js',
                 'deps' => [],
                 'ver' => false,
-                'args' => false
-            ]
+                'args' => false,
+            ],
         ];
 
         // Execute
@@ -367,7 +370,7 @@ describe('AssetMinification Edge Cases', function () {
     });
 
     it('returns normal priority for unknown asset', function () {
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('getAssetPriority');
         $method->setAccessible(true);
         $priority = $method->invokeArgs($this->assetMinification, ['unknown-asset-handle']);
@@ -375,7 +378,7 @@ describe('AssetMinification Edge Cases', function () {
     });
 
     it('returns normal priority for empty handle', function () {
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('getAssetPriority');
         $method->setAccessible(true);
         $priority = $method->invokeArgs($this->assetMinification, ['']);
@@ -383,7 +386,7 @@ describe('AssetMinification Edge Cases', function () {
     });
 
     it('does not consider empty handle as system asset', function () {
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('isSystemAsset');
         $method->setAccessible(true);
         $result = $method->invokeArgs($this->assetMinification, ['']);
@@ -391,7 +394,7 @@ describe('AssetMinification Edge Cases', function () {
     });
 
     it('does not consider null handle as system asset', function () {
-        $reflection = new \ReflectionClass($this->assetMinification);
+        $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('isSystemAsset');
         $method->setAccessible(true);
         $result = $method->invokeArgs($this->assetMinification, ['']);

@@ -18,42 +18,41 @@ use WP_User_Query;
  * Requires at least: 4.6
  * Tested up to: 5.6.0
  * Requires PHP: 7.2+
- *
- * @package WordPress Addon
  */
-class UserFilter {
+class UserFilter
+{
+    public $screen;
 
-	public $screen;
+    public function __construct()
+    {
+        $this->screen = 'users';
 
-	public function __construct() {
-		$this->screen = 'users';
+        add_action('restrict_manage_users', [$this, 'filter_by_role'], 10, 1);
+        add_filter('pre_get_users', [$this, 'filter_users_by_role_section']);
+        add_filter("manage_{$this->screen}_sortable_columns", [$this, 'columns_sortable']);
+        add_filter('user_row_actions', [$this, 'quick_edit'], 10, 2);
 
-		add_action( 'restrict_manage_users', [ $this, 'filter_by_role' ], 10, 1 );
-		add_filter( 'pre_get_users', [ $this, 'filter_users_by_role_section' ] );
-		add_filter( "manage_{$this->screen}_sortable_columns", [ $this, 'columns_sortable' ] );
-		add_filter( 'user_row_actions', [ $this, 'quick_edit' ], 10, 2 );
+        if (! shortcode_exists('role_list')) {
+            add_shortcode('role_list', [$this, 'add_shortcode']);
+        }
+    }
 
-		if ( ! shortcode_exists( 'role_list' ) ) {
-			add_shortcode( 'role_list', [ $this, 'add_shortcode' ] );
-		}
-	}
+    /**
+     ** Sort and Filter Users **
+     * render html form filter
+     *
+     *
+     * @return null
+     */
+    public function filter_by_role($which)
+    {
+        if (shortcode_exists('role_list')) {
+            echo do_shortcode('[role_list style="filter" args="'.$which.'""]');
+            echo '<input type="submit" name="role_filter" id="role_filter" class="button action" value="Filter by role">';
+        }
 
-	/**
-	 ** Sort and Filter Users **
-	 * render html form filter
-	 *
-	 * @param $which
-	 *
-	 * @return null
-	 */
-	public function filter_by_role( $which ) {
-		if ( shortcode_exists( 'role_list' ) ) {
-			echo do_shortcode( '[role_list style="filter" args="' . $which . '""]' );
-			echo '<input type="submit" name="role_filter" id="role_filter" class="button action" value="Filter by role">';
-		}
-
-		add_action( 'admin_footer', function () {
-			?>
+        add_action('admin_footer', function () {
+            ?>
             <script type="text/javascript">
                 jQuery(document).ready(function ($) {
 
@@ -65,81 +64,79 @@ class UserFilter {
                 });
             </script>
 			<?php
-		} );
-	}
+        });
+    }
 
+    /**
+     * @return WP_User_Query $query
+     */
+    public function filter_users_by_role_section(WP_User_Query $query): WP_User_Query
+    {
+        global $pagenow;
 
-	/**
-	 * @param WP_User_Query $query
-	 *
-	 * @return WP_User_Query $query
-	 */
-	public function filter_users_by_role_section( WP_User_Query $query ): WP_User_Query {
-		global $pagenow;
+        if (is_admin() && isset($_GET['role_filter']) && $pagenow === 'users.php') {
+            if (! empty($_GET['role_filter'])) {
+                $query->set('role', $_GET['role_filter']);
+                $query->set('role__in', [$_GET['role_filter']]);
+            }
+        }
 
-		if ( is_admin() && isset( $_GET["role_filter"] ) && 'users.php' === $pagenow ) {
-			if ( ! empty( $_GET['role_filter'] ) ) {
-				$query->set( 'role', $_GET['role_filter'] );
-				$query->set( 'role__in', [ $_GET['role_filter'] ] );
-			}
-		}
+        return $query;
+    }
 
-		return $query;
-	}
+    /**
+     * Add sortable to columns
+     *
+     *
+     * @return mixed
+     */
+    public function columns_sortable($sortable_columns)
+    {
+        $sortable_columns['role'] = 'role';
+        $sortable_columns['name'] = 'name';
+        $sortable_columns['posts'] = 'posts';
 
+        return $sortable_columns;
+    }
 
-	/**
-	 * Add sortable to columns
-	 *
-	 * @param $sortable_columns
-	 *
-	 * @return mixed
-	 */
-	public function columns_sortable( $sortable_columns ) {
-		$sortable_columns['role']  = 'role';
-		$sortable_columns['name']  = 'name';
-		$sortable_columns['posts'] = 'posts';
+    public function quick_edit($actions, $user_object)
+    {
+        // TODO : quick edit here ...
+        return $actions;
+    }
 
-		return $sortable_columns;
-	}
+    public function add_shortcode($atts = [])
+    {
+        if (! is_admin() || ! current_user_can('manage_options')) {
+            return false;
+        }
 
+        $role_names = wp_roles()->get_names();
+        // filter by user role
+        if (isset($atts['style']) && $atts['style'] === 'filter') {
+            // template for filtering
+            $select = '<select name="role" style="float:none;margin-left:10px;">';
+            $select .= '<option value="">'.__('Filter by role').'</option>';
+            foreach ($role_names as $role => $name) {
+                if (isset($_GET['role']) && ! empty($_GET['role']) && $role === $_GET['role']) {
+                    $select .= '<option value="'.$role.'" selected="selected">'.$name.'</option>';
+                } else {
+                    $select .= '<option value="'.$role.'">'.$name.'</option>';
+                }
+            }
+            $select .= '</select>';
 
-	public function quick_edit( $actions, $user_object ) {
-		// TODO : quick edit here ...
-		return $actions;
-	}
+            return $select;
+        }
 
-	public function add_shortcode( $atts = [] ) {
-		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
-			return false;
-		}
+        $html = '<ol>';
+        foreach ($role_names as $role => $name) {
+            $html .= '<li>'.$role.' - '.$name.'</li>';
+        }
+        $html .= '<ol>';
 
-		$role_names = wp_roles()->get_names();
-		// filter by user role
-		if ( isset( $atts['style'] ) && $atts['style'] === 'filter' ) {
-			// template for filtering
-			$select = '<select name="role" style="float:none;margin-left:10px;">';
-			$select .= '<option value="">' . __( 'Filter by role' ) . '</option>';
-			foreach ( $role_names as $role => $name ) {
-				if ( isset( $_GET['role'] ) && ! empty( $_GET['role'] ) && $role === $_GET['role'] ) {
-					$select .= '<option value="' . $role . '" selected="selected">' . $name . '</option>';
-				} else {
-					$select .= '<option value="' . $role . '">' . $name . '</option>';
-				}
-			}
-			$select .= '</select>';
-
-			return $select;
-		}
-
-		$html = '<ol>';
-		foreach ( $role_names as $role => $name ) {
-			$html .= '<li>' . $role . ' - ' . $name . '</li>';
-		}
-		$html .= '<ol>';
-
-		return $html;
-	}
+        return $html;
+    }
 }
 
-return new UserFilter();
+return new UserFilter;

@@ -1,24 +1,25 @@
 <?php
+
 /**
  * Debug helpers. Unused in actions
  */
 
-
 /**
  * Simple debug trace to wp-content/debug.log
+ *
  * @usage _log( $var );
  */
-if (!function_exists('_log')) {
+if (! function_exists('_log')) {
     function _log($log)
     {
-        if (!defined('WP_DEBUG_LOG') || !WP_DEBUG_LOG) {
+        if (! defined('WP_DEBUG_LOG') || ! WP_DEBUG_LOG) {
             return '';
         }
 
-        $file = WP_CONTENT_DIR . '/debug.log';
+        $file = WP_CONTENT_DIR.'/debug.log';
         $maxSize = 5 * 1024 * 1024;
         if (is_file($file) && filesize($file) >= $maxSize) {
-            $rotatedFile = $file . '.1';
+            $rotatedFile = $file.'.1';
             if (is_file($rotatedFile)) {
                 unlink($rotatedFile);
             }
@@ -26,7 +27,7 @@ if (!function_exists('_log')) {
         }
 
         ob_start();
-        echo '[' . date('d-M-Y h:i:s T') . '] ';
+        echo '['.date('d-M-Y h:i:s T').'] ';
         var_export($log);
         echo "\r\n";
         $data = ob_get_clean();
@@ -36,8 +37,7 @@ if (!function_exists('_log')) {
     }
 }
 
-
-if (!function_exists('console_log')) {
+if (! function_exists('console_log')) {
     function console_log($data)
     {
 
@@ -53,7 +53,7 @@ if (!function_exists('console_log')) {
             $data = 'null';
         }
 
-        if (!$wp_query) {
+        if (! $wp_query) {
             return;
         }
 
@@ -76,9 +76,9 @@ if (!function_exists('console_log')) {
 
         global $wp_query;
 
-        if (!$wp_query->debug_showed) {
+        if (! $wp_query->debug_showed) {
 
-            if (!is_string($wp_query->debug_log)) {
+            if (! is_string($wp_query->debug_log)) {
                 $wp_query->debug_log = json_encode($wp_query->debug_log, true);
             } else {
                 $wp_query->debug_log = "'$wp_query->debug_log'";
@@ -93,7 +93,7 @@ if (!function_exists('console_log')) {
     }
 }
 
-if (!function_exists('dump')) {
+if (! function_exists('dump')) {
     function dump(...$data)
     {
         ob_start();

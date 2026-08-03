@@ -1,9 +1,10 @@
 <?php
 
-function show_symbols(){
-    add_action('admin_footer', function (){
+function show_symbols()
+{
+    add_action('admin_footer', function () {
         $screen = get_current_screen();
-        if( !isset($screen) || 'post' !== $screen->id ){
+        if (! isset($screen) || $screen->id !== 'post') {
             return;
         }
         ?>

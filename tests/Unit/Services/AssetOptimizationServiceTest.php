@@ -1,11 +1,11 @@
 <?php
 
+use WpAddon\Services\AssetOptimizationService;
+
 describe('AssetOptimizationService', function () {
-    $service;
-    $cacheDir;
 
     beforeEach(function () {
-        $this->cacheDir = sys_get_temp_dir() . '/wp_addon_test_cache_' . uniqid();
+        $this->cacheDir = sys_get_temp_dir().'/wp_addon_test_cache_'.uniqid();
         mkdir($this->cacheDir, 0755, true);
 
         $config = [
@@ -17,16 +17,16 @@ describe('AssetOptimizationService', function () {
             'combine_js' => true,
             'critical_css_enabled' => true,
             'exclude_css' => [],
-            'exclude_js' => []
+            'exclude_js' => [],
         ];
 
-        $this->service = new \WpAddon\Services\AssetOptimizationService($config);
+        $this->service = new AssetOptimizationService($config);
     });
 
     afterEach(function () {
         // Clean up cache directory
         if (is_dir($this->cacheDir)) {
-            $files = glob($this->cacheDir . '/*');
+            $files = glob($this->cacheDir.'/*');
             foreach ($files as $file) {
                 unlink($file);
             }
@@ -83,7 +83,7 @@ describe('AssetOptimizationService', function () {
     it('combines CSS files', function () {
         $files = [
             $this->getTestDataPath('test.css'),
-            $this->getTestDataPath('small.css')
+            $this->getTestDataPath('small.css'),
         ];
 
         $combined = $this->service->combineCss($files);
@@ -96,7 +96,7 @@ describe('AssetOptimizationService', function () {
     it('combines JS files', function () {
         $files = [
             $this->createTempFile('function a(){return 1;}'),
-            $this->createTempFile('function b(){return 2;}')
+            $this->createTempFile('function b(){return 2;}'),
         ];
 
         $combined = $this->service->combineJs($files);
@@ -138,7 +138,7 @@ describe('AssetOptimizationService', function () {
 
         $this->service->saveToCache($key, $content);
 
-        $cacheFile = $this->cacheDir . '/' . $key . '.gz';
+        $cacheFile = $this->cacheDir.'/'.$key.'.gz';
         // Mock file_exists to return true for this test
         $this->setMockFunction('file_exists', true);
         expect(file_exists($cacheFile))->toBeTrue();
