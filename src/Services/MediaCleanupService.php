@@ -103,13 +103,6 @@ class MediaCleanupService
      */
     public function getFilesToDelete(string $uploadPath): array
     {
-        $cacheKey = 'wp_addon_cleanup_files_' . md5($uploadPath);
-        $cached = get_transient($cacheKey);
-
-        if ($cached !== false) {
-            return $cached;
-        }
-
         $files = $this->getAllImageFiles($uploadPath);
         $toDelete = [];
         $totalSize = 0;
@@ -123,14 +116,10 @@ class MediaCleanupService
             }
         }
 
-        $result = [
+        return [
             'files' => $toDelete,
             'totalSize' => $totalSize
         ];
-
-        set_transient($cacheKey, $result, HOUR_IN_SECONDS);
-
-        return $result;
     }
 
     /**
@@ -151,12 +140,6 @@ class MediaCleanupService
             } else {
                 $errors++;
             }
-        }
-
-        // Clear cache
-        if (!empty($uploadPath)) {
-            $cacheKey = 'wp_addon_cleanup_files_' . md5($uploadPath);
-            delete_transient($cacheKey);
         }
 
         return [

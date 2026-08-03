@@ -14,12 +14,16 @@ class MediaCleanup implements ModuleInterface {
     }
 
     public function init(): void {
+        if (!$this->isEnabled()) {
+            return;
+        }
+
         add_action('wp_ajax_wp_addon_cleanup_images', [$this, 'cleanup']);
         add_action('wp_ajax_wp_addon_cleanup_images_dry_run', [$this, 'dryRun']);
     }
 
     public function dryRun(): void {
-        if (!current_user_can('manage_options')) {
+        if (!$this->isEnabled() || !current_user_can('manage_options')) {
             wp_die(__('Access denied.', 'wp-addon'));
         }
         check_ajax_referer('cleanup_images', 'nonce');
@@ -43,7 +47,7 @@ class MediaCleanup implements ModuleInterface {
     }
 
     public function cleanup(): void {
-        if (!current_user_can('manage_options')) {
+        if (!$this->isEnabled() || !current_user_can('manage_options')) {
             wp_die(__('Access denied.', 'wp-addon'));
         }
         check_ajax_referer('cleanup_images', 'nonce');
@@ -64,6 +68,13 @@ class MediaCleanup implements ModuleInterface {
         $output = '<div class="notice ' . $class . '"><p>' . $message . '</p></div>';
 
         wp_die($output);
+    }
+
+    private function isEnabled(): bool {
+        $options = get_option('wp-addon', []);
+
+        return isset($options['media_cleanup_enabled'])
+            && ($options['media_cleanup_enabled'] === true || $options['media_cleanup_enabled'] === 1 || $options['media_cleanup_enabled'] === '1' || $options['media_cleanup_enabled'] === 'true');
     }
 
     // Not used since we have separate methods

@@ -34,6 +34,8 @@ class PageCache implements ModuleInterface {
 			'auto_preload'       => empty( $preloadPagesSetting ),
 			'clear_on_post_save' => $this->optionService->getSetting( 'cache_clear_on_post_save', true ),
 			'cache_dir'          => $defaultConfig['cache_dir'],
+			'max_files'          => (int) $defaultConfig['max_files'],
+			'cleanup_batch_size' => (int) $defaultConfig['cleanup_batch_size'],
 		];
 	}
 
@@ -48,8 +50,9 @@ class PageCache implements ModuleInterface {
 		}
 		add_action( 'wp_loaded', [ $this, 'preloadPages' ] );
 
-		// Preload hook
+		// Preload and cleanup hooks.
 		add_action( 'page_cache_preload', [ $this, 'doPreload' ] );
+		add_action( 'page_cache_cleanup', [ $this, 'cleanupExpiredEntries' ] );
 	}
 
 	public function doPreload(): void {
@@ -125,6 +128,14 @@ class PageCache implements ModuleInterface {
 		if ( ! wp_next_scheduled( 'page_cache_preload' ) ) {
 			wp_schedule_event( time(), 'hourly', 'page_cache_preload' );
 		}
+
+		if ( ! wp_next_scheduled( 'page_cache_cleanup' ) ) {
+			wp_schedule_event( time(), 'hourly', 'page_cache_cleanup' );
+		}
+	}
+
+	public function cleanupExpiredEntries(): void {
+		$this->cache->cleanup( $this->config['max_files'], $this->config['ttl'], $this->config['cleanup_batch_size'] );
 	}
 
 	public function startCache(): void {
@@ -132,7 +143,7 @@ class PageCache implements ModuleInterface {
 			return;
 		}
 
-		$key    = $this->cache->generateCacheKey( $_SERVER['REQUEST_URI'] );
+		$key    = $this->cache->generateCacheKey( $this->getCachePath() );
 		$cached = $this->cache->getCachedContent( $key );
 
 		if ( $cached ) {
@@ -157,6 +168,10 @@ class PageCache implements ModuleInterface {
 		}
 
 		$url = $_SERVER['REQUEST_URI'];
+		if ( strpos( $url, '?' ) !== false || defined( 'REST_REQUEST' ) && REST_REQUEST || defined( 'DOING_CRON' ) && DOING_CRON || defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST || is_feed() || is_search() || is_preview() ) {
+			return false;
+		}
+
 		$custom_login_slug = get_option( 'whl_page' );
 		if ( ! empty( $custom_login_slug ) ) {
 			$custom_login_path = '/' . ltrim( $custom_login_slug, '/' );
@@ -173,9 +188,13 @@ class PageCache implements ModuleInterface {
 		return true;
 	}
 
+	private function getCachePath(): string {
+		return wp_parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ) ?: '/';
+	}
+
 	public function cacheOutput( string $content ): string {
 		if ( $this->shouldCache() ) {
-			$key = $this->cache->generateCacheKey( $_SERVER['REQUEST_URI'] );
+			$key = $this->cache->generateCacheKey( $this->getCachePath() );
 			$this->cache->saveCachedContent( $key, $content );
 		}
 

@@ -7,10 +7,18 @@ class Redirects implements ModuleInterface {
     use HookTrait;
 
     public function init(): void {
+        if (!$this->isEnabled()) {
+            return;
+        }
+
         $this->addHook('init', [$this, 'processRedirects'], 1);
     }
 
     public function processRedirects(): void {
+        if (!$this->isEnabled()) {
+            return;
+        }
+
         $options = get_option('wp-addon', []);
 
         // Check if redirects are configured
@@ -71,6 +79,16 @@ class Redirects implements ModuleInterface {
                 unset($redirects[$storedrequest]);
             }
         }
+    }
+
+    private function isEnabled(): bool {
+        $options = get_option('wp-addon', []);
+
+        return !array_key_exists('redirect_enable', $options) || $this->isTruthy($options['redirect_enable']);
+    }
+
+    private function isTruthy($value): bool {
+        return $value === true || $value === 1 || $value === '1' || $value === 'true';
     }
 
     /**

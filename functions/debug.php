@@ -4,14 +4,6 @@
  */
 
 
-if (!function_exists('change_log_file_location')):
-    add_action('mu_plugin_loaded', 'change_log_file_location');
-    function change_log_file_location()
-    {
-        ini_set('error_log', WP_CONTENT_DIR.'/hidden-debug.log');
-    }
-endif;
-
 /**
  * Simple debug trace to wp-content/debug.log
  * @usage _log( $var );
@@ -19,12 +11,28 @@ endif;
 if (!function_exists('_log')) {
     function _log($log)
     {
+        if (!defined('WP_DEBUG_LOG') || !WP_DEBUG_LOG) {
+            return '';
+        }
+
+        $file = WP_CONTENT_DIR . '/debug.log';
+        $maxSize = 5 * 1024 * 1024;
+        if (is_file($file) && filesize($file) >= $maxSize) {
+            $rotatedFile = $file . '.1';
+            if (is_file($rotatedFile)) {
+                unlink($rotatedFile);
+            }
+            rename($file, $rotatedFile);
+        }
+
         ob_start();
-        echo '['.date('d-M-Y h:i:s T').'] ';
+        echo '[' . date('d-M-Y h:i:s T') . '] ';
         var_export($log);
         echo "\r\n";
-        file_put_contents(ABSPATH.'wp-content/debug.log', $data = ob_get_contents(), FILE_APPEND);
-        return ob_get_clean();
+        $data = ob_get_clean();
+        file_put_contents($file, $data, FILE_APPEND | LOCK_EX);
+
+        return $data;
     }
 }
 

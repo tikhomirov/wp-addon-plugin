@@ -124,12 +124,42 @@ class AssetOptimizationService
     public function getFromCache(string $key): ?string
     {
         $file = $this->cacheDir . $key . '.gz';
-        if (!file_exists($file)) {
+        if (!is_file($file)) {
             return null;
         }
 
-        $content = gzuncompress(file_get_contents($file));
-        return $content ?: null;
+        $compressed = file_get_contents($file);
+        $content = $compressed === false ? false : @gzuncompress($compressed);
+        if ($content === false) {
+            unlink($file);
+
+            return null;
+        }
+
+        return $content;
+    }
+
+    public function cleanupCache(int $maxAge = 604800, int $maxFiles = 500): void
+    {
+        $files = glob($this->cacheDir . '*.gz') ?: [];
+        $now = time();
+
+        foreach ($files as $file) {
+            $modifiedAt = filemtime($file);
+            if ($modifiedAt === false || ($now - $modifiedAt) > $maxAge) {
+                unlink($file);
+            }
+        }
+
+        $files = glob($this->cacheDir . '*.gz') ?: [];
+        if (count($files) <= $maxFiles) {
+            return;
+        }
+
+        usort($files, static fn(string $left, string $right): int => (filemtime($left) ?: 0) <=> (filemtime($right) ?: 0));
+        foreach (array_slice($files, 0, count($files) - $maxFiles) as $file) {
+            unlink($file);
+        }
     }
 
     /**

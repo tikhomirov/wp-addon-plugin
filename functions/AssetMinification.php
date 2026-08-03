@@ -58,13 +58,10 @@ class AssetMinification implements ModuleInterface
             add_action('wp_enqueue_scripts', [$this, 'deferCssLoading'], 1000);
         }
 
-        // Clear cache on theme/plugin updates
+        // Clear cache on theme/plugin updates and retain a bounded cache between deploys.
         add_action('upgrader_process_complete', [$this, 'clearCache']);
-
-        // Отладка: добавить тестовый вывод
-        add_action('wp_footer', function() {
-            echo '<!-- AssetMinification: Module loaded and initialized -->';
-        });
+        add_action('wp_loaded', [$this, 'scheduleCacheCleanup']);
+        add_action('wp_addon_asset_cache_cleanup', [$this, 'cleanupCache']);
     }
 
     public function processCssAssets(): void
@@ -412,6 +409,18 @@ class AssetMinification implements ModuleInterface
     private function getCacheUrl(string $key): string
     {
         return content_url('/cache/assets/' . $key . '.gz');
+    }
+
+    public function scheduleCacheCleanup(): void
+    {
+        if (!wp_next_scheduled('wp_addon_asset_cache_cleanup')) {
+            wp_schedule_event(time(), 'daily', 'wp_addon_asset_cache_cleanup');
+        }
+    }
+
+    public function cleanupCache(): void
+    {
+        $this->optimizationService->cleanupCache();
     }
 
     public function clearCache(): void

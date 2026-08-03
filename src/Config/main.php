@@ -188,12 +188,6 @@ $fields['seo'] = [
             ),
             'default' => false,
         ],
-        [
-            'id'      => 'redirect_enable',
-            'type'    => 'switcher',
-            'title'   => __('Enable 301 redirect addon?', 'wp-addon'),
-            'default' => true,
-        ],
     ],
 ];
 

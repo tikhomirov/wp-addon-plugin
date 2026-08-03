@@ -673,10 +673,18 @@ class WP_Addon_Settings {
             'description' => __('This section allows you to clean up unused image sizes to free up disk space. WordPress generates multiple sizes for each uploaded image, but if your theme or plugins don\'t use all of them, they take up unnecessary space. Use this tool to identify and remove such files.<br><br><strong>When to use:</strong> After changing themes, disabling plugins that generate custom sizes, or optimizing site performance.<br><br><strong>Precautions:</strong> Always create a backup before cleanup. Use "Preview Cleanup" first to see what will be deleted. The tool preserves original images and "scaled" versions (up to 2000px). Deleted files cannot be recovered!', 'wp-addon'),
             'fields' => [
                 [
-                    'id'      => 'cleanup_images',
-                    'type'    => 'content',
-                    'title'   => __('Clean up unused image sizes', 'wp-addon'),
-                    'content' => '<p>' . sprintf(__('This will delete all image sizes except: %s. Files will be deleted permanently!', 'wp-addon'), implode(', ', MediaCleanupService::getRegisteredSizesStatic())) . '</p><button id="preview-cleanup-btn" class="button">' . __('Preview Cleanup', 'wp-addon') . '</button> <button id="cleanup-images-btn" class="button button-primary">' . __('Start Cleanup', 'wp-addon') . '</button><div id="cleanup-result"></div><script>jQuery(document).ready(function($){$("#preview-cleanup-btn").click(function(e){e.preventDefault();$("#cleanup-result").html("' . __('Loading preview...', 'wp-addon') . '");$.post(ajaxurl,{action:"wp_addon_cleanup_images_dry_run",nonce:"'.wp_create_nonce('cleanup_images').'"},function(r){$("#cleanup-result").html(r);});});$("#cleanup-images-btn").click(function(e){e.preventDefault();if(confirm("' . __('Are you sure? This action cannot be undone.', 'wp-addon') . '")){$("#cleanup-result").html("' . __('Processing...', 'wp-addon') . '");$.post(ajaxurl,{action:"wp_addon_cleanup_images",nonce:"'.wp_create_nonce('cleanup_images').'"},function(r){$("#cleanup-result").html(r);});}});});</script>',
+                    'id'      => 'media_cleanup_enabled',
+                    'type'    => 'switcher',
+                    'title'   => __('Enable Media Cleanup', 'wp-addon'),
+                    'desc'    => __('Registers the cleanup AJAX actions. Keep disabled until you are ready to review and remove generated image sizes.', 'wp-addon'),
+                    'default' => false,
+                ],
+                [
+                    'id'         => 'cleanup_images',
+                    'type'       => 'content',
+                    'title'      => __('Clean up unused image sizes', 'wp-addon'),
+                    'dependency' => ['media_cleanup_enabled', '==', 'true'],
+                    'content'    => '<p>' . sprintf(__('This will delete all image sizes except: %s. Files will be deleted permanently!', 'wp-addon'), implode(', ', MediaCleanupService::getRegisteredSizesStatic())) . '</p><button id="preview-cleanup-btn" class="button">' . __('Preview Cleanup', 'wp-addon') . '</button> <button id="cleanup-images-btn" class="button button-primary">' . __('Start Cleanup', 'wp-addon') . '</button><div id="cleanup-result"></div><script>jQuery(document).ready(function($){$("#preview-cleanup-btn").click(function(e){e.preventDefault();$("#cleanup-result").html("' . __('Loading preview...', 'wp-addon') . '");$.post(ajaxurl,{action:"wp_addon_cleanup_images_dry_run",nonce:"'.wp_create_nonce('cleanup_images').'"},function(r){$("#cleanup-result").html(r);});});$("#cleanup-images-btn").click(function(e){e.preventDefault();if(confirm("' . __('Are you sure? This action cannot be undone.', 'wp-addon') . '")){$("#cleanup-result").html("' . __('Processing...', 'wp-addon') . '");$.post(ajaxurl,{action:"wp_addon_cleanup_images",nonce:"'.wp_create_nonce('cleanup_images').'"},function(r){$("#cleanup-result").html(r);});}});});</script>',
                 ],
             ],
         ]);
@@ -688,7 +696,14 @@ class WP_Addon_Settings {
             'description' => __('301 redirect management. Create redirect rules from one URL to another. Supports both simple redirection and wildcard (*) usage for folder redirection.<br><br><strong>Simple redirects:</strong> /old-page/ → /new-page/<br><strong>Wildcard redirects:</strong> /old-folder/* → /new-folder/*<br><br><strong>Important:</strong> Redirects apply to all requests except wp-admin and wp-login to prevent admin access blocking.', 'wp-addon'),
             'fields' => [
                 [
-                    'id'    => 'redirects_wildcard',
+                    'id'      => 'redirect_enable',
+                    'type'    => 'switcher',
+                    'title'   => __('Enable redirects', 'wp-addon'),
+                    'desc'    => __('When disabled, redirect rules are not registered or processed.', 'wp-addon'),
+                    'default' => true,
+                ],
+                [
+                    'id'         => 'redirects_wildcard',
                     'type'  => 'switcher',
                     'title' => __('Use wildcard redirects', 'wp-addon'),
                     'desc'  => __('Enable for * symbol support in URLs. Example: /old-folder/* will redirect all pages from old-folder to corresponding pages in new-folder.', 'wp-addon'),
