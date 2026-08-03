@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the # WP Excellence Addon plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: # WP Excellence Addon 1.3.6\n"
+"Project-Id-Version: # WP Excellence Addon 1.4.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-addon-plugin\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
