@@ -1,9 +1,19 @@
-
-# file: ~/.gitignore_global
+# Operating system and IDE files
 .DS_Store
 .idea/
+
+# PHP dependencies and archives
+/vendor/
 *.phar
-.phpunit.cache
-vendor
-lib/
-assets/node_modules/
+
+# JavaScript dependencies
+/assets/node_modules/
+
+# Test and coverage artifacts
+/.phpunit.cache/
+/.phpunit.result.cache
+/test-results.xml
+/coverage/
+
+# Runtime-installed third-party framework
+/lib/
