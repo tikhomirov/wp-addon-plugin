@@ -161,7 +161,7 @@ npm run dev      # Development mode with watch
 ## ✅ Requirements
 
 - WordPress 6.6+
-- PHP 7.4+
+- PHP 8.2+
 
 ## 🧪 Testing
 
@@ -366,7 +366,7 @@ npm run dev      # Режим разработки с watch
 ## ✅ Требования
 
 - WordPress 6.6+
-- PHP 7.4+
+- PHP 8.2+
 
 ## 🧪 Тестирование
 
