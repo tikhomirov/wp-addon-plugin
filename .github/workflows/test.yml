@@ -32,14 +32,17 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php }}
-        extensions: pdo, pdo_mysql, mbstring, intl, zip
+        extensions: pdo, pdo_mysql, mbstring, intl, zip, dom, gd, xml
         coverage: xdebug
         tools: composer:v2
 
     - name: Cache Composer dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
-        path: vendor
+        path: |
+          vendor
+          .pint.cache
+          .phpstan/cache
         key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
           ${{ runner.os }}-php-${{ matrix.php }}-composer-
@@ -74,8 +77,14 @@ jobs:
         cd /tmp/wordpress-develop
         php tests/phpunit/includes/install.php wp-tests-config.php
 
-    - name: Run quality checks
-      run: composer quality
+    - name: Check code style
+      run: composer format:check
+
+    - name: Run static analysis
+      run: composer static-analysis
+
+    - name: Run tests
+      run: composer test
 
     - name: Run tests with coverage
       run: composer test:coverage
