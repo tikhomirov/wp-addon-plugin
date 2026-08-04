@@ -1,7 +1,5 @@
 <?php
 
-use Mockery;
-
 /**
  * Unit tests for LazyLoading module
  */

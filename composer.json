@@ -35,7 +35,12 @@
     "format": "pint",
     "format:check": "pint --test",
     "static-analysis": "phpstan analyse --memory-limit=1G",
-    "quality": "@composer validate --strict && @format:check && @static-analysis && @test"
+    "quality": [
+      "composer validate --strict",
+      "@format:check",
+      "@static-analysis",
+      "@test"
+    ]
   },
   "config": {
     "allow-plugins": {
