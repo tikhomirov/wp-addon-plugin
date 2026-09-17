@@ -530,6 +530,11 @@ class WP_Addon_Settings
                     'desc' => __('When you publish a new article or edit an old one - automatically delete all cache. So readers will immediately see fresh content. Disable if you publish often - this will slow down the site.', 'wp-addon'),
                     'default' => true,
                 ],
+                [
+                    'id' => 'cache_status',
+                    'type' => 'content',
+                    'content' => class_exists('PageCache') ? \PageCache::renderAdminPanel() : '',
+                ],
             ],
         ]);
 

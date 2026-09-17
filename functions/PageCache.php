@@ -29,6 +29,8 @@ class PageCache implements ModuleInterface
 
     public function init(): void
     {
+        add_action('wp_ajax_wp_addon_clear_page_cache', [$this, 'clearCacheAjax']);
+
         if (! $this->config['enabled']) {
             return;
         }
@@ -107,6 +109,17 @@ class PageCache implements ModuleInterface
         $this->cache->clearCache();
     }
 
+    public function clearCacheAjax(): void
+    {
+        check_ajax_referer('wp_addon_page_cache', 'nonce');
+        if (! current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Forbidden'], 403);
+        }
+
+        $this->cache->clearCache();
+        wp_send_json_success(['message' => 'Page cache cleared.']);
+    }
+
     public function doPreload(): void
     {
         foreach ($this->getPreloadPages() as $url) {
@@ -149,9 +162,31 @@ class PageCache implements ModuleInterface
         return $this->config['exclude_urls'];
     }
 
+    public static function renderAdminPanel(): string
+    {
+        $defaults = require RW_PLUGIN_DIR.'src/Config/cache.php';
+        $server = stripos((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''), 'nginx') !== false ? 'Nginx' : 'Apache';
+        $htaccess = function_exists('get_home_path') ? get_home_path().'.htaccess' : ABSPATH.'.htaccess';
+        $htaccessStatus = is_file($htaccess) && str_contains((string) file_get_contents($htaccess), '# BEGIN WP Addon Page Cache') ? 'active' : 'not installed';
+        $nginxConfig = trailingslashit($defaults['cache_dir']).'nginx.conf';
+        $delivery = $server === 'Nginx' ? (is_file($nginxConfig) ? 'configuration generated; include and reload required' : 'configuration not generated') : $htaccessStatus;
+        $cacheFiles = glob(trailingslashit($defaults['cache_dir']).'*/*/index.html') ?: [];
+        $nonce = wp_create_nonce('wp_addon_page_cache');
+
+        return '<dl style="display:grid;grid-template-columns:max-content 1fr;gap:6px 16px">'
+            .'<dt>Server</dt><dd><code>'.esc_html($server).'</code></dd>'
+            .'<dt>Early delivery</dt><dd><code>'.esc_html($delivery).'</code></dd>'
+            .'<dt>.htaccess</dt><dd><code>'.esc_html($htaccess).'</code> ('.(is_writable($htaccess) ? 'writable' : 'not writable').')</dd>'
+            .'<dt>Nginx config</dt><dd><code>'.esc_html($nginxConfig).'</code></dd>'
+            .'<dt>Cached pages</dt><dd><code>'.count($cacheFiles).'</code></dd>'
+            .'</dl><button type="button" class="button" id="wp-addon-clear-page-cache">Clear page cache</button> <span id="wp-addon-page-cache-result"></span>'
+            .'<script>jQuery(function($){$("#wp-addon-clear-page-cache").on("click",function(){var button=$(this),result=$("#wp-addon-page-cache-result");button.prop("disabled",true);result.text("…");$.post(ajaxurl,{action:"wp_addon_clear_page_cache",nonce:"'.esc_js($nonce).'"}).done(function(response){result.text(response.data&&response.data.message?response.data.message:"Done");}).fail(function(){result.text("Error");}).always(function(){button.prop("disabled",false);});});});</script>';
+    }
+
     private function loadConfig(): void
     {
         $defaults = require RW_PLUGIN_DIR.'src/Config/cache.php';
+        $this->migrateSettings($defaults);
         $preloadSetting = $this->optionService->getSetting('cache_preload_pages', '');
 
         $this->config = [
@@ -166,6 +201,20 @@ class PageCache implements ModuleInterface
             'max_files' => (int) $defaults['max_files'],
             'cleanup_batch_size' => (int) $defaults['cleanup_batch_size'],
         ];
+    }
+
+    private function migrateSettings(array $defaults): void
+    {
+        if ((int) get_option('wp_addon_page_cache_settings_version', 0) >= 2) {
+            return;
+        }
+
+        $settings = $this->optionService->getSettings();
+        $existing = $this->normalizeLines((string) ($settings['cache_exclude_urls'] ?? ''));
+        $merged = array_values(array_unique(array_merge($existing, $defaults['exclude_urls'])));
+        $settings['cache_exclude_urls'] = implode("\n", $merged);
+        $this->optionService->updateSettings($settings);
+        update_option('wp_addon_page_cache_settings_version', 2, false);
     }
 
     private function shouldCacheRequest(): bool
