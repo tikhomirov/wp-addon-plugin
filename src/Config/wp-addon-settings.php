@@ -5,6 +5,7 @@ namespace WpAddon;
 use Automatic_Upgrader_Skin;
 use Plugin_Upgrader;
 use WpAddon\Services\MediaCleanupService;
+use WpPackages\PluginsApi;
 
 defined('ABSPATH') or exit;
 
@@ -140,7 +141,7 @@ class WP_Addon_Settings
     private function fetch_plugins_catalog_payload(): ?array
     {
         if (post_type_exists('plugin') && class_exists('\WpPackages\PluginsApi')) {
-            $api = new \WpPackages\PluginsApi();
+            $api = new PluginsApi;
             $request = new \WP_REST_Request('GET', '/wp-packages/v1/plugins');
             $request->set_param('per_page', 100);
             $response = $api->getPlugins($request);
@@ -359,6 +360,68 @@ class WP_Addon_Settings
         return '<span class="my-plugins-badge '.$class.'">'.esc_html(strtoupper($sourceType)).'</span>';
     }
 
+    private function collect_plugin_categories(array $plugins): array
+    {
+        $categories = [];
+
+        foreach ($plugins as $plugin) {
+            if (! is_array($plugin['categories'] ?? null)) {
+                continue;
+            }
+
+            foreach ($plugin['categories'] as $category) {
+                if (! is_array($category) || empty($category['slug']) || empty($category['name'])) {
+                    continue;
+                }
+
+                $categories[(string) $category['slug']] = (string) $category['name'];
+            }
+        }
+
+        asort($categories, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $categories;
+    }
+
+    private function build_plugin_search_index(array $plugin): string
+    {
+        $parts = [
+            $plugin['slug'] ?? '',
+            $plugin['title'] ?? '',
+            $plugin['description'] ?? '',
+            $plugin['github_repo'] ?? '',
+            $plugin['version'] ?? '',
+        ];
+
+        if (is_array($plugin['categories'] ?? null)) {
+            foreach ($plugin['categories'] as $category) {
+                if (! is_array($category)) {
+                    continue;
+                }
+
+                $parts[] = $category['name'] ?? '';
+                $parts[] = $category['slug'] ?? '';
+            }
+        }
+
+        return mb_strtolower(implode(' ', array_filter(array_map('strval', $parts))));
+    }
+
+    private function build_plugin_category_slugs(array $plugin): string
+    {
+        $slugs = [];
+
+        if (is_array($plugin['categories'] ?? null)) {
+            foreach ($plugin['categories'] as $category) {
+                if (is_array($category) && ! empty($category['slug'])) {
+                    $slugs[] = (string) $category['slug'];
+                }
+            }
+        }
+
+        return implode(',', $slugs);
+    }
+
     private function render_plugin_card(array $plugin, array $installed_plugins, array $active_plugins): string
     {
         $slug = (string) ($plugin['slug'] ?? '');
@@ -372,19 +435,19 @@ class WP_Addon_Settings
         }
 
         $icon = $plugin['icon'] !== ''
-            ? '<img src="'.esc_url($plugin['icon']).'" alt="" loading="lazy" width="52" height="52">'
+            ? '<img src="'.esc_url($plugin['icon']).'" alt="" loading="lazy" width="36" height="36">'
             : esc_html(mb_strtoupper(mb_substr($plugin['title'], 0, 1)));
 
         $title = $plugin['permalink'] !== ''
             ? '<a href="'.esc_url($plugin['permalink']).'" target="_blank" rel="noopener">'.esc_html($plugin['title']).'</a>'
             : esc_html($plugin['title']);
 
-        $html = '<article class="'.esc_attr($card_class).'">';
+        $html = '<article class="'.esc_attr($card_class).'" data-search="'.esc_attr($this->build_plugin_search_index($plugin)).'" data-categories="'.esc_attr($this->build_plugin_category_slugs($plugin)).'">';
         $html .= '<div class="my-plugins-card-body">';
         $html .= '<div class="my-plugins-card-grid">';
         $html .= '<div class="my-plugins-icon">'.$icon.'</div>';
-        $html .= '<div class="min-w-0">';
-        $html .= '<div class="my-plugins-title-row">';
+        $html .= '<div class="my-plugins-main">';
+        $html .= '<div class="my-plugins-head">';
         $html .= '<h3 class="my-plugins-title">'.$title.'</h3>';
         $html .= $this->render_plugin_source_badge($plugin['source_type']);
         $html .= $plugin['plugin_type'] === 'premium'
@@ -393,25 +456,6 @@ class WP_Addon_Settings
         if ($plugin['version'] !== '') {
             $html .= '<span class="my-plugins-badge my-plugins-badge-version">v'.esc_html($plugin['version']).'</span>';
         }
-        $html .= '</div>';
-
-        if ($plugin['description'] !== '') {
-            $html .= '<p class="my-plugins-desc">'.esc_html($plugin['description']).'</p>';
-        }
-
-        $html .= '<div class="my-plugins-footer">';
-        foreach ($plugin['categories'] as $category) {
-            if (! is_array($category) || empty($category['name'])) {
-                continue;
-            }
-            $html .= '<span class="my-plugins-badge my-plugins-badge-category">'.esc_html((string) $category['name']).'</span>';
-        }
-        if ($plugin['github_repo'] !== '') {
-            $html .= '<a class="my-plugins-badge my-plugins-badge-external" href="'.esc_url($plugin['html_url']).'" target="_blank" rel="noopener">'.esc_html($plugin['github_repo']).'</a>';
-        }
-        $html .= '</div>';
-        $html .= '</div>';
-
         $html .= '<div class="my-plugins-stats">';
         if ($plugin['stars'] > 0) {
             $html .= '<span class="my-plugins-stat" title="GitHub Stars"><span class="dashicons dashicons-star-filled" aria-hidden="true"></span>'.esc_html(number_format_i18n($plugin['stars'])).'</span>';
@@ -425,22 +469,42 @@ class WP_Addon_Settings
         $html .= '</div>';
         $html .= '</div>';
 
+        if ($plugin['description'] !== '') {
+            $html .= '<p class="my-plugins-desc">'.esc_html($plugin['description']).'</p>';
+        }
+
+        $html .= '<div class="my-plugins-bottom">';
+        $html .= '<div class="my-plugins-meta">';
+        foreach ($plugin['categories'] as $category) {
+            if (! is_array($category) || empty($category['name'])) {
+                continue;
+            }
+            $html .= '<span class="my-plugins-badge my-plugins-badge-category">'.esc_html((string) $category['name']).'</span>';
+        }
+        if ($plugin['github_repo'] !== '') {
+            $html .= '<a class="my-plugins-badge my-plugins-badge-external" href="'.esc_url($plugin['html_url']).'" target="_blank" rel="noopener">'.esc_html($plugin['github_repo']).'</a>';
+        }
+        $html .= '</div>';
+
         if ($plugin['installable']) {
             $html .= '<div class="my-plugins-actions">';
             if ($plugin['html_url'] !== '') {
-                $html .= '<a class="button button-secondary" href="'.esc_url($plugin['html_url']).'" target="_blank" rel="noopener">GitHub</a>';
+                $html .= '<a class="button button-small" href="'.esc_url($plugin['html_url']).'" target="_blank" rel="noopener">GitHub</a>';
             }
             if ($state['is_installed']) {
                 $activate_text = $state['is_active'] ? 'Деактивировать' : 'Активировать';
-                $activate_class = $state['is_active'] ? 'deactivate-plugin-btn button' : 'activate-plugin-btn button button-primary';
+                $activate_class = $state['is_active'] ? 'deactivate-plugin-btn button button-small' : 'activate-plugin-btn button button-small button-primary';
                 $html .= '<button class="'.esc_attr($activate_class).'" data-repo="'.esc_attr($slug).'" data-file="'.esc_attr((string) $state['plugin_file']).'">'.esc_html($activate_text).'</button>';
-                $html .= '<button class="uninstall-plugin-btn button button-link-delete" data-repo="'.esc_attr($slug).'">Деинсталлировать</button>';
+                $html .= '<button class="uninstall-plugin-btn button button-small button-link-delete" data-repo="'.esc_attr($slug).'">Удалить</button>';
             } else {
-                $html .= '<button class="install-plugin-btn button button-primary" data-repo="'.esc_attr($slug).'" data-zip="'.esc_attr($plugin['zip_url']).'">Установить</button>';
+                $html .= '<button class="install-plugin-btn button button-small button-primary" data-repo="'.esc_attr($slug).'" data-zip="'.esc_attr($plugin['zip_url']).'">Установить</button>';
             }
             $html .= '</div>';
         }
 
+        $html .= '</div>';
+        $html .= '</div>';
+        $html .= '</div>';
         $html .= '</div>';
         $html .= '</article>';
 
@@ -453,20 +517,34 @@ class WP_Addon_Settings
         $installed_plugins = get_plugins();
         $active_plugins = get_option('active_plugins', []);
         $source_label = get_transient('wp_addon_plugins_catalog') ? __('каталог rwsite', 'wp-addon') : __('GitHub', 'wp-addon');
+        $categories = $this->collect_plugin_categories($plugins);
 
         $html = '<div class="my-plugins-wrap">';
         $html .= '<div class="my-plugins-toolbar">';
         $html .= '<div class="my-plugins-toolbar-meta">';
         if (! empty($plugins)) {
             $html .= sprintf(
-                esc_html__('Найдено плагинов: %d. Источник: %s.', 'wp-addon'),
+                __('Показано: %1$s из %2$d. Источник: %3$s.', 'wp-addon'),
+                '<span id="my-plugins-visible-count">'.count($plugins).'</span>',
                 count($plugins),
                 esc_html($source_label)
             );
         }
         $html .= '</div>';
-        $html .= '<button id="refresh-plugins-list" class="button">'.esc_html__('Обновить список', 'wp-addon').'</button>';
+        $html .= '<button id="refresh-plugins-list" class="button button-small">'.esc_html__('Обновить список', 'wp-addon').'</button>';
         $html .= '</div>';
+
+        if (! empty($plugins)) {
+            $html .= '<div class="my-plugins-filters">';
+            $html .= '<input type="search" id="my-plugins-search" class="my-plugins-search" placeholder="'.esc_attr__('Поиск по названию, описанию или репозиторию', 'wp-addon').'" aria-label="'.esc_attr__('Поиск плагинов', 'wp-addon').'">';
+            $html .= '<select id="my-plugins-category" class="my-plugins-category" aria-label="'.esc_attr__('Категория', 'wp-addon').'">';
+            $html .= '<option value="">'.esc_html__('Все категории', 'wp-addon').'</option>';
+            foreach ($categories as $slug => $name) {
+                $html .= '<option value="'.esc_attr($slug).'">'.esc_html($name).'</option>';
+            }
+            $html .= '</select>';
+            $html .= '</div>';
+        }
 
         if (empty($plugins)) {
             $error = get_transient('wp_addon_github_plugins_error');
@@ -478,6 +556,7 @@ class WP_Addon_Settings
             }
             $html .= '</div>';
         } else {
+            $html .= '<div class="my-plugins-no-results">'.esc_html__('По вашему запросу ничего не найдено.', 'wp-addon').'</div>';
             $html .= '<div class="my-plugins-list">';
             foreach ($plugins as $plugin) {
                 $html .= $this->render_plugin_card($plugin, $installed_plugins, $active_plugins);
@@ -487,6 +566,32 @@ class WP_Addon_Settings
         $html .= '</div>';
         $html .= '<script type="text/javascript">
         jQuery(document).ready(function($) {
+            function filterMyPlugins() {
+                var query = ($("#my-plugins-search").val() || "").toLowerCase().trim();
+                var category = $("#my-plugins-category").val() || "";
+                var visible = 0;
+
+                $(".my-plugins-card").each(function() {
+                    var card = $(this);
+                    var search = (card.data("search") || "").toString().toLowerCase();
+                    var categories = (card.data("categories") || "").toString();
+                    var categoryMatch = !category || categories.split(",").indexOf(category) !== -1;
+                    var searchMatch = !query || search.indexOf(query) !== -1;
+                    var show = categoryMatch && searchMatch;
+
+                    card.toggle(show);
+                    if (show) {
+                        visible++;
+                    }
+                });
+
+                $("#my-plugins-visible-count").text(visible);
+                $(".my-plugins-no-results").toggle(visible === 0);
+            }
+
+            $("#my-plugins-search").on("input", filterMyPlugins);
+            $("#my-plugins-category").on("change", filterMyPlugins);
+
             $(document).on("click", ".install-plugin-btn", function() {
                 var btn = $(this);
                 var originalText = btn.text();
