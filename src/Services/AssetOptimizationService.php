@@ -54,13 +54,75 @@ class AssetOptimizationService
             return $js;
         }
 
-        // Basic minification: remove comments and extra whitespace
-        $js = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $js);
-        $js = preg_replace('!//[^\n]*!', '', $js);
-        $js = preg_replace('/\s+/', ' ', $js);
-        $js = preg_replace('/\s*([{}:;,=()+\-*\[\]\/&|<>!?~%^])\s*/', '$1', $js);
+        $result = '';
+        $state = 'code';
+        $quote = '';
+        $pendingSpace = false;
+        $length = strlen($js);
+        for ($index = 0; $index < $length; $index++) {
+            $char = $js[$index];
+            $next = $index + 1 < $length ? $js[$index + 1] : '';
+            if ($state === 'line_comment') {
+                if ($char === "\n") {
+                    $state = 'code';
+                    $pendingSpace = true;
+                }
 
-        return trim($js);
+                continue;
+            }
+            if ($state === 'block_comment') {
+                if ($char === '*' && $next === '/') {
+                    $state = 'code';
+                    $index++;
+                    $pendingSpace = true;
+                }
+
+                continue;
+            }
+            if ($state === 'string') {
+                $result .= $char;
+                if ($char === '\\\\' && $index + 1 < $length) {
+                    $result .= $js[++$index];
+                } elseif ($char === $quote) {
+                    $state = 'code';
+                }
+
+                continue;
+            }
+            if (in_array($char, ["'", '"', '`'], true)) {
+                $result .= $pendingSpace ? ' ' : '';
+                $pendingSpace = false;
+                $result .= $char;
+                $quote = $char;
+                $state = 'string';
+
+                continue;
+            }
+            if ($char === '/' && $next === '/') {
+                $state = 'line_comment';
+                $index++;
+
+                continue;
+            }
+            if ($char === '/' && $next === '*') {
+                $state = 'block_comment';
+                $index++;
+
+                continue;
+            }
+            if (ctype_space($char)) {
+                $pendingSpace = true;
+
+                continue;
+            }
+            if ($pendingSpace && $result !== '' && preg_match('/[A-Za-z0-9_$]$/', $result) && preg_match('/[A-Za-z0-9_$]/', $char)) {
+                $result .= ' ';
+            }
+            $pendingSpace = false;
+            $result .= $char;
+        }
+
+        return trim($result);
     }
 
     /**
@@ -116,6 +178,20 @@ class AssetOptimizationService
     {
         $file = $this->cacheDir.$key.'.gz';
         file_put_contents($file, gzcompress($content, 6));
+
+        return $key;
+    }
+
+    public function saveAssetToCache(string $key, string $content, string $extension): string
+    {
+        if (! in_array($extension, ['css', 'js'], true)) {
+            throw new \InvalidArgumentException('Unsupported asset extension.');
+        }
+
+        $file = $this->cacheDir.$key.'.'.$extension;
+        if (file_put_contents($file, $content, LOCK_EX) === false) {
+            throw new \RuntimeException("Unable to write asset cache file: {$file}");
+        }
 
         return $key;
     }

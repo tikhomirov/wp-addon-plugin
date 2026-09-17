@@ -137,11 +137,11 @@ class AssetMinification implements ModuleInterface
             if (! empty($combinedCss)) {
                 $version = $this->optimizationService->generateVersion($combinedCss);
                 $cacheKey = 'css-'.$version;
-                $this->optimizationService->saveToCache($cacheKey, $combinedCss);
+                $this->optimizationService->saveAssetToCache($cacheKey, $combinedCss, 'css');
 
                 wp_enqueue_style(
                     'wp-addon-combined-css',
-                    $this->getCacheUrl($cacheKey),
+                    $this->getCacheUrl($cacheKey, 'css'),
                     [],
                     $version
                 );
@@ -167,7 +167,7 @@ class AssetMinification implements ModuleInterface
 
                 $version = $this->optimizationService->generateVersion($minified);
                 $cacheKey = 'css-'.$handle.'-'.$version;
-                $this->optimizationService->saveToCache($cacheKey, $minified);
+                $this->optimizationService->saveAssetToCache($cacheKey, $minified, 'css');
 
                 // Replace src
                 $style->src = $this->getCacheUrl($cacheKey);
@@ -223,7 +223,7 @@ class AssetMinification implements ModuleInterface
 
                 wp_enqueue_script(
                     'wp-addon-combined-js',
-                    $this->getCacheUrl($cacheKey),
+                    $this->getCacheUrl($cacheKey, 'js'),
                     [],
                     $version,
                     true
@@ -411,9 +411,9 @@ class AssetMinification implements ModuleInterface
         return rtrim(ABSPATH, '/').'/'.ltrim($path, '/');
     }
 
-    private function getCacheUrl(string $key): string
+    private function getCacheUrl(string $key, string $extension = 'css'): string
     {
-        return content_url('/cache/assets/'.$key.'.gz');
+        return content_url('/cache/assets/'.$key.'.'.$extension);
     }
 
     public function scheduleCacheCleanup(): void

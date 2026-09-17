@@ -166,7 +166,7 @@ describe('AssetMinification Edge Cases', function () {
         $method = $reflection->getMethod('getCacheUrl');
         $method->setAccessible(true);
         $result = $method->invokeArgs($this->assetMinification, ['']);
-        expect($result)->toContain('.gz');
+        expect($result)->toContain('.css');
         expect($result)->toContain('cache/assets/');
     });
 
@@ -178,7 +178,7 @@ describe('AssetMinification Edge Cases', function () {
         $result = $method->invokeArgs($this->assetMinification, [$key]);
 
         expect($result)->toContain($key);
-        expect($result)->toContain('.gz');
+        expect($result)->toContain('.css');
     });
 
     it('handles missing theme CSS gracefully', function () {

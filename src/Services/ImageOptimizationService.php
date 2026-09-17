@@ -176,7 +176,7 @@ class ImageOptimizationService
     {
         ob_start();
         if ($mimeType === 'image/png') {
-            imagepng($image, null, 8);
+            imagepng($image, null, max(0, min(9, 9 - (int) ($quality / 12))));
         } else {
             imagejpeg($image, null, $quality);
         }

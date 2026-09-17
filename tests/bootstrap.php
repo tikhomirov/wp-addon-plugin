@@ -152,6 +152,40 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         define('WP_DEBUG_DISPLAY', true);
     }
 
+    if (! function_exists('content_url')) {
+        function content_url($path = ''): string
+        {
+            return rtrim(WP_CONTENT_URL, '/').'/'.ltrim($path, '/');
+        }
+    }
+    if (! function_exists('site_url')) {
+        function site_url($path = ''): string
+        {
+            return 'http://localhost/'.ltrim($path, '/');
+        }
+    }
+    if (! function_exists('get_template_directory')) {
+        function get_template_directory(): string
+        {
+            return WP_CONTENT_DIR.'/themes/blog-theme';
+        }
+    }
+    if (! function_exists('get_template_directory_uri')) {
+        function get_template_directory_uri(): string
+        {
+            return content_url('themes/blog-theme');
+        }
+    }
+    if (! function_exists('wp_add_inline_script')) {
+        function wp_add_inline_script($handle, $data, $position = 'after'): bool
+        {
+            global $wp_inline_scripts;
+            $wp_inline_scripts[$handle] = ($wp_inline_scripts[$handle] ?? '').$data;
+
+            return true;
+        }
+    }
+
     // Set up in-memory database for tests
     global $wpdb, $db;
     if (! isset($wpdb)) {
@@ -241,6 +275,10 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
     if (! function_exists('get_option')) {
         function get_option($key, $default = '')
         {
+            global $mock_functions;
+            if (isset($mock_functions['get_option']) && is_callable($mock_functions['get_option'])) {
+                return $mock_functions['get_option']($key, $default);
+            }
             global $db;
             $stmt = $db->prepare('SELECT option_value FROM wp_options WHERE option_name = ?');
             $stmt->execute([$key]);

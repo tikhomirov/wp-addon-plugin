@@ -13,3 +13,4 @@ parameters:
     scanFiles:
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
         - phpstan-bootstrap.php
+        - src/Config/cookie-banner-defaults.php
