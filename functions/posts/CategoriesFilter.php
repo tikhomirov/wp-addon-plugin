@@ -1,5 +1,7 @@
 <?php
 
+require_once dirname(__DIR__).'/main-settings-helpers.php';
+
 /**
  * CategoriesFilter
  */
@@ -25,26 +27,21 @@ final class CategoriesFilter
      */
     private function __construct()
     {
-        // редирект на главную, если человек попал в запрещенную категорию
         add_action('wp', [$this, 'wp_cat_filter']);
-
-        // nex_post // prev post
         add_filter('get_next_post_excluded_terms', [$this, 'exclude_cat'], 10, 1);
         add_filter('get_previous_post_excluded_terms', [$this, 'exclude_cat'], 10, 1);
-
-        // Убираем категории по ID с фронта
         add_action('pre_get_posts', [$this, 'filter_run'], 10);
     }
 
     /**
-     * @return string | null
+     * @return array<int, int>
      */
-    private function get_settings()
+    private function get_settings(): array
     {
-        $options = get_option('wp-addon', []);
-        $cat_ids = $options['posts']['exclude_cat_val']; // получаем список категорий
+        $options = wp_addon_main_settings();
+        $catIds = $options['posts']['exclude_cat_val'] ?? null;
 
-        return $cat_ids ?? null;
+        return wp_addon_normalize_category_exclude_ids($catIds);
     }
 
     public function filter_run(WP_Query $query)
@@ -53,22 +50,22 @@ final class CategoriesFilter
             return;
         }
 
-        $cat_ids = $this->get_settings();
-        if (isset($cat_ids) && ! empty($cat_ids)) {
-            str_replace(', ', ', -', $cat_ids);
-            $cats = explode(', ', $cat_ids);
+        $cats = $this->get_settings();
+
+        if ($cats !== []) {
             $query->set('category__not_in', $cats);
         }
     }
 
     /**
-     * @param  array  $excluded_terms
-     * @return array | null
+     * @param  array<int, int>|null  $excluded_terms
+     * @return array<int, int>|null
      */
     public function exclude_cat($excluded_terms = null)
     {
-        $cats = explode(', ', $this->get_settings());
-        if (! empty($cats)) {
+        $cats = $this->get_settings();
+
+        if ($cats !== []) {
             $excluded_terms = $cats;
         }
 
@@ -81,13 +78,25 @@ final class CategoriesFilter
     public function wp_cat_filter()
     {
         global $wp_query;
-        $cat_ids = $this->exclude_cat();
-        if ($wp_query->is_archive &&
-           $wp_query->is_category &&
-           in_array(get_queried_object()->term_id, $cat_ids, false)
-        ) {
-            wp_redirect(get_home_url(), 301, 'wp-addon');
+
+        if (! $wp_query instanceof WP_Query || ! $wp_query->is_archive || ! $wp_query->is_category) {
+            return;
         }
+
+        $term = get_queried_object();
+
+        if (! $term instanceof WP_Term) {
+            return;
+        }
+
+        $catIds = $this->exclude_cat();
+
+        if (! is_array($catIds) || ! in_array((int) $term->term_id, $catIds, true)) {
+            return;
+        }
+
+        wp_safe_redirect(get_home_url(), 301, 'wp-addon');
+        exit;
     }
 }
 

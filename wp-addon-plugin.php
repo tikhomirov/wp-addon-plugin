@@ -6,7 +6,7 @@ use WpAddon\Core\Plugin;
 /**
  * Plugin Name:  # WP Excellence Addon
  * Plugin URL:   https://rwsite.ru
- * Description:  Transforms your standard WordPress installation into an excellent, optimized website with comprehensive performance, security, and usability enhancements.
+ * Description:  Performance, security, and admin enhancements for WordPress 6.6+: 48 WP Tweaker toggles, redirects, cookie banner, Markdown editor, and plugin catalog.
  * Version:      1.4.0
  * Text Domain:  wp-addon
  * Domain Path: /languages/
@@ -16,8 +16,8 @@ use WpAddon\Core\Plugin;
  * Tags: wordpress, wp-addon,
  *
  * Requires at least: 6.6
- * Tested up to: 7.2
- * Requires PHP: 8.2+
+ * Tested up to:      6.8
+ * Requires PHP:      8.2
  */
 defined('ABSPATH') || exit;
 

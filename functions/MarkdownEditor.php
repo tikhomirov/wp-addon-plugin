@@ -9,21 +9,19 @@ class MarkdownEditor implements ModuleInterface
 
     private string $settings_prefix = 'wp-addon';
 
+    private bool $saving = false;
+
     public function init(): void
     {
-        // Проверяем, включен ли Markdown в настройках
         if (! $this->isMarkdownEnabled()) {
             return;
         }
 
-        // Инициализируем хуки
         $this->addHook('add_meta_boxes', [$this, 'addMarkdownMetaBox']);
         $this->addHook('post_updated', [$this, 'saveMarkdownContent'], 10, 3);
-        $this->addFilter('the_content', [$this, 'renderMarkdownToHtml'], 9);
+        $this->addHook('save_post', [$this, 'saveMarkdownOnFirstPublish'], 10, 3);
         $this->addHook('admin_enqueue_scripts', [$this, 'enqueueMarkdownAssets']);
-        $this->addHook('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);
 
-        // Хуки для замены TinyMCE (только если включена замена)
         if ($this->getSetting('markdown_replace_tinymce', false)) {
             $this->addFilter('user_can_richedit', [$this, 'maybeDisableRichEdit']);
             $this->addHook('admin_init', [$this, 'disableVisualEditor']);
@@ -139,15 +137,11 @@ class MarkdownEditor implements ModuleInterface
      */
     public function renderMarkdownMetaBox($post): void
     {
-        // Получаем сохраненный Markdown контент
-        $markdown_content = get_post_meta($post->ID, '_markdown_content', true);
-
-        // Если нет Markdown контента, но есть обычный контент и включена миграция
-        if (empty($markdown_content) && ! empty($post->post_content) && $this->getSetting('markdown_migrate_existing', false)) {
-            $markdown_content = $this->htmlToMarkdown($post->post_content);
-            // Сохраняем мигрированный контент
-            update_post_meta($post->ID, '_markdown_content', $markdown_content);
-        }
+        // Markdown исходник не хранится: поле всегда заполняется из текущего HTML,
+        // чтобы редакторы не расходились друг с другом.
+        $markdown_content = ! empty($post->post_content)
+            ? $this->htmlToMarkdown($post->post_content)
+            : '';
 
         wp_nonce_field('save_markdown_content', 'markdown_nonce');
 
@@ -164,105 +158,91 @@ class MarkdownEditor implements ModuleInterface
         echo '<textarea id="markdown-textarea" name="markdown_content" rows="20" style="width: 100%; font-family: monospace; font-size: 14px;">'.esc_textarea($markdown_content).'</textarea>';
         echo '</div>';
 
-        // Если замена включена, добавляем инструкцию
-        if ($this->getSetting('markdown_replace_tinymce', false)) {
-            echo '<p><small><em>'.__('Стандартный редактор заменен на Markdown. Используйте синтаксис Markdown для форматирования содержимого.', 'wp-addon').'</em></small></p>';
-        }
+        echo '<p><small><em>'.__('В основном поле поста сохраняется только HTML. Markdown автоматически конвертируется в HTML при сохранении и нигде отдельно не хранится.', 'wp-addon').'</em></small></p>';
     }
 
     /**
-     * Сохраняет Markdown контент с умным определением источника изменений
-     *
-     * @param  int  $post_id  ID поста
-     * @param  WP_Post  $post_after  Пост после обновления
-     * @param  WP_Post  $post_before  Пост до обновления
+     * Первое сохранение новой записи: post_updated не срабатывает,
+     * поэтому конвертация Markdown в HTML выполняется здесь.
      */
-    public function saveMarkdownContent(int $post_id, $post_after, $post_before): void
+    public function saveMarkdownOnFirstPublish(int $post_id, $post, bool $update): void
     {
-        // Проверяем, включен ли Markdown
-        if (! $this->isMarkdownEnabled()) {
+        if ($update) {
             return;
         }
 
-        // Проверяем nonce
+        $this->handleMarkdownSave($post_id, $post, null);
+    }
+
+    /**
+     * Сохраняет содержимое поста, используя Markdown как источник только тогда,
+     * когда сам Markdown редактор действительно менялся.
+     *
+     * При любом сохранении в основном поле остается только HTML, а исходник
+     * Markdown никуда не сохраняется.
+     *
+     * @param  int  $post_id  ID поста
+     * @param  WP_Post  $post_after  Пост после обновления
+     * @param  WP_Post|null  $post_before  Пост до обновления
+     */
+    public function saveMarkdownContent(int $post_id, $post_after, $post_before): void
+    {
+        $this->handleMarkdownSave($post_id, $post_after, $post_before);
+    }
+
+    private function handleMarkdownSave(int $post_id, $post_after, $post_before = null): void
+    {
+        if (! $this->isMarkdownEnabled() || $this->saving) {
+            return;
+        }
+
         if (! isset($_POST['markdown_nonce']) || ! wp_verify_nonce($_POST['markdown_nonce'], 'save_markdown_content')) {
             return;
         }
 
-        // Проверяем права пользователя
         if (! current_user_can('edit_post', $post_id)) {
             return;
         }
 
-        // Проверяем автосохранение
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
             return;
         }
 
-        // Проверяем, что это нужный тип поста
         $enabled_post_types = $this->getSetting('markdown_post_types', ['post', 'page']);
         if (! in_array($post_after->post_type, $enabled_post_types)) {
             return;
         }
 
-        // Проверяем наличие поля markdown_content в POST
         if (! isset($_POST['markdown_content'])) {
             return;
         }
 
-        // Получаем новый и старый Markdown контент
         $new_markdown = wp_unslash($_POST['markdown_content']);
-        $old_markdown = get_post_meta($post_id, '_markdown_content', true);
 
-        // Определяем, где именно были правки
-        $markdown_changed = ($new_markdown !== $old_markdown);
-        $html_changed = ($post_before->post_content !== $post_after->post_content);
+        // Значение, которое редактору нужно было показать, если его не трогали.
+        // Оно всегда выводится из HTML, поэтому правки в стандартном редакторе
+        // не перетираются сохраненным Markdown.
+        $expected_markdown = (! empty($post_before) && ! empty($post_before->post_content))
+            ? $this->htmlToMarkdown($post_before->post_content)
+            : '';
 
-        if ($markdown_changed) {
-            // 1. Были правки в Markdown редакторе
-            // Сохраняем новую версию MD в мета-поле
-            update_post_meta($post_id, '_markdown_content', $new_markdown);
-
-            // Преобразуем Markdown в HTML и сохраняем в post_content
-            $html_content = ! empty($new_markdown) ? $this->parseMarkdown($new_markdown) : '';
-
-            // Временно отключаем хук во избежание рекурсии
-            remove_action('post_updated', [$this, 'saveMarkdownContent']);
+        // Markdown редактировался осознанно: конвертируем его в HTML
+        // и пишем в единственный источник контента — post_content.
+        if ($new_markdown !== $expected_markdown && ! empty($new_markdown)) {
+            $this->saving = true;
 
             wp_update_post([
                 'ID' => $post_id,
-                'post_content' => $html_content,
+                'post_content' => $this->parseMarkdown($new_markdown),
             ]);
 
-            // Восстанавливаем хук
-            add_action('post_updated', [$this, 'saveMarkdownContent'], 10, 3);
+            $this->saving = false;
+        }
 
-        } elseif ($html_changed) {
-            // 2. В MD правок не было, но HTML был изменен в стандартном редакторе
-            // Удаляем устаревший Markdown, так как он больше не актуален
+        // Исходник Markdown не храним: удаляем возможные старые значения.
+        if (metadata_exists('post', $post_id, '_markdown_content')) {
             delete_post_meta($post_id, '_markdown_content');
         }
-        // 3. Если ничего не изменилось - ничего не делаем
-    }
-
-    /**
-     * Преобразует Markdown в HTML (фильтр для фронтенда)
-     */
-    public function renderMarkdownToHtml($content): string
-    {
-        global $post;
-
-        if (! $post || ! $this->isMarkdownEnabled()) {
-            return $content;
-        }
-
-        $markdown_content = get_post_meta($post->ID, '_markdown_content', true);
-
-        if (! empty($markdown_content)) {
-            return $this->parseMarkdown($markdown_content);
-        }
-
-        return $content;
     }
 
     /**
@@ -452,15 +432,15 @@ class MarkdownEditor implements ModuleInterface
             'markdown-editor',
             RW_PLUGIN_URL.'assets/js/markdown-editor.js',
             ['jquery', 'easymde'],
-            '1.0.1',
+            '1.1.0',
             true
         );
 
         wp_localize_script('markdown-editor', 'markdownAjax', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('markdown_preview'),
-            'enable_shortcuts' => $this->getSetting('markdown_enable_shortcuts', true),
-            'enable_preview' => $this->getSetting('markdown_enable_preview', true),
+            'enable_shortcuts' => (bool) $this->getSetting('markdown_enable_shortcuts', true),
+            'enable_preview' => (bool) $this->getSetting('markdown_enable_preview', true),
         ]);
 
         // Подключаем стили GitHub Markdown для предпросмотра
@@ -574,25 +554,5 @@ class MarkdownEditor implements ModuleInterface
                 margin: 20px 0;
             }
         ');
-    }
-
-    /**
-     * Подключает стили и скрипты для фронтенда
-     *
-     * Note: Highlight.js подключается темой, здесь только github-markdown-css
-     */
-    public function enqueueFrontendAssets(): void
-    {
-        if (! $this->isMarkdownEnabled()) {
-            return;
-        }
-
-        // Подключаем стили GitHub Markdown для предпросмотра
-        wp_enqueue_style(
-            'github-markdown-css',
-            'https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css',
-            [],
-            '5.2.0'
-        );
     }
 }

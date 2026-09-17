@@ -5,6 +5,7 @@ namespace WpAddon;
 use Automatic_Upgrader_Skin;
 use Plugin_Upgrader;
 use WpAddon\Services\MediaCleanupService;
+use WpPackages\PluginsApi;
 
 defined('ABSPATH') or exit;
 
@@ -53,143 +54,607 @@ class WP_Addon_Settings
 
     public function __wakeup() {}
 
-    private function get_github_plugins()
+    private function get_github_owner(): string
     {
-        $cache_key = 'wp_addon_github_plugins';
-        $cached_plugins = get_transient($cache_key);
-        if ($cached_plugins !== false) {
-            return $cached_plugins;
+        if (defined('GITHUB_OWNER') && GITHUB_OWNER !== '') {
+            return GITHUB_OWNER;
         }
 
-        $token = defined('GITHUB_TOKEN') ? GITHUB_TOKEN : null;
-        $headers = $token ? ['Authorization' => 'token '.$token] : [];
+        return 'tikhomirov';
+    }
 
-        $response = wp_remote_get('https://api.github.com/users/rwsite/repos?page=1&per_page=100', ['headers' => $headers]);
+    private function get_github_request_headers(): array
+    {
+        $headers = [
+            'Accept' => 'application/vnd.github+json',
+            'User-Agent' => 'wp-addon-plugin',
+        ];
+
+        if (defined('GITHUB_TOKEN') && GITHUB_TOKEN !== '') {
+            $headers['Authorization'] = 'token '.GITHUB_TOKEN;
+        }
+
+        return $headers;
+    }
+
+    private function set_github_plugins_error(string $message): void
+    {
+        set_transient('wp_addon_github_plugins_error', $message, 5 * MINUTE_IN_SECONDS);
+    }
+
+    private function clear_github_plugins_error(): void
+    {
+        delete_transient('wp_addon_github_plugins_error');
+    }
+
+    private function get_plugins_catalog_api_url(): string
+    {
+        if (defined('WP_ADDON_PLUGINS_API_URL') && WP_ADDON_PLUGINS_API_URL !== '') {
+            return WP_ADDON_PLUGINS_API_URL;
+        }
+
+        if (post_type_exists('plugin')) {
+            return rest_url('wp-packages/v1/plugins');
+        }
+
+        return 'https://rwsite.ru/wp-json/wp-packages/v1/plugins';
+    }
+
+    private function normalize_catalog_plugin(array $plugin): array
+    {
+        $slug = (string) ($plugin['slug'] ?? $plugin['name'] ?? '');
+        $sourceType = (string) ($plugin['source_type'] ?? 'github');
+        $githubRepo = (string) ($plugin['github_repo'] ?? '');
+        $htmlUrl = (string) ($plugin['html_url'] ?? '');
+        $zipUrl = (string) ($plugin['zip_url'] ?? '');
+
+        if ($htmlUrl === '' && $githubRepo !== '') {
+            $htmlUrl = 'https://github.com/'.ltrim($githubRepo, '/');
+        }
+
+        if ($zipUrl === '' && $githubRepo !== '') {
+            $zipUrl = $htmlUrl.'/archive/refs/heads/main.zip';
+        }
+
+        return [
+            'slug' => $slug,
+            'title' => (string) ($plugin['title'] ?? $slug),
+            'description' => (string) ($plugin['description'] ?? ''),
+            'plugin_type' => (string) ($plugin['plugin_type'] ?? 'free'),
+            'source_type' => $sourceType,
+            'github_repo' => $githubRepo,
+            'html_url' => $htmlUrl,
+            'zip_url' => $zipUrl,
+            'icon' => (string) ($plugin['icon'] ?? ''),
+            'version' => (string) ($plugin['version'] ?? ''),
+            'stars' => (int) ($plugin['stars'] ?? 0),
+            'views' => (int) ($plugin['views'] ?? 0),
+            'updated_label' => (string) ($plugin['updated_label'] ?? ''),
+            'categories' => is_array($plugin['categories'] ?? null) ? $plugin['categories'] : [],
+            'permalink' => (string) ($plugin['permalink'] ?? ''),
+            'installable' => array_key_exists('installable', $plugin)
+                ? (bool) $plugin['installable']
+                : ($sourceType === 'github' && preg_match('/^wp-.*-plugin$/', $slug) === 1),
+        ];
+    }
+
+    /**
+     * Re-normalize cached plugin rows and drop legacy/broken entries
+     * (e.g. old wp_addon_github_plugins cache without slug/title).
+     */
+    private function sanitize_cached_catalog(array $cached_plugins): array
+    {
+        $normalized = [];
+
+        foreach ($cached_plugins as $plugin) {
+            if (! is_array($plugin)) {
+                continue;
+            }
+
+            $item = $this->normalize_catalog_plugin($plugin);
+            if ($item['slug'] === '' || $item['slug'] === 'wp-addon-plugin') {
+                continue;
+            }
+
+            $normalized[] = $item;
+        }
+
+        return $normalized;
+    }
+
+    private function fetch_plugins_catalog_payload(): ?array
+    {
+        if (post_type_exists('plugin') && class_exists('\WpPackages\PluginsApi')) {
+            $api = new PluginsApi;
+            $request = new \WP_REST_Request('GET', '/wp-packages/v1/plugins');
+            $request->set_param('per_page', 100);
+            $response = $api->getPlugins($request);
+            if ($response instanceof \WP_REST_Response) {
+                $data = $response->get_data();
+
+                return is_array($data) ? $data : null;
+            }
+        }
+
+        $api_url = add_query_arg(['per_page' => 100], $this->get_plugins_catalog_api_url());
+        $response = wp_remote_get($api_url, [
+            'timeout' => 15,
+            'headers' => [
+                'Accept' => 'application/json',
+            ],
+        ]);
+
         if (is_wp_error($response)) {
-            return [];
-        }
-        $repos = json_decode(wp_remote_retrieve_body($response), true);
-        if (! is_array($repos)) {
-            return [];
-        }
-        $plugins = [];
-        foreach ($repos as $repo) {
-            $name = $repo['name'] ?? '';
-            // Исключаем текущий плагин
-            if ($name === 'wp-addon-plugin') {
-                continue;
-            }
-            // Фильтр по формату wp-{name}-plugin
-            if (! preg_match('/^wp-.*-plugin$/', $name)) {
-                continue;
-            }
-            // Проверяем наличие тегов (стабильных версий)
-            $tags_response = wp_remote_get('https://api.github.com/repos/rwsite/'.$name.'/tags?per_page=1', ['headers' => $headers]);
-            if (is_wp_error($tags_response)) {
-                continue;
-            }
-            $tags = json_decode(wp_remote_retrieve_body($tags_response), true);
-            if (! is_array($tags) || empty($tags)) {
-                continue;
-            }
-            // Проверяем, что это WordPress плагин (наличие plugin.php или readme.txt)
-            $contents_response = wp_remote_get('https://api.github.com/repos/rwsite/'.$name.'/contents?ref='.($repo['default_branch'] ?? 'main'), ['headers' => $headers]);
-            if (is_wp_error($contents_response)) {
-                continue;
-            }
-            $contents = json_decode(wp_remote_retrieve_body($contents_response), true);
-            if (! is_array($contents)) {
-                continue;
-            }
-            $has_plugin_file = false;
-            foreach ($contents as $file) {
-                if (! is_array($file) || ! isset($file['name'])) {
-                    continue;
-                }
-                if ($file['name'] === $name.'.php' || $file['name'] === 'plugin.php' || $file['name'] === 'readme.txt') {
-                    $has_plugin_file = true;
-                    break;
-                }
-            }
-            if (! $has_plugin_file) {
-                continue;
-            }
-            $plugins[] = [
-                'name' => $name,
-                'description' => $repo['description'] ?? '',
-                'html_url' => $repo['html_url'] ?? '',
-                'zip_url' => 'https://github.com/rwsite/'.$name.'/archive/'.($repo['default_branch'] ?? 'main').'.zip',
-            ];
+            $this->set_github_plugins_error($response->get_error_message());
+
+            return null;
         }
 
-        // Кешируем на сутки
-        set_transient($cache_key, $plugins, DAY_IN_SECONDS);
+        $status_code = (int) wp_remote_retrieve_response_code($response);
+        if ($status_code !== 200) {
+            $body = json_decode(wp_remote_retrieve_body($response), true);
+            $message = is_array($body) && ! empty($body['message'])
+                ? (string) $body['message']
+                : 'HTTP '.$status_code;
+            $this->set_github_plugins_error($message);
+
+            return null;
+        }
+
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+
+        return is_array($body) ? $body : null;
+    }
+
+    private function get_plugins_catalog_from_api(): array
+    {
+        $cache_key = 'wp_addon_plugins_catalog';
+        $cached_plugins = get_transient($cache_key);
+        if (is_array($cached_plugins) && ! empty($cached_plugins)) {
+            return $this->sanitize_cached_catalog($cached_plugins);
+        }
+
+        $body = $this->fetch_plugins_catalog_payload();
+        if (! is_array($body) || empty($body['plugins']) || ! is_array($body['plugins'])) {
+            if ($body !== null) {
+                $this->set_github_plugins_error('Некорректный ответ API каталога плагинов.');
+            }
+
+            return [];
+        }
+
+        $plugins = [];
+        foreach ($body['plugins'] as $plugin) {
+            if (! is_array($plugin)) {
+                continue;
+            }
+
+            $normalized = $this->normalize_catalog_plugin($plugin);
+            if ($normalized['slug'] === '' || $normalized['slug'] === 'wp-addon-plugin') {
+                continue;
+            }
+
+            $plugins[] = $normalized;
+        }
+
+        if (! empty($plugins)) {
+            $this->clear_github_plugins_error();
+            set_transient($cache_key, $plugins, HOUR_IN_SECONDS);
+        } else {
+            delete_transient($cache_key);
+            $this->set_github_plugins_error('Каталог плагинов пуст.');
+        }
 
         return $plugins;
     }
 
-    public function get_plugins_html()
+    private function get_github_plugins()
     {
-        $plugins = $this->get_github_plugins();
-        $installed_plugins = get_plugins();
-        $active_plugins = get_option('active_plugins', []);
-        $html = '<div class="my-plugins-list" style="max-width: 800px;">';
-        $html .= '<button id="refresh-plugins-list" class="button">Обновить список</button><br><br>';
-        if (empty($plugins)) {
-            $html .= '<p>Не удалось загрузить список плагинов.</p>';
+        $cache_key = 'wp_addon_github_plugins';
+        $cached_plugins = get_transient($cache_key);
+        if (is_array($cached_plugins) && ! empty($cached_plugins)) {
+            return $this->sanitize_cached_catalog($cached_plugins);
+        }
+
+        $owner = $this->get_github_owner();
+        $headers = $this->get_github_request_headers();
+
+        $response = wp_remote_get(
+            sprintf('https://api.github.com/users/%s/repos?per_page=100&type=owner&sort=updated', $owner),
+            [
+                'headers' => $headers,
+                'timeout' => 15,
+            ]
+        );
+
+        if (is_wp_error($response)) {
+            $this->set_github_plugins_error($response->get_error_message());
+
+            return [];
+        }
+
+        $status_code = (int) wp_remote_retrieve_response_code($response);
+        if ($status_code !== 200) {
+            $body = json_decode(wp_remote_retrieve_body($response), true);
+            $message = is_array($body) && ! empty($body['message'])
+                ? (string) $body['message']
+                : 'HTTP '.$status_code;
+            $this->set_github_plugins_error($message);
+
+            return [];
+        }
+
+        $repos = json_decode(wp_remote_retrieve_body($response), true);
+        if (! is_array($repos)) {
+            $this->set_github_plugins_error('Некорректный ответ GitHub API.');
+
+            return [];
+        }
+
+        $plugins = [];
+        foreach ($repos as $repo) {
+            if (! is_array($repo)) {
+                continue;
+            }
+
+            $name = $repo['name'] ?? '';
+            if ($name === '' || $name === 'wp-addon-plugin') {
+                continue;
+            }
+
+            if (! preg_match('/^wp-.*-plugin$/', $name)) {
+                continue;
+            }
+
+            $default_branch = $repo['default_branch'] ?? 'main';
+            $plugins[] = $this->normalize_catalog_plugin([
+                'slug' => $name,
+                'title' => $name,
+                'description' => $repo['description'] ?? '',
+                'source_type' => 'github',
+                'github_repo' => $owner.'/'.$name,
+                'html_url' => $repo['html_url'] ?? 'https://github.com/'.$owner.'/'.$name,
+                'zip_url' => 'https://github.com/'.$owner.'/'.$name.'/archive/refs/heads/'.$default_branch.'.zip',
+                'installable' => true,
+            ]);
+        }
+
+        if (! empty($plugins)) {
+            $this->clear_github_plugins_error();
+            set_transient($cache_key, $plugins, DAY_IN_SECONDS);
         } else {
-            foreach ($plugins as $plugin) {
-                $is_installed = false;
-                $plugin_file = null;
-                $is_active = false;
-                foreach ($installed_plugins as $file => $data) {
-                    if (dirname($file) === $plugin['name']) {
-                        $is_installed = true;
-                        $plugin_file = $file;
-                        $is_active = in_array($file, $active_plugins);
-                        break;
-                    }
-                }
-                $class = $is_installed ? ($is_active ? 'plugin-item installed active' : 'plugin-item installed inactive') : 'plugin-item not-installed';
-                $style = $is_installed ? ($is_active ? 'border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px; background-color: #d4edda;' : 'border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px; background-color: #fff3cd;') : 'border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px; background-color: #f8f9fa;';
-                $button_text = $is_installed ? 'Деинсталлировать' : 'Установить';
-                $button_class = $is_installed ? 'uninstall-plugin-btn button button-secondary' : 'install-plugin-btn button button-primary';
-                $html .= '<div class="'.esc_attr($class).'">';
-                $html .= '<h4 style="margin: 0 0 5px 0;">'.esc_html($plugin['name']).'</h4>';
-                $html .= '<p style="margin: 5px 0; list-style: none;">'.esc_html($plugin['description']).'</p>';
-                $html .= '<a href="'.esc_url($plugin['html_url']).'" target="_blank" style="margin-right: 10px;">Посмотреть на GitHub</a>';
-                if ($is_installed) {
-                    $activate_text = $is_active ? 'Деактивировать' : 'Активировать';
-                    $activate_class = $is_active ? 'deactivate-plugin-btn button button-warning' : 'activate-plugin-btn button button-success';
-                    $html .= '<button class="'.esc_attr($activate_class).'" data-repo="'.esc_attr($plugin['name']).'" data-file="'.esc_attr($plugin_file).'">'.esc_html($activate_text).'</button> ';
-                    $html .= '<button class="'.esc_attr($button_class).'" data-repo="'.esc_attr($plugin['name']).'" data-zip="'.esc_attr($plugin['zip_url']).'">'.esc_html($button_text).'</button>';
-                } else {
-                    $html .= '<button class="'.esc_attr($button_class).'" data-repo="'.esc_attr($plugin['name']).'" data-zip="'.esc_attr($plugin['zip_url']).'">'.esc_html($button_text).'</button>';
-                }
-                $html .= '</div>';
+            delete_transient($cache_key);
+            $this->set_github_plugins_error('Плагины формата wp-*-plugin не найдены у пользователя '.$owner.'.');
+        }
+
+        return $plugins;
+    }
+
+    private function get_plugins_catalog(): array
+    {
+        $plugins = $this->get_plugins_catalog_from_api();
+        if (empty($plugins)) {
+            $plugins = $this->get_github_plugins();
+        }
+
+        $normalized = [];
+        foreach ($plugins as $plugin) {
+            if (! is_array($plugin)) {
+                continue;
+            }
+
+            $item = $this->normalize_catalog_plugin($plugin);
+            if ($item['slug'] === '' || $item['slug'] === 'wp-addon-plugin') {
+                continue;
+            }
+
+            $normalized[] = $item;
+        }
+
+        return $normalized;
+    }
+
+    private function get_plugin_install_state(string $slug, array $installed_plugins, array $active_plugins): array
+    {
+        foreach ($installed_plugins as $file => $data) {
+            if (dirname($file) === $slug) {
+                return [
+                    'is_installed' => true,
+                    'plugin_file' => $file,
+                    'is_active' => in_array($file, $active_plugins, true),
+                ];
             }
         }
+
+        return [
+            'is_installed' => false,
+            'plugin_file' => null,
+            'is_active' => false,
+        ];
+    }
+
+    private function render_plugin_source_badge(string $sourceType): string
+    {
+        $class = match ($sourceType) {
+            'composer' => 'my-plugins-badge-composer',
+            'external' => 'my-plugins-badge-external',
+            default => 'my-plugins-badge-github',
+        };
+
+        return '<span class="my-plugins-badge '.$class.'">'.esc_html(strtoupper($sourceType)).'</span>';
+    }
+
+    private function collect_plugin_categories(array $plugins): array
+    {
+        $categories = [];
+
+        foreach ($plugins as $plugin) {
+            if (! is_array($plugin['categories'] ?? null)) {
+                continue;
+            }
+
+            foreach ($plugin['categories'] as $category) {
+                if (! is_array($category) || empty($category['slug']) || empty($category['name'])) {
+                    continue;
+                }
+
+                $categories[(string) $category['slug']] = (string) $category['name'];
+            }
+        }
+
+        asort($categories, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $categories;
+    }
+
+    private function build_plugin_search_index(array $plugin): string
+    {
+        $parts = [
+            $plugin['slug'] ?? '',
+            $plugin['title'] ?? '',
+            $plugin['description'] ?? '',
+            $plugin['github_repo'] ?? '',
+            $plugin['version'] ?? '',
+        ];
+
+        if (is_array($plugin['categories'] ?? null)) {
+            foreach ($plugin['categories'] as $category) {
+                if (! is_array($category)) {
+                    continue;
+                }
+
+                $parts[] = $category['name'] ?? '';
+                $parts[] = $category['slug'] ?? '';
+            }
+        }
+
+        return mb_strtolower(implode(' ', array_filter(array_map('strval', $parts))));
+    }
+
+    private function build_plugin_category_slugs(array $plugin): string
+    {
+        $slugs = [];
+
+        if (is_array($plugin['categories'] ?? null)) {
+            foreach ($plugin['categories'] as $category) {
+                if (is_array($category) && ! empty($category['slug'])) {
+                    $slugs[] = (string) $category['slug'];
+                }
+            }
+        }
+
+        return implode(',', $slugs);
+    }
+
+    private function render_plugin_card(array $plugin, array $installed_plugins, array $active_plugins): string
+    {
+        $slug = (string) ($plugin['slug'] ?? '');
+        if ($slug === '') {
+            return '';
+        }
+        $state = $this->get_plugin_install_state($slug, $installed_plugins, $active_plugins);
+        $card_class = 'my-plugins-card';
+        if ($state['is_installed']) {
+            $card_class .= $state['is_active'] ? ' is-active' : ' is-inactive';
+        }
+
+        $icon = $plugin['icon'] !== ''
+            ? '<img src="'.esc_url($plugin['icon']).'" alt="" loading="lazy" width="36" height="36">'
+            : esc_html(mb_strtoupper(mb_substr($plugin['title'], 0, 1)));
+
+        $title = $plugin['permalink'] !== ''
+            ? '<a href="'.esc_url($plugin['permalink']).'" target="_blank" rel="noopener">'.esc_html($plugin['title']).'</a>'
+            : esc_html($plugin['title']);
+
+        $html = '<article class="'.esc_attr($card_class).'" data-search="'.esc_attr($this->build_plugin_search_index($plugin)).'" data-categories="'.esc_attr($this->build_plugin_category_slugs($plugin)).'">';
+        $html .= '<div class="my-plugins-card-body">';
+        $html .= '<div class="my-plugins-card-grid">';
+        $html .= '<div class="my-plugins-icon">'.$icon.'</div>';
+        $html .= '<div class="my-plugins-main">';
+        $html .= '<div class="my-plugins-head">';
+        $html .= '<h3 class="my-plugins-title">'.$title.'</h3>';
+        $html .= $this->render_plugin_source_badge($plugin['source_type']);
+        $html .= $plugin['plugin_type'] === 'premium'
+            ? '<span class="my-plugins-badge my-plugins-badge-paid">PAID</span>'
+            : '<span class="my-plugins-badge my-plugins-badge-free">FREE</span>';
+        if ($plugin['version'] !== '') {
+            $html .= '<span class="my-plugins-badge my-plugins-badge-version">v'.esc_html($plugin['version']).'</span>';
+        }
+        $html .= '<div class="my-plugins-stats">';
+        if ($plugin['stars'] > 0) {
+            $html .= '<span class="my-plugins-stat" title="GitHub Stars"><span class="dashicons dashicons-star-filled" aria-hidden="true"></span>'.esc_html(number_format_i18n($plugin['stars'])).'</span>';
+        }
+        if ($plugin['views'] > 0) {
+            $html .= '<span class="my-plugins-stat" title="Просмотры"><span class="dashicons dashicons-visibility" aria-hidden="true"></span>'.esc_html(number_format_i18n($plugin['views'])).'</span>';
+        }
+        if ($plugin['updated_label'] !== '') {
+            $html .= '<span class="my-plugins-stat" title="Обновлён"><span class="dashicons dashicons-clock" aria-hidden="true"></span>'.esc_html($plugin['updated_label']).'</span>';
+        }
         $html .= '</div>';
-        $html .= '<style>.installed p:before { content: none !important; }</style>';
-        $html .= '<style>
-            .plugin-item {
-                border: 1px solid #ddd;
-                padding: 10px;
-                margin-bottom: 10px;
-                border-radius: 5px;
+        $html .= '</div>';
+
+        if ($plugin['description'] !== '') {
+            $html .= '<p class="my-plugins-desc">'.esc_html($plugin['description']).'</p>';
+        }
+
+        $html .= '<div class="my-plugins-bottom">';
+        $html .= '<div class="my-plugins-meta">';
+        foreach ($plugin['categories'] as $category) {
+            if (! is_array($category) || empty($category['name'])) {
+                continue;
             }
-            .plugin-item.installed.active {
-                background-color: #d4edda;
+            $html .= '<span class="my-plugins-badge my-plugins-badge-category">'.esc_html((string) $category['name']).'</span>';
+        }
+        if ($plugin['github_repo'] !== '') {
+            $html .= '<a class="my-plugins-badge my-plugins-badge-external" href="'.esc_url($plugin['html_url']).'" target="_blank" rel="noopener">'.esc_html($plugin['github_repo']).'</a>';
+        }
+        $html .= '</div>';
+
+        if ($plugin['installable']) {
+            $html .= '<div class="my-plugins-actions">';
+            if ($plugin['html_url'] !== '') {
+                $html .= '<a class="button button-small" href="'.esc_url($plugin['html_url']).'" target="_blank" rel="noopener">GitHub</a>';
             }
-            .plugin-item.installed.inactive {
-                background-color: #fff3cd;
+            if ($state['is_installed']) {
+                $activate_text = $state['is_active'] ? 'Деактивировать' : 'Активировать';
+                $activate_class = $state['is_active'] ? 'deactivate-plugin-btn button button-small' : 'activate-plugin-btn button button-small button-primary';
+                $html .= '<button class="'.esc_attr($activate_class).'" data-repo="'.esc_attr($slug).'" data-file="'.esc_attr((string) $state['plugin_file']).'">'.esc_html($activate_text).'</button>';
+                $html .= '<button class="uninstall-plugin-btn button button-small button-link-delete" data-repo="'.esc_attr($slug).'">Удалить</button>';
+            } else {
+                $html .= '<button class="install-plugin-btn button button-small button-primary" data-repo="'.esc_attr($slug).'" data-zip="'.esc_attr($plugin['zip_url']).'">Установить</button>';
             }
-            .plugin-item.not-installed {
-                background-color: #f8f9fa;
+            $html .= '</div>';
+        }
+
+        $html .= '</div>';
+        $html .= '</div>';
+        $html .= '</div>';
+        $html .= '</div>';
+        $html .= '</article>';
+
+        return $html;
+    }
+
+    private function getRedirectsInstructionsHtml(): string
+    {
+        $homeExample = esc_html('/old-page/');
+
+        return '<div style="background:#f0f6fc;border:1px solid #d0d7de;border-radius:6px;padding:16px;margin:0 0 16px;line-height:1.55;color:#1d2327;">'
+            .'<h4 style="margin:0 0 12px;">'.esc_html__('Как работают перенаправления', 'wp-addon').'</h4>'
+            .'<p style="margin:0 0 12px;">'.sprintf(
+                esc_html__('Плагин отдаёт ответ %1$s и перенаправляет посетителя с одного адреса на другой. Указывайте пути без домена — от корня WordPress, например %2$s (не /wp/old-page/, если сайт в подпапке). Абсолютные URL (https://...) — только в поле «Куда». Запросы к %3$s и %4$s никогда не перенаправляются.', 'wp-addon'),
+                '<code>301 Moved Permanently</code>',
+                '<code>'.$homeExample.'</code>',
+                '<code>/wp-admin</code>',
+                '<code>/wp-login</code>'
+            ).'</p>'
+            .'<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;">'
+            .'<div>'
+            .'<strong>'.esc_html__('Слеш в конце URL', 'wp-addon').'</strong><br>'
+            .esc_html__('/page и /page/ считаются одинаковыми. Можно писать в любом виде — плагин сравнивает пути без учёта завершающего слеша.', 'wp-addon')
+            .'<br><br><strong>'.esc_html__('Простые правила', 'wp-addon').'</strong><br>'
+            .'<code>/old-page/ → /new-page/</code><br>'
+            .'<code>/archive/2020/ → /archive/</code><br>'
+            .'<code>/contact → https://t.me/username</code>'
+            .'<br><br><strong>'.esc_html__('Массовый импорт CSV', 'wp-addon').'</strong><br>'
+            .esc_html__('Одна строка = одно правило. Разделители: запятая, ; или табуляция. Строки с # — комментарии. После сохранения правила попадут в список ниже.', 'wp-addon')
+            .'</div>'
+            .'<div>'
+            .'<strong>'.esc_html__('Подстановочный знак * (не regex)', 'wp-addon').'</strong><br>'
+            .esc_html__('Это не полноценные регулярные выражения — поддерживается только символ *. Включите опцию «Подстановочные знаки» выше.', 'wp-addon')
+            .'<br><br><code>/old-blog/* → /blog/*</code><br>'
+            .'<code>/docs/*/edit → /help/*/edit</code><br>'
+            .'<code>/ru/* → /en/*</code><br>'
+            .'<code>/shop/category/* → /catalog/*</code><br>'
+            .'<code>/files/*.pdf → /media/*.pdf</code>'
+            .'<br><br><strong>'.esc_html__('Что важно помнить', 'wp-addon').'</strong><br>'
+            .esc_html__('Параметры запроса (?utm=...) при сравнении не учитываются. Если правило совпало — редирект сработает и для URL с query string. Не создавайте циклы: /a → /b и /b → /a.', 'wp-addon')
+            .'</div>'
+            .'</div>'
+            .'</div>';
+    }
+
+    public function get_plugins_html()
+    {
+        $plugins = $this->get_plugins_catalog();
+        $installed_plugins = get_plugins();
+        $active_plugins = get_option('active_plugins', []);
+        $source_label = get_transient('wp_addon_plugins_catalog') ? __('каталог rwsite', 'wp-addon') : __('GitHub', 'wp-addon');
+        $categories = $this->collect_plugin_categories($plugins);
+
+        $html = '<div class="my-plugins-wrap">';
+        $html .= '<div class="my-plugins-toolbar">';
+        $html .= '<div class="my-plugins-toolbar-meta">';
+        if (! empty($plugins)) {
+            $html .= sprintf(
+                __('Показано: %1$s из %2$d. Источник: %3$s.', 'wp-addon'),
+                '<span id="my-plugins-visible-count">'.count($plugins).'</span>',
+                count($plugins),
+                esc_html($source_label)
+            );
+        }
+        $html .= '</div>';
+        $html .= '<button id="refresh-plugins-list" class="button button-small">'.esc_html__('Обновить список', 'wp-addon').'</button>';
+        $html .= '</div>';
+
+        if (! empty($plugins)) {
+            $html .= '<div class="my-plugins-filters">';
+            $html .= '<input type="search" id="my-plugins-search" class="my-plugins-search" placeholder="'.esc_attr__('Поиск по названию, описанию или репозиторию', 'wp-addon').'" aria-label="'.esc_attr__('Поиск плагинов', 'wp-addon').'">';
+            $html .= '<select id="my-plugins-category" class="my-plugins-category" aria-label="'.esc_attr__('Категория', 'wp-addon').'">';
+            $html .= '<option value="">'.esc_html__('Все категории', 'wp-addon').'</option>';
+            foreach ($categories as $slug => $name) {
+                $html .= '<option value="'.esc_attr($slug).'">'.esc_html($name).'</option>';
             }
-        </style>';
+            $html .= '</select>';
+            $html .= '</div>';
+        }
+
+        if (empty($plugins)) {
+            $error = get_transient('wp_addon_github_plugins_error');
+            $html .= '<div class="my-plugins-empty">';
+            if ($error) {
+                $html .= esc_html__('Не удалось загрузить список плагинов:', 'wp-addon').' '.esc_html($error);
+            } else {
+                $html .= esc_html__('Не удалось загрузить список плагинов.', 'wp-addon');
+            }
+            $html .= '</div>';
+        } else {
+            $html .= '<div class="my-plugins-no-results">'.esc_html__('По вашему запросу ничего не найдено.', 'wp-addon').'</div>';
+            $html .= '<div class="my-plugins-list">';
+            foreach ($plugins as $plugin) {
+                $html .= $this->render_plugin_card($plugin, $installed_plugins, $active_plugins);
+            }
+            $html .= '</div>';
+        }
+        $html .= '</div>';
         $html .= '<script type="text/javascript">
         jQuery(document).ready(function($) {
+            function filterMyPlugins() {
+                var query = ($("#my-plugins-search").val() || "").toLowerCase().trim();
+                var category = $("#my-plugins-category").val() || "";
+                var visible = 0;
+
+                $(".my-plugins-card").each(function() {
+                    var card = $(this);
+                    var search = (card.data("search") || "").toString().toLowerCase();
+                    var categories = (card.data("categories") || "").toString();
+                    var categoryMatch = !category || categories.split(",").indexOf(category) !== -1;
+                    var searchMatch = !query || search.indexOf(query) !== -1;
+                    var show = categoryMatch && searchMatch;
+
+                    card.toggle(show);
+                    if (show) {
+                        visible++;
+                    }
+                });
+
+                $("#my-plugins-visible-count").text(visible);
+                $(".my-plugins-no-results").toggle(visible === 0);
+            }
+
+            $("#my-plugins-search").on("input", filterMyPlugins);
+            $("#my-plugins-category").on("change", filterMyPlugins);
+
             $(document).on("click", ".install-plugin-btn", function() {
                 var btn = $(this);
                 var originalText = btn.text();
@@ -248,10 +713,7 @@ class WP_Addon_Settings
                     nonce: "'.wp_create_nonce('uninstall_plugin').'"
                 }, function(response) {
                     if (response.success) {
-                        var pluginItem = btn.closest(".plugin-item");
-                        pluginItem.removeClass("installed active inactive").addClass("not-installed").css("background-color", "#f8f9fa");
-                        pluginItem.find(".activate-plugin-btn, .deactivate-plugin-btn").remove();
-                        btn.removeClass("uninstall-plugin-btn button button-secondary").addClass("install-plugin-btn button button-primary").text("Установить").prop("disabled", false);
+                        location.reload();
                     } else {
                         btn.text("Ошибка деинсталляции").prop("disabled", false);
                         console.log(response.data);
@@ -287,7 +749,9 @@ class WP_Addon_Settings
         if (! current_user_can('manage_options')) {
             wp_send_json_error('Нет прав.');
         }
+        delete_transient('wp_addon_plugins_catalog');
         delete_transient('wp_addon_github_plugins');
+        delete_transient('wp_addon_github_plugins_error');
         wp_send_json_success();
     }
 
@@ -444,6 +908,14 @@ class WP_Addon_Settings
             false,
             $this->ver,
             'all');
+
+        wp_enqueue_style(
+            $this->wp_plugin_slug.'-my-plugins',
+            RW_PLUGIN_URL.'assets/css/my-plugins.css',
+            [$this->wp_plugin_slug],
+            $this->ver,
+            'all'
+        );
     }
 
     /**
@@ -484,7 +956,7 @@ class WP_Addon_Settings
         \CSF::createSection($prefix, [
             'title' => __('Cache', 'wp-addon'),
             'icon' => 'fa fa-database',
-            'description' => __('Page caching saves ready HTML pages to a file. When a user visits the site, instead of executing PHP code and database queries, they are shown the saved page immediately. This speeds up site loading by 5-10 times.<br><br><strong>When to use:</strong> On a finished site with high traffic. <strong>When to disable:</strong> During development or if content changes frequently.<br><br><strong>Important:</strong> Cached pages are stored in the wp-content/cache/pages/ folder as .gz files.', 'wp-addon'),
+            'description' => __('Page caching saves ready HTML and gzip files. Apache rules are installed automatically. For Nginx, include the generated wp-content/cache/pages/nginx.conf file inside the HTTPS server block and reload Nginx. Disable other full-page cache plugins to avoid conflicts.', 'wp-addon'),
             'fields' => [
                 [
                     'id' => 'cache_enabled',
@@ -497,7 +969,7 @@ class WP_Addon_Settings
                     'id' => 'cache_ttl',
                     'type' => 'number',
                     'title' => __('Cache lifetime (seconds)', 'wp-addon'),
-                    'desc' => __('How many seconds to store the cached page. After this time, the page will be recreated. For a news site - 1800 sec (30 min). For static - 3600 sec (1 hour).', 'wp-addon'),
+                    'desc' => __('How long browsers may reuse a cached page. Cached files are also purged automatically whenever posts, terms, comments, menus, widgets or theme settings change. The recommended default is 3600 seconds.', 'wp-addon'),
                     'default' => 3600,
                     'min' => 300,
                     'max' => 86400,
@@ -514,7 +986,7 @@ class WP_Addon_Settings
                     'type' => 'textarea',
                     'title' => __('Do not cache these pages', 'wp-addon'),
                     'desc' => __('Pages that change frequently and should not be cached. One line - one URL. Examples: /wp-admin/ (admin), /checkout/ (checkout), /cart/ (cart), /my-account/ (personal account).', 'wp-addon'),
-                    'default' => "/wp-admin/\n/wp-login.php\n/checkout/\n/cart/",
+                    'default' => "/wp-admin/\n/wp-login.php\n/wp-json/\n/xmlrpc.php\n/cart/\n/checkout/\n/my-account/",
                 ],
                 [
                     'id' => 'cache_preload_pages',
@@ -529,6 +1001,11 @@ class WP_Addon_Settings
                     'title' => __('Clear cache on post publish', 'wp-addon'),
                     'desc' => __('When you publish a new article or edit an old one - automatically delete all cache. So readers will immediately see fresh content. Disable if you publish often - this will slow down the site.', 'wp-addon'),
                     'default' => true,
+                ],
+                [
+                    'id' => 'cache_status',
+                    'type' => 'content',
+                    'content' => class_exists('PageCache') ? \PageCache::renderAdminPanel() : '',
                 ],
             ],
         ]);
@@ -709,33 +1186,55 @@ class WP_Addon_Settings
         \CSF::createSection($prefix, [
             'title' => __('Redirects', 'wp-addon'),
             'icon' => 'fa fa-share',
-            'description' => __('301 redirect management. Create redirect rules from one URL to another. Supports both simple redirection and wildcard (*) usage for folder redirection.<br><br><strong>Simple redirects:</strong> /old-page/ → /new-page/<br><strong>Wildcard redirects:</strong> /old-folder/* → /new-folder/*<br><br><strong>Important:</strong> Redirects apply to all requests except wp-admin and wp-login to prevent admin access blocking.', 'wp-addon'),
+            'description' => __('301 redirect management for old URLs, moved pages and bulk migrations. Read the guide below for slash rules, wildcard examples and CSV import format.', 'wp-addon'),
             'fields' => [
+                [
+                    'type' => 'content',
+                    'content' => $this->getRedirectsInstructionsHtml(),
+                ],
                 [
                     'id' => 'redirect_enable',
                     'type' => 'switcher',
                     'title' => __('Enable redirects', 'wp-addon'),
-                    'desc' => __('When disabled, redirect rules are not registered or processed.', 'wp-addon'),
+                    'desc' => __('When disabled, redirect rules are saved but not applied on the site.', 'wp-addon'),
                     'default' => true,
                 ],
                 [
                     'id' => 'redirects_wildcard',
                     'type' => 'switcher',
                     'title' => __('Use wildcard redirects', 'wp-addon'),
-                    'desc' => __('Enable for * symbol support in URLs. Example: /old-folder/* will redirect all pages from old-folder to corresponding pages in new-folder.', 'wp-addon'),
+                    'desc' => __('Required for rules with *. Without this option only exact URL matches work, e.g. /old-page/ → /new-page/.', 'wp-addon'),
                     'default' => false,
+                ],
+                [
+                    'id' => 'redirects_csv_import',
+                    'type' => 'code_editor',
+                    'title' => __('Bulk CSV import', 'wp-addon'),
+                    'desc' => __('Paste rules here and save settings. Format: source,destination — one rule per line. Duplicate source URLs are overwritten. The field is cleared after a successful import.', 'wp-addon'),
+                    'settings' => [
+                        'theme' => 'mbo',
+                        'mode' => 'shell',
+                        'lineNumbers' => true,
+                        'tabSize' => 2,
+                    ],
+                    'attributes' => [
+                        'rows' => 12,
+                        'placeholder' => "# source,destination\n/old-page/,/new-page/\n/old-blog/*,/blog/*\n/ru/docs/*,/en/docs/*",
+                    ],
+                    'default' => '',
+                    'sanitize' => false,
                 ],
                 [
                     'id' => 'redirects_rules',
                     'type' => 'repeater',
                     'title' => __('Redirect rules', 'wp-addon'),
-                    'desc' => __('Add redirection rules. Request - source URL (relative to site root), Destination - target URL.', 'wp-addon'),
+                    'desc' => __('Manual rule list. «Request URL» is the old address visitors open. «Destination URL» is where they should land. Trailing slashes are optional.', 'wp-addon'),
                     'fields' => [
                         [
                             'id' => 'request',
                             'type' => 'text',
                             'title' => __('Request URL', 'wp-addon'),
-                            'desc' => __('Source URL for redirection. Example: /old-page/ or /old-folder/*', 'wp-addon'),
+                            'desc' => __('Old URL path relative to site root. Examples: /old-page/, /old-page (same), /old-folder/* with wildcards enabled.', 'wp-addon'),
                             'attributes' => [
                                 'placeholder' => '/old-page/',
                             ],
@@ -744,7 +1243,7 @@ class WP_Addon_Settings
                             'id' => 'destination',
                             'type' => 'text',
                             'title' => __('Destination URL', 'wp-addon'),
-                            'desc' => __('Target URL. Can be relative (/new-page/) or absolute (https://example.com/new-page/)', 'wp-addon'),
+                            'desc' => __('New address: site path (/new-page/) or full URL (https://example.com/page/). For wildcards use * in the same position as in the source.', 'wp-addon'),
                             'attributes' => [
                                 'placeholder' => '/new-page/',
                             ],
@@ -760,6 +1259,14 @@ class WP_Addon_Settings
             'title' => __('Shortcodes and Widgets', 'wp-addon'),
             'icon' => 'fa fa-bolt',
             'fields' => require __DIR__.'/wp-widgets.php',
+        ]);
+
+        // Cookie Banner
+        \CSF::createSection($prefix, [
+            'title' => __('Cookie Banner', 'wp-addon'),
+            'icon' => 'fa fa-cookie-bite',
+            'description' => __('Cookie consent banner with configurable text, links, button mode and deferred analytics loading.', 'wp-addon'),
+            'fields' => require_once __DIR__.'/cookie-banner.php',
         ]);
 
         do_action('wp_addon_settings_section', $prefix);
@@ -809,20 +1316,20 @@ class WP_Addon_Settings
         \CSF::createSection($prefix, [
             'title' => __('Markdown Editor', 'wp-addon'),
             'icon' => 'fa fa-edit',
-            'description' => __('Markdown Editor позволяет писать статьи в удобном формате Markdown и автоматически конвертировать их в HTML. Поддерживает синтаксис заголовков, списков, ссылок, изображений, кода и других элементов.<br><br><strong>Преимущества:</strong><br>• Простой и читаемый синтаксис<br>• Быстрое форматирование текста<br>• Предпросмотр в реальном времени<br>• Горячие клавиши для ускорения работы<br>• Автоматическое преобразование в HTML<br><br><strong>Поддерживаемые элементы:</strong><br>• Заголовки (# ## ###)<br>• Жирный (**текст**) и курсив (*текст*)<br>• Ссылки [текст](url)<br>• Изображения ![alt](url)<br>• Списки маркированные и нумерованные<br>• Код `inline` и блоки кода<br>• Цитаты и горизонтальные линии', 'wp-addon'),
+            'description' => __('Markdown Editor позволяет писать и редактировать контент в удобном Markdown-синтаксисе. При сохранении Markdown автоматически конвертируется в HTML и сохраняется в основное поле контента — сам исходник Markdown нигде не хранится, и посты на сайте всегда отдают чистый HTML.<br><br><strong>Как работает синхронизация с обычным редактором:</strong><br>• если контент правили в Markdown — сохраненный HTML получается из Markdown<br>• если правили только в стандартном редакторе (TinyMCE) — его HTML сохраняется как есть, а Markdown-поле просто обновляется при следующем открытии', 'wp-addon'),
             'fields' => [
                 [
                     'id' => 'wp_addon_markdown_enabled',
                     'type' => 'switcher',
-                    'title' => __('Enable Markdown Editor', 'wp-addon'),
-                    'desc' => __('Включает Markdown редактор для постов и страниц. При включении в админ-панели появится дополнительный блок для редактирования контента в формате Markdown с предпросмотром.', 'wp-addon'),
+                    'title' => __('Enable Markdown editor', 'wp-addon'),
+                    'desc' => __('Включает Markdown-редактор для записей и страниц. В основном поле поста сохраняется только HTML, а исходный Markdown конвертируется при сохранении и не хранится отдельно.', 'wp-addon'),
                     'default' => false,
                 ],
                 [
                     'id' => 'markdown_post_types',
                     'type' => 'checkbox',
-                    'title' => __('Post types for Markdown', 'wp-addon'),
-                    'desc' => __('Выберите типы постов, для которых будет доступен Markdown редактор.', 'wp-addon'),
+                    'title' => __('Post types', 'wp-addon'),
+                    'desc' => __('Типы записей, для которых будет доступен Markdown-редактор. Конвертация в HTML и синхронизация с основным редактором применяется только к выбранным типам.', 'wp-addon'),
                     'options' => [
                         'post' => __('Posts', 'wp-addon'),
                         'page' => __('Pages', 'wp-addon'),
@@ -833,33 +1340,25 @@ class WP_Addon_Settings
                 [
                     'id' => 'markdown_replace_tinymce',
                     'type' => 'switcher',
-                    'title' => __('Replace TinyMCE editor', 'wp-addon'),
-                    'desc' => __('Заменить стандартный редактор TinyMCE на Markdown редактор по умолчанию. При отключении оба редактора будут доступны.', 'wp-addon'),
-                    'default' => false,
+                    'title' => __('Replace the standard editor', 'wp-addon'),
+                    'desc' => __('Скрывает стандартный редактор TinyMCE и оставляет только Markdown. Если выключено — оба редактора доступны, и при сохранении учитываются только те, в которых были правки.', 'wp-addon'),
+                    'default' => true,
                     'dependency' => ['wp_addon_markdown_enabled', '==', 'true'],
                 ],
                 [
                     'id' => 'markdown_enable_preview',
                     'type' => 'switcher',
-                    'title' => __('Enable live preview', 'wp-addon'),
-                    'desc' => __('Включает предпросмотр Markdown в реальном времени. Показывает как будет выглядеть контент после публикации.', 'wp-addon'),
+                    'title' => __('Live preview', 'wp-addon'),
+                    'desc' => __('Показывает предпросмотр Markdown рядом с редактором и добавляет кнопку «Side-by-side». При выключении предпросмотр полностью скрывается.', 'wp-addon'),
                     'default' => true,
                     'dependency' => ['wp_addon_markdown_enabled', '==', 'true'],
                 ],
                 [
                     'id' => 'markdown_enable_shortcuts',
                     'type' => 'switcher',
-                    'title' => __('Enable keyboard shortcuts', 'wp-addon'),
-                    'desc' => __('Активирует горячие клавиши для быстрого форматирования: Ctrl+B (жирный), Ctrl+I (курсив), Ctrl+K (ссылка), Tab (отступ).', 'wp-addon'),
+                    'title' => __('Keyboard shortcuts', 'wp-addon'),
+                    'desc' => __('Горячие клавиши для быстрого форматирования: Ctrl+B (жирный), Ctrl+I (курсив), Ctrl+K (ссылка).', 'wp-addon'),
                     'default' => true,
-                    'dependency' => ['wp_addon_markdown_enabled', '==', 'true'],
-                ],
-                [
-                    'id' => 'markdown_migrate_existing',
-                    'type' => 'switcher',
-                    'title' => __('Convert existing HTML to Markdown', 'wp-addon'),
-                    'desc' => __('Автоматически конвертирует существующий HTML контент в Markdown при первом редактировании поста. Необратимая операция.', 'wp-addon'),
-                    'default' => false,
                     'dependency' => ['wp_addon_markdown_enabled', '==', 'true'],
                 ],
                 [

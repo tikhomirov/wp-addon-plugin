@@ -1,6 +1,6 @@
 <?php
 
-use Mockery;
+use WpAddon\Services\ImageOptimizationService;
 
 /**
  * Unit tests for ImageOptimizationService
@@ -67,8 +67,10 @@ describe('ImageOptimizationService Unit Tests', function () {
     it('respects blur intensity parameter', function () {
         $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.png';
         $image = imagecreatetruecolor(100, 100);
-        $red = imagecolorallocate($image, 255, 0, 0);
-        imagefill($image, 0, 0, $red);
+        for ($x = 0; $x < 100; $x++) {
+            $color = imagecolorallocate($image, $x * 2, 0, 0);
+            imageline($image, $x, 0, $x, 99, $color);
+        }
         imagepng($image, $tempImage);
         imagedestroy($image);
 

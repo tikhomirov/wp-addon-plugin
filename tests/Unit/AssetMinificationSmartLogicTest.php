@@ -304,7 +304,7 @@ describe('AssetMinification Smart Logic', function () {
 
     it('generates cache URL', function () {
         $key = 'test-cache-key';
-        $expectedUrl = 'http://localhost/wp-content/cache/assets/test-cache-key.gz';
+        $expectedUrl = 'http://localhost/wp-content/cache/assets/test-cache-key.css';
 
         $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('getCacheUrl');

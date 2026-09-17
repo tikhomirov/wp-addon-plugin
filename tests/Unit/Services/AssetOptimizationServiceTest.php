@@ -80,6 +80,13 @@ describe('AssetOptimizationService', function () {
         expect($minified)->not->toContain('  ');
     });
 
+    it('preserves URLs and string contents while minifying JavaScript', function () {
+        $result = $this->service->minifyJs("// comment\nconst url = 'https://example.com/a//b';");
+
+        expect($result)->not->toContain('// comment');
+        expect($result)->toContain("'https://example.com/a//b'");
+    });
+
     it('combines CSS files', function () {
         $files = [
             $this->getTestDataPath('test.css'),
@@ -147,6 +154,20 @@ describe('AssetOptimizationService', function () {
         $this->setMockFunction('gzuncompress', $content);
         $cachedContent = gzuncompress(file_get_contents($cacheFile));
         expect($cachedContent)->toBe($content);
+    });
+
+    it('saves browser-readable assets to cache', function () {
+        $key = 'asset_key';
+        $content = 'body{color:red}';
+
+        $this->service->saveAssetToCache($key, $content, 'css');
+
+        expect(file_get_contents($this->cacheDir.'/'.$key.'.css'))->toBe($content);
+    });
+
+    it('rejects unsupported browser asset extensions', function () {
+        expect(fn () => $this->service->saveAssetToCache('asset_key', 'content', 'html'))
+            ->toThrow(InvalidArgumentException::class);
     });
 
     it('retrieves content from cache', function () {

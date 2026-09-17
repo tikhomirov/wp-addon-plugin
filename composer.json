@@ -1,6 +1,6 @@
 {
   "name": "rwsite/wp-addon-plugin",
-  "description": "Massive Addon for WordPress;",
+    "description": "Performance, security, and admin enhancements for WordPress 6.6+ — WP Tweaker (48 toggles), redirects, cookie banner, Markdown editor, and plugin catalog.",
   "license": "MIT",
   "type": "wordpress-plugin",
   "authors": [
@@ -17,6 +17,7 @@
     "mockery/mockery": "^1.4",
     "pestphp/pest": "^2.0",
     "fakerphp/faker": "^1.23",
+    "brain/monkey": "^2.7",
     "laravel/pint": "^1.18",
     "phpstan/phpstan": "^2.1",
     "php-stubs/wordpress-stubs": "^6.8",
@@ -27,11 +28,13 @@
       "WpAddon\\": "src/",
       "WpAddon\\Tests\\": "tests/"
     },
-    "classmap": ["functions/"]
+    "classmap": [
+      "functions/"
+    ]
   },
   "scripts": {
-    "test": "pest tests/Unit/LazyLoadingTest.php tests/Unit/FactoriesTest.php tests/Unit/ModuleSystemTest.php tests/Unit/ExampleTest.php tests/Feature/SmokeTest.php tests/Feature/ExampleTest.php",
-    "test:coverage": "pest --coverage tests/Unit/LazyLoadingTest.php tests/Unit/FactoriesTest.php tests/Unit/ModuleSystemTest.php tests/Unit/ExampleTest.php tests/Feature/SmokeTest.php tests/Feature/ExampleTest.php",
+    "test": "pest tests/Unit --no-coverage",
+    "test:coverage": "pest --coverage tests/Unit",
     "format": "pint",
     "format:check": "pint --test",
     "static-analysis": "phpstan analyse --memory-limit=1G",

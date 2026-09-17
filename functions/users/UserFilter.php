@@ -27,13 +27,13 @@ class UserFilter
     {
         $this->screen = 'users';
 
-        add_action('restrict_manage_users', [$this, 'filter_by_role'], 10, 1);
-        add_filter('pre_get_users', [$this, 'filter_users_by_role_section']);
-        add_filter("manage_{$this->screen}_sortable_columns", [$this, 'columns_sortable']);
-        add_filter('user_row_actions', [$this, 'quick_edit'], 10, 2);
+        \add_action('restrict_manage_users', [$this, 'filter_by_role'], 10, 1);
+        \add_filter('pre_get_users', [$this, 'filter_users_by_role_section']);
+        \add_filter("manage_{$this->screen}_sortable_columns", [$this, 'columns_sortable']);
+        \add_filter('user_row_actions', [$this, 'quick_edit'], 10, 2);
 
-        if (! shortcode_exists('role_list')) {
-            add_shortcode('role_list', [$this, 'add_shortcode']);
+        if (! \shortcode_exists('role_list')) {
+            \add_shortcode('role_list', [$this, 'add_shortcode']);
         }
     }
 
@@ -46,21 +46,19 @@ class UserFilter
      */
     public function filter_by_role($which)
     {
-        if (shortcode_exists('role_list')) {
-            echo do_shortcode('[role_list style="filter" args="'.$which.'""]');
-            echo '<input type="submit" name="role_filter" id="role_filter" class="button action" value="Filter by role">';
+        if (\shortcode_exists('role_list')) {
+            echo \do_shortcode('[role_list style="filter" args="'.\esc_attr((string) $which).'"]');
+            echo '<input type="submit" name="role_filter" id="role_filter" class="button action" value="'.\esc_attr__('Filter by role', 'wp-addon').'">';
         }
 
-        add_action('admin_footer', function () {
+        \add_action('admin_footer', function () {
             ?>
             <script type="text/javascript">
                 jQuery(document).ready(function ($) {
-
                     $('[name="role_filter"]').click(function () {
                         let value = $('select[name="role"]').val();
-                        console.log($(this).val(value));
+                        $(this).val(value);
                     });
-
                 });
             </script>
 			<?php
@@ -74,12 +72,29 @@ class UserFilter
     {
         global $pagenow;
 
-        if (is_admin() && isset($_GET['role_filter']) && $pagenow === 'users.php') {
-            if (! empty($_GET['role_filter'])) {
-                $query->set('role', $_GET['role_filter']);
-                $query->set('role__in', [$_GET['role_filter']]);
-            }
+        if (! \is_admin() || $pagenow !== 'users.php') {
+
+            return $query;
         }
+
+        if (! isset($_GET['role_filter']) || $_GET['role_filter'] === '') {
+            return $query;
+        }
+
+        $role = isset($_GET['role']) ? \sanitize_key((string) \wp_unslash($_GET['role'])) : '';
+
+        if ($role === '') {
+            return $query;
+        }
+
+        $availableRoles = array_keys(\wp_roles()->get_names());
+
+        if (! in_array($role, $availableRoles, true)) {
+            return $query;
+        }
+
+        $query->set('role', $role);
+        $query->set('role__in', [$role]);
 
         return $query;
     }
@@ -101,39 +116,39 @@ class UserFilter
 
     public function quick_edit($actions, $user_object)
     {
-        // TODO : quick edit here ...
         return $actions;
     }
 
     public function add_shortcode($atts = [])
     {
-        if (! is_admin() || ! current_user_can('manage_options')) {
+        if (! \is_admin() || ! \current_user_can('manage_options')) {
             return false;
         }
 
-        $role_names = wp_roles()->get_names();
-        // filter by user role
+        $role_names = \wp_roles()->get_names();
+        $selectedRole = isset($_GET['role']) ? \sanitize_key((string) \wp_unslash($_GET['role'])) : '';
+
         if (isset($atts['style']) && $atts['style'] === 'filter') {
-            // template for filtering
             $select = '<select name="role" style="float:none;margin-left:10px;">';
-            $select .= '<option value="">'.__('Filter by role').'</option>';
+            $select .= '<option value="">'.\esc_html__('Filter by role', 'wp-addon').'</option>';
+
             foreach ($role_names as $role => $name) {
-                if (isset($_GET['role']) && ! empty($_GET['role']) && $role === $_GET['role']) {
-                    $select .= '<option value="'.$role.'" selected="selected">'.$name.'</option>';
-                } else {
-                    $select .= '<option value="'.$role.'">'.$name.'</option>';
-                }
+                $selected = $role === $selectedRole ? ' selected="selected"' : '';
+                $select .= '<option value="'.\esc_attr($role).'"'.$selected.'>'.\esc_html($name).'</option>';
             }
+
             $select .= '</select>';
 
             return $select;
         }
 
         $html = '<ol>';
+
         foreach ($role_names as $role => $name) {
-            $html .= '<li>'.$role.' - '.$name.'</li>';
+            $html .= '<li>'.\esc_html($role).' - '.\esc_html($name).'</li>';
         }
-        $html .= '<ol>';
+
+        $html .= '</ol>';
 
         return $html;
     }

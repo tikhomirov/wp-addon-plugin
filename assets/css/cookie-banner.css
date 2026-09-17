@@ -1,0 +1,95 @@
+.wp-addon-cookie-banner {
+    display: none;
+    position: fixed;
+    bottom: 2px;
+    width: calc(100% - 40px);
+    max-width: 560px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    z-index: 9999;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    color: #1a1a2e;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+
+.wp-addon-cookie-banner--bottom-center {
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.wp-addon-cookie-banner--bottom-left {
+    left: 20px;
+}
+
+.wp-addon-cookie-banner--bottom-right {
+    right: 20px;
+    left: auto;
+}
+
+.wp-addon-cookie-banner__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: nowrap;
+}
+
+.wp-addon-cookie-banner__text {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.5;
+}
+
+.wp-addon-cookie-banner__link {
+    color: #333;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.wp-addon-cookie-banner__actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.wp-addon-cookie-banner__button {
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.wp-addon-cookie-banner__button--secondary {
+    background: #f0f0f5;
+    color: #333;
+}
+
+.wp-addon-cookie-banner__button--secondary:hover {
+    background: #e0e0e8;
+}
+
+.wp-addon-cookie-banner__button--primary {
+    background: #1a1a2e;
+    color: #fff;
+}
+
+.wp-addon-cookie-banner__button--primary:hover {
+    opacity: 0.85;
+}
+
+@media (max-width: 640px) {
+    .wp-addon-cookie-banner__inner {
+        flex-wrap: wrap;
+    }
+
+    .wp-addon-cookie-banner__actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

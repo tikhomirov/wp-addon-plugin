@@ -100,6 +100,17 @@ class Plugin
         if (! class_exists('CSF')) {
             add_action('admin_notices', [$this, 'renderMissingCodeStarNotice']);
         }
+
+        $optionService = new OptionService(defined('RW_LANG') ? RW_LANG : 'wp-addon');
+        require_once plugin_dir_path($this->file).'src/Config/cookie-banner-defaults.php';
+        $optionService->mergeDefaults(
+            wp_addon_get_cookie_banner_defaults(),
+            [
+                'cookie_banner_link_2_text',
+                'cookie_banner_link_2_url',
+                'cookie_banner_analytics_code',
+            ]
+        );
     }
 
     public function renderMissingCodeStarNotice(): void
@@ -167,9 +178,58 @@ class Plugin
         $this->assetService = new AssetService(RW_FILE, RW_PLUGIN_URL, RW_LANG, $this->version);
         $this->mediaCleanupService = new MediaCleanupService;
         $this->imageOptimizationService = new ImageOptimizationService;
+        $this->ensureCookieBannerDefaults();
+
+        require_once $this->dir.'functions/main-settings-helpers.php';
 
         // Load functions and modules
         $this->loadModules();
+    }
+
+    private function ensureCookieBannerDefaults(): void
+    {
+        require_once $this->dir.'src/Config/cookie-banner-defaults.php';
+
+        $defaults = wp_addon_get_cookie_banner_defaults();
+        $allowEmpty = [
+            'cookie_banner_link_2_text',
+            'cookie_banner_link_2_url',
+            'cookie_banner_analytics_code',
+        ];
+
+        if (
+            $this->optionService->getSetting('cookie_banner_defaults_migrated') === '1'
+            && ! $this->hasEmptyCookieBannerSettings($defaults, $allowEmpty)
+        ) {
+            return;
+        }
+
+        $this->optionService->mergeDefaults($defaults, $allowEmpty);
+
+        $settings = $this->optionService->getSettings();
+        $settings['cookie_banner_defaults_migrated'] = '1';
+        $this->optionService->updateSettings($settings);
+    }
+
+    /**
+     * @param  array<string, mixed>  $defaults
+     * @param  array<int, string>  $allowEmpty
+     */
+    private function hasEmptyCookieBannerSettings(array $defaults, array $allowEmpty): bool
+    {
+        foreach (array_keys($defaults) as $key) {
+            if (in_array($key, $allowEmpty, true)) {
+                continue;
+            }
+
+            $value = $this->optionService->getSetting($key, null);
+
+            if ($value === '' || $value === null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -183,6 +243,7 @@ class Plugin
             'PageCache' => [$this->optionService],
             'AssetMinification' => [$this->optionService],
             'LazyLoading' => [$this->optionService, $this->imageOptimizationService],
+            'CookieBanner' => [$this->optionService],
         ];
 
         $files = glob($this->dir.'functions/*.php') ?: [];

@@ -1,4 +1,4 @@
-# Copyright (C) 2025 Aleksey Tikhomirov
+# Copyright (C) 2026 Aleksey Tikhomirov
 # This file is distributed under the same license as the # WP Excellence Addon plugin.
 msgid ""
 msgstr ""
@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-11-16T15:35:48+00:00\n"
+"POT-Creation-Date: 2026-09-17T10:36:17+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wp-addon\n"
@@ -34,7 +34,7 @@ msgstr ""
 msgid "https://rwsite.ru"
 msgstr ""
 
-#: functions/cf7/contact-form7.php:19
+#: functions/cf7/contact-form7.php:18
 msgid "Additional shortcodes <b>email:</b>"
 msgstr ""
 
@@ -42,12 +42,21 @@ msgstr ""
 msgid "Specify date and time in format: 00.00.0000 00:00 or use the calendar"
 msgstr ""
 
-#: functions/dashboard-widget/plugins-list.php:47
+#: functions/CookieBanner.php:80
+msgid "Cookie consent"
+msgstr ""
+
+#: functions/dashboard-widget/plugins-list.php:46
 msgid "Plugin list of "
 msgstr ""
 
+#: functions/dashboard-widget/role-list.php:15
+#: src/Config/main.php:277
+msgid "Users role info"
+msgstr ""
+
 #: functions/dashboard-widget/siteinfo.php:15
-#: src/Config/main.php:247
+#: src/Config/main.php:271
 msgid "Server info"
 msgstr ""
 
@@ -65,145 +74,179 @@ msgstr ""
 msgid "Welcome to "
 msgstr ""
 
-#: functions/MaintenanceMode.php:59
-#: src/Config/main.php:11
+#: functions/MaintenanceMode.php:72
+#: src/Config/main.php:24
 msgid "Maintenance Mode"
 msgstr ""
 
-#: functions/MaintenanceMode.php:66
-msgid "Технические работы."
+#: src/Config/main.php:31
+msgid "Maintenance message"
 msgstr ""
 
-#: functions/MaintenanceMode.php:69
-msgid "Извините, в настоящий момент на сайте проводятся технические работы."
+#: src/Config/main.php:32
+#: functions/MaintenanceMode.php:63
+msgid "Sorry, the site is temporarily unavailable due to maintenance. Please try again later."
 msgstr ""
 
-#: functions/MaintenanceMode.php:70
-msgid "Попробуйте зайти позднее."
+#: src/Config/main.php:33
+msgid "Custom text shown on the maintenance page. Leave empty to use the default message."
 msgstr ""
 
-#: functions/MediaCleanup.php:23
-#: functions/MediaCleanup.php:47
+#: src/Config/main.php:39
+msgid "Maintenance IP whitelist"
+msgstr ""
+
+#: src/Config/main.php:41
+msgid "One IP address per line. Whitelisted IPs can browse the site while maintenance mode is active."
+msgstr ""
+
+#: src/Config/main.php:47
+msgid "Maintenance role whitelist"
+msgstr ""
+
+#: src/Config/main.php:48
+msgid "Selected roles can browse the site while maintenance mode is active. Administrators always have access."
+msgstr ""
+
+#: functions/MaintenanceMode.php:79
+msgid "Maintenance"
+msgstr ""
+
+#: functions/MarkdownEditor.php:121
+msgid "Content (Markdown)"
+msgstr ""
+
+#: functions/MarkdownEditor.php:122
+#: src/Config/wp-addon-settings.php:1293
+msgid "Markdown Editor"
+msgstr ""
+
+#: functions/MarkdownEditor.php:161
+msgid "В основном поле поста сохраняется только HTML. Markdown автоматически конвертируется в HTML при сохранении и нигде отдельно не хранится."
+msgstr ""
+
+#: functions/MediaCleanup.php:31
+#: functions/MediaCleanup.php:56
 msgid "Access denied."
 msgstr ""
 
-#: functions/MediaCleanup.php:37
+#: functions/MediaCleanup.php:45
 msgid "No files to delete."
 msgstr ""
 
-#: functions/MediaCleanup.php:38
+#: functions/MediaCleanup.php:46
 #, php-format
 msgid "Total size: %s MB"
 msgstr ""
 
-#: functions/MediaCleanup.php:40
+#: functions/MediaCleanup.php:48
 msgid "Files to delete:"
 msgstr ""
 
-#: functions/MediaCleanup.php:58
+#: functions/MediaCleanup.php:67
 #, php-format
 msgid "Deleted %d files."
 msgstr ""
 
-#: functions/MediaCleanup.php:60
+#: functions/MediaCleanup.php:69
 #, php-format
 msgid " Errors: %d."
 msgstr ""
 
-#: functions/posts/Advertising.php:134
+#: functions/posts/Advertising.php:126
 msgid "Ads manager"
 msgstr ""
 
-#: functions/posts/Advertising.php:160
+#: functions/posts/Advertising.php:151
 msgid "Enable this extension?"
 msgstr ""
 
-#: functions/posts/Advertising.php:161
+#: functions/posts/Advertising.php:152
 msgid "Change to On for enable this."
 msgstr ""
 
-#: functions/posts/Advertising.php:168
+#: functions/posts/Advertising.php:159
 msgid "Ads in content"
 msgstr ""
 
-#: functions/posts/Advertising.php:169
+#: functions/posts/Advertising.php:160
 msgid "Displays HTML content in the selected location of the post"
 msgstr ""
 
-#: functions/posts/Advertising.php:172
+#: functions/posts/Advertising.php:163
 msgid "Before content"
 msgstr ""
 
-#: functions/posts/Advertising.php:178
-#: functions/posts/Advertising.php:229
-#: functions/posts/Advertising.php:280
+#: functions/posts/Advertising.php:169
+#: functions/posts/Advertising.php:220
+#: functions/posts/Advertising.php:271
 msgid "ADs Mode"
 msgstr ""
 
-#: functions/posts/Advertising.php:179
-#: functions/posts/Advertising.php:230
-#: functions/posts/Advertising.php:281
+#: functions/posts/Advertising.php:170
+#: functions/posts/Advertising.php:221
+#: functions/posts/Advertising.php:272
 msgid "Off to run html mode"
 msgstr ""
 
-#: functions/posts/Advertising.php:195
-#: functions/posts/Advertising.php:246
-#: functions/posts/Advertising.php:297
+#: functions/posts/Advertising.php:186
+#: functions/posts/Advertising.php:237
+#: functions/posts/Advertising.php:288
 msgid "Link"
 msgstr ""
 
-#: functions/posts/Advertising.php:201
-#: functions/posts/Advertising.php:252
-#: functions/posts/Advertising.php:303
+#: functions/posts/Advertising.php:192
+#: functions/posts/Advertising.php:243
+#: functions/posts/Advertising.php:294
 msgid "Banner html code"
 msgstr ""
 
-#: functions/posts/Advertising.php:213
-#: functions/posts/Advertising.php:216
-#: functions/posts/Advertising.php:264
-#: functions/posts/Advertising.php:267
-#: functions/posts/Advertising.php:315
-#: functions/posts/Advertising.php:318
+#: functions/posts/Advertising.php:204
+#: functions/posts/Advertising.php:207
+#: functions/posts/Advertising.php:255
+#: functions/posts/Advertising.php:258
+#: functions/posts/Advertising.php:306
+#: functions/posts/Advertising.php:309
 msgid "Select post type"
 msgstr ""
 
-#: functions/posts/Advertising.php:223
+#: functions/posts/Advertising.php:214
 msgid "In content"
 msgstr ""
 
-#: functions/posts/Advertising.php:274
+#: functions/posts/Advertising.php:265
 msgid "After content"
 msgstr ""
 
-#: functions/posts/Advertising.php:330
+#: functions/posts/Advertising.php:321
 msgid "Enable jQuery ADs mode"
 msgstr ""
 
-#: functions/posts/Advertising.php:331
+#: functions/posts/Advertising.php:322
 msgid "Advanced Advertising mode. For developers."
 msgstr ""
 
-#: functions/posts/Advertising.php:339
+#: functions/posts/Advertising.php:330
 msgid "Displays HTML content in the selected jQuery selector, anywhere on the site."
 msgstr ""
 
-#: functions/posts/Advertising.php:347
+#: functions/posts/Advertising.php:338
 msgid "Add Banner Image"
 msgstr ""
 
-#: functions/posts/Advertising.php:348
+#: functions/posts/Advertising.php:339
 msgid "Remove Image"
 msgstr ""
 
-#: functions/posts/Advertising.php:353
+#: functions/posts/Advertising.php:344
 msgid "jQuery selector"
 msgstr ""
 
-#: functions/posts/Advertising.php:354
+#: functions/posts/Advertising.php:345
 msgid "Example: #div"
 msgstr ""
 
-#: functions/posts/Advertising.php:360
+#: functions/posts/Advertising.php:351
 msgid "Banner code"
 msgstr ""
 
@@ -229,52 +272,52 @@ msgstr ""
 msgid "Remove all revision"
 msgstr ""
 
-#: functions/shortcodes/FAQ.php:29
-#: functions/shortcodes/FAQ.php:30
+#: functions/shortcodes/FAQ.php:34
+#: functions/shortcodes/FAQ.php:35
 msgid "FAQ"
 msgstr ""
 
-#: functions/shortcodes/FAQ.php:78
-#: functions/shortcodes/FAQ_Question.php:111
-#: functions/shortcodes/vc-support.php:12
+#: functions/shortcodes/FAQ.php:85
+#: functions/shortcodes/FAQ_Question.php:116
+#: functions/shortcodes/vc-support.php:13
 msgid "Elements"
 msgstr ""
 
-#: functions/shortcodes/FAQ_Question.php:35
-#: functions/shortcodes/FAQ_Question.php:36
-#: functions/shortcodes/FAQ_Question.php:125
+#: functions/shortcodes/FAQ_Question.php:40
+#: functions/shortcodes/FAQ_Question.php:41
+#: functions/shortcodes/FAQ_Question.php:130
 msgid "Question"
 msgstr ""
 
-#: functions/shortcodes/FAQ_Question.php:127
+#: functions/shortcodes/FAQ_Question.php:132
 msgid "Question for answer"
 msgstr ""
 
-#: functions/shortcodes/vc-support.php:9
+#: functions/shortcodes/vc-support.php:10
 msgid "Any widgets"
 msgstr ""
 
-#: functions/shortcodes/vc-support.php:18
+#: functions/shortcodes/vc-support.php:19
 msgid "Widget Name"
 msgstr ""
 
-#: functions/shortcodes/vc-support.php:21
+#: functions/shortcodes/vc-support.php:22
 msgid "Paste Original Widget Class Name. See: https://codex.wordpress.org/Template_Tags/the_widget"
 msgstr ""
 
-#: functions/shortcodes/vc-support.php:27
+#: functions/shortcodes/vc-support.php:28
 msgid "Instance"
 msgstr ""
 
-#: functions/shortcodes/vc-support.php:30
+#: functions/shortcodes/vc-support.php:31
 msgid "Instance Params"
 msgstr ""
 
-#: functions/shortcodes/vc-support.php:35
+#: functions/shortcodes/vc-support.php:36
 msgid "Args"
 msgstr ""
 
-#: functions/shortcodes/vc-support.php:38
+#: functions/shortcodes/vc-support.php:39
 msgid "Enter description."
 msgstr ""
 
@@ -282,11 +325,11 @@ msgstr ""
 msgid "Widget not found!"
 msgstr ""
 
-#: functions/users/UserAvatar.php:31
+#: functions/users/UserAvatar.php:34
 msgid "Custom Default Avatar"
 msgstr ""
 
-#: functions/users/UserAvatar.php:50
+#: functions/users/UserAvatar.php:48
 msgid "User avatar"
 msgstr ""
 
@@ -305,735 +348,1468 @@ msgstr ""
 msgid "Additional sidebar 3"
 msgstr ""
 
-#: functions/widgets/duplicate-widgets.php:26
+#: functions/widgets/duplicate-widgets.php:25
 msgid "Clone"
 msgstr ""
 
-#: functions/widgets/duplicate-widgets.php:27
+#: functions/widgets/duplicate-widgets.php:26
 msgid "Clone this Widget"
 msgstr ""
 
-#: functions/wp-functions.php:240
+#: functions/wp-functions.php:145
+msgid "WordPress.org update request blocked by wp-addon tweak."
+msgstr ""
+
+#: functions/wp-functions.php:323
 msgid "VK"
 msgstr ""
 
-#: functions/wp-functions.php:241
+#: functions/wp-functions.php:324
 msgid "OK"
 msgstr ""
 
-#: functions/wp-functions.php:253
-#, php-format
-msgid "SQL: %d за %s sec. %.2f MB "
+#: functions/wp-functions.php:346
+msgid "Page generated"
 msgstr ""
 
-#: functions/wp-functions.php:307
+#: functions/wp-functions.php:397
 #, php-format
 msgid "Failed to delete files license.txt and readme.html from folder %s. Please delete them manually!"
 msgstr ""
 
-#: functions/wp-functions.php:309
+#: functions/wp-functions.php:399
 #, php-format
 msgid "Files license.txt and readme.html have been deleted from folder %s."
 msgstr ""
 
-#: functions/wp-functions.php:335
+#: functions/wp-functions.php:425
 msgid "filter..."
 msgstr ""
 
-#: functions/wp-functions.php:406
+#: functions/wp-functions.php:498
 msgid "Read more ..."
 msgstr ""
 
-#: src/Config/main.php:17
+#: functions/wp-functions.php:593
+msgid "Error:"
+msgstr ""
+
+#: functions/wp-functions.php:594
+msgid "Incorrect username or password."
+msgstr ""
+
+#: functions/wp-functions.php:648
+msgid "You must be logged in to access the REST API."
+msgstr ""
+
+#: functions/wp-functions.php:778
+msgid "WordPress tracking request blocked by wp-addon tweak."
+msgstr ""
+
+#: src/Config/cookie-banner.php:11
+msgid "Enable cookie banner"
+msgstr ""
+
+#: src/Config/cookie-banner.php:12
+msgid "Shows a cookie consent banner on the frontend."
+msgstr ""
+
+#: src/Config/cookie-banner.php:18
+msgid "Banner position"
+msgstr ""
+
+#: src/Config/cookie-banner.php:20
+msgid "Bottom center"
+msgstr ""
+
+#: src/Config/cookie-banner.php:21
+msgid "Bottom left"
+msgstr ""
+
+#: src/Config/cookie-banner.php:22
+msgid "Bottom right"
+msgstr ""
+
+#: src/Config/cookie-banner.php:30
+msgid "Banner text"
+msgstr ""
+
+#: src/Config/cookie-banner.php:31
+msgid "Use {link1} and {link2} placeholders for links configured below. A cookie icon is added automatically on the frontend."
+msgstr ""
+
+#: src/Config/cookie-banner.php:38
+msgid "Link 1 text"
+msgstr ""
+
+#: src/Config/cookie-banner.php:45
+msgid "Link 1 URL"
+msgstr ""
+
+#: src/Config/cookie-banner.php:52
+msgid "Link 2 text"
+msgstr ""
+
+#: src/Config/cookie-banner.php:59
+msgid "Link 2 URL"
+msgstr ""
+
+#: src/Config/cookie-banner.php:66
+msgid "Buttons mode"
+msgstr ""
+
+#: src/Config/cookie-banner.php:67
+msgid "In two-button mode analytics code is loaded only after accepting all cookies."
+msgstr ""
+
+#: src/Config/cookie-banner.php:69
+msgid "One button (accept)"
+msgstr ""
+
+#: src/Config/cookie-banner.php:70
+msgid "Two buttons (essential / accept all)"
+msgstr ""
+
+#: src/Config/cookie-banner.php:78
+msgid "Button 1 text"
+msgstr ""
+
+#: src/Config/cookie-banner.php:79
+msgid "For one-button mode this is the accept button. For two-button mode this is the essential-only button."
+msgstr ""
+
+#: src/Config/cookie-banner.php:86
+msgid "Button 2 text"
+msgstr ""
+
+#: src/Config/cookie-banner.php:96
+msgid "Analytics code"
+msgstr ""
+
+#: src/Config/cookie-banner.php:97
+msgid "Paste the full counter HTML from Yandex Metrika or another service. The code is stored and injected as-is after consent. Leave empty to disable analytics loading."
+msgstr ""
+
+#: src/Config/main.php:24
+msgid "Shows an \"Under maintenance\" page to all visitors except administrators. Useful when updating the theme, plugins, or migrating content."
+msgstr ""
+
+#: src/Config/main.php:28
 msgid "Show custom fields for categories and posts"
 msgstr ""
 
-#: src/Config/main.php:23
-msgid "Disable all updates."
+#: src/Config/main.php:30
+msgid "Restores the standard Custom Fields meta box on post edit screens. Needed when you work with meta fields without a separate plugin."
 msgstr ""
 
-#: src/Config/main.php:31
-msgid "Posts and Page Settings"
+#: src/Config/main.php:34
+msgid "⚠️ Disable all updates."
 msgstr ""
 
 #: src/Config/main.php:36
+msgid "Fully disables automatic and background updates for core, plugins, and themes. Use only on staging or when you control updates manually. When enabled, it also covers Tweaks \"Block WordPress.org update HTTP requests\" and \"Disable aggressive update\"."
+msgstr ""
+
+#: src/Config/main.php:43
+msgid "Posts and Page Settings"
+msgstr ""
+
+#: src/Config/main.php:47
 msgid "Show posts IDs"
 msgstr ""
 
-#: src/Config/main.php:42
+#: src/Config/main.php:49
+msgid "Adds an ID column to post, page, and media lists. Handy for shortcodes, SQL queries, and debugging."
+msgstr ""
+
+#: src/Config/main.php:53
 msgid "Show posts thumbnails"
 msgstr ""
 
-#: src/Config/main.php:48
-#: src/Config/main.php:54
+#: src/Config/main.php:55
+msgid "Shows the post thumbnail in the Posts admin table. Helps you quickly find posts with a featured image."
+msgstr ""
+
+#: src/Config/main.php:59
 msgid "Enable duplicate post and page"
 msgstr ""
 
-#: src/Config/main.php:60
-msgid "Change length post excerpt? To maximum 200 symbols."
+#: src/Config/main.php:61
+msgid "Adds a Duplicate action for posts and pages. Creates a draft copy with the same content."
 msgstr ""
 
-#: src/Config/main.php:66
-msgid "Don`t allow to show specific categories in frontend."
+#: src/Config/main.php:65
+msgid "Remove category base from URL"
 msgstr ""
 
-#: src/Config/main.php:72
-msgid "Exclude specific categories of posts. Enter categories ID, separated by commas. Before ID you need a minus sign."
+#: src/Config/main.php:67
+msgid "Removes /category/ from category URLs. After enabling or disabling, flush permalinks in WordPress."
+msgstr ""
+
+#: src/Config/main.php:71
+msgid "Enable hierarchical tags rewrite rules"
+msgstr ""
+
+#: src/Config/main.php:73
+msgid "Enables pretty URLs for nested tags such as /tag/git/submodules/. The rewrite rule maps to the final tag slug, not the full path."
 msgstr ""
 
 #: src/Config/main.php:77
-msgid "Separeted: \", \""
+msgid "Change length post excerpt? To maximum 200 symbols."
 msgstr ""
 
-#: src/Config/main.php:86
+#: src/Config/main.php:79
+msgid "Trims manual or automatic excerpts to about 180 characters with an ellipsis. Useful for post cards and SEO snippets."
+msgstr ""
+
+#: src/Config/main.php:83
+msgid "⚠️ Don`t allow to show specific categories in frontend."
+msgstr ""
+
+#: src/Config/main.php:85
+msgid "Hides selected categories on the frontend: posts are excluded from archives and feeds, and a direct visit to a category archive redirects to the home page."
+msgstr ""
+
+#: src/Config/main.php:90
+msgid "Exclude specific categories of posts. Enter categories ID, separated by commas. Before ID you need a minus sign."
+msgstr ""
+
+#: src/Config/main.php:95
+msgid "Enter category IDs separated by commas. A leading minus is optional — the plugin normalizes IDs automatically. Example: 6137, 24990."
+msgstr ""
+
+#: src/Config/main.php:107
 msgid "Comment form"
 msgstr ""
 
-#: src/Config/main.php:91
-msgid "Disable all comments"
+#: src/Config/main.php:111
+msgid "Disable comments"
 msgstr ""
 
-#: src/Config/main.php:97
+#: src/Config/main.php:113
+msgid "Disables comments on the site. If no post types are selected below, comments are disabled everywhere. If you select post types, comments stay enabled only where you need them."
+msgstr ""
+
+#: src/Config/main.php:118
+msgid "Post types without comments"
+msgstr ""
+
+#: src/Config/main.php:119
+msgid "Select post types where comments should be disabled. If nothing is selected, comments are disabled everywhere."
+msgstr ""
+
+#: src/Config/main.php:124
+#: src/Config/wp-addon-settings.php:1310
+msgid "Posts"
+msgstr ""
+
+#: src/Config/main.php:125
+#: src/Config/wp-addon-settings.php:1311
+msgid "Pages"
+msgstr ""
+
+#: src/Config/main.php:126
+msgid "Media"
+msgstr ""
+
+#: src/Config/main.php:133
 msgid "Disable link Nofollow in comment"
 msgstr ""
 
-#: src/Config/main.php:103
+#: src/Config/main.php:135
+msgid "Removes rel=\"nofollow\" from comment author links. Enable only if you intentionally pass link equity from comments."
+msgstr ""
+
+#: src/Config/main.php:139
 msgid "Remove site field in comment"
 msgstr ""
 
-#: src/Config/main.php:112
+#: src/Config/main.php:141
+msgid "Hides the Website field in the comment form. Reduces spam and avoids asking readers for extra data."
+msgstr ""
+
+#: src/Config/main.php:149
 msgid "TinyMCE Settings"
 msgstr ""
 
-#: src/Config/main.php:117
-msgid "Disable guttenber?"
+#: src/Config/main.php:153
+msgid "⚠️ Disable guttenber?"
 msgstr ""
 
-#: src/Config/main.php:123
+#: src/Config/main.php:155
+msgid "Restores the classic TinyMCE editor instead of the block editor for all post types. On newer WordPress versions it may conflict with plugins built for blocks. For the widget screen only, use Shortcodes and Widgets → Disable Gutenberg for widgets."
+msgstr ""
+
+#: src/Config/main.php:159
 msgid "Add a pack color to tinyMCE"
 msgstr ""
 
-#: src/Config/main.php:129
+#: src/Config/main.php:161
+msgid "Adds an extended text and background color palette in the visual editor."
+msgstr ""
+
+#: src/Config/main.php:165
 msgid "Enable \"Open Sans\" google font for tinyMCE."
 msgstr ""
 
-#: src/Config/main.php:135
+#: src/Config/main.php:167
+msgid "Loads the Open Sans font in the editor preview. Works independently of TinyMCE Advanced."
+msgstr ""
+
+#: src/Config/main.php:171
 msgid "Add TinyMCE Advanced functions"
 msgstr ""
 
-#: src/Config/main.php:136
-msgid "Add third column and additional setting to tinyMCE (fonts, sizes, formats and backgrounds settings)"
+#: src/Config/main.php:173
+msgid "Adds a second toolbar: fonts, sizes, tables, subscript/superscript, and extra formatting buttons."
 msgstr ""
 
-#: src/Config/main.php:145
-msgid "Add Bootsrtrap 3"
-msgstr ""
-
-#: src/Config/main.php:146
-msgid "Add Bootsrtrap 3 code to TinyMCE"
-msgstr ""
-
-#: src/Config/main.php:152
-msgid "Add table plugin"
-msgstr ""
-
-#: src/Config/main.php:161
-msgid "SEO Settings"
-msgstr ""
-
-#: src/Config/main.php:166
-msgid "Set Alt in updload from Title media"
-msgstr ""
-
-#: src/Config/main.php:172
-msgid "Enable transliteration?"
-msgstr ""
-
-#: src/Config/main.php:178
-msgid "Disable site indexing."
+#: src/Config/main.php:177
+msgid "Enable CSS framework in editor"
 msgstr ""
 
 #: src/Config/main.php:179
-msgid "Exclude all pages from search. Enable it if your site is placement to Test host."
+msgid "Loads a CSS framework into the TinyMCE preview and adds a button to insert framework markup. Needed when content uses grid and component classes."
 msgstr ""
 
-#: src/Config/main.php:188
-msgid "Enable 301 redirect addon?"
+#: src/Config/main.php:184
+msgid "CSS framework for TinyMCE preview"
 msgstr ""
 
-#: src/Config/main.php:197
-msgid "Data Base Optimization"
+#: src/Config/main.php:185
+msgid "Bootstrap 3 is the main option for the current theme and shortcodes. Bootstrap 5 and Tailwind are additional preview options. For Tailwind, you can add assets/css/tailwind-editor.css to the theme."
 msgstr ""
 
-#: src/Config/main.php:202
-msgid "Write right link to guid for New posts."
+#: src/Config/main.php:190
+msgid "Bootstrap 3"
 msgstr ""
 
-#: src/Config/main.php:208
-msgid "This option enable interface for replace wp guide to right GUID."
+#: src/Config/main.php:191
+msgid "Bootstrap 5"
+msgstr ""
+
+#: src/Config/main.php:192
+msgid "Tailwind CSS"
+msgstr ""
+
+#: src/Config/main.php:199
+msgid "Add table plugin"
+msgstr ""
+
+#: src/Config/main.php:201
+msgid "Enables creating and editing tables in TinyMCE with ready-made Bootstrap CSS classes."
 msgstr ""
 
 #: src/Config/main.php:209
-msgid ""
-"Поле guid таблицы wp_posts создано для хранения там уникального значения - идентификатора записи. \n"
-"                                    Нужен он для идентификации записи в RSS ленте. GUID так и расшифровывается: Globally Unique Identifier - глобальный уникальный идентификатор. \n"
-"                                    По этому полю парсеры RSS определяют обрабатывали они запись или нет. \n"
-"                                    Именно поэтому разработчики не рекомендуют менять это поле, вообще никогда, даже если ваш сайт переехал на другой домен. \n"
-"                                    Если это поле изменить, то ваши читатели RSS, могут получить кучу уже опубликованных материалов."
+msgid "SEO Settings"
 msgstr ""
 
-#: src/Config/main.php:217
-#, php-format
-msgid "If you url is include %category%, %tag%, %author%, you can use this option for repair GUID(url) in your database."
+#: src/Config/main.php:213
+msgid "Set Alt in updload from Title media"
 msgstr ""
 
-#: src/Config/main.php:230
-msgid "Admin dashboard widgets"
+#: src/Config/main.php:215
+msgid "If an uploaded image has an empty alt attribute, uses the media library title. Helps with accessibility and SEO."
+msgstr ""
+
+#: src/Config/main.php:219
+msgid "Enable transliteration?"
+msgstr ""
+
+#: src/Config/main.php:221
+msgid "Transliterates Cyrillic to Latin for post, category, and filename slugs. Handy for Russian sites with Latin URLs."
+msgstr ""
+
+#: src/Config/main.php:225
+msgid "⚠️ Disable site indexing."
+msgstr ""
+
+#: src/Config/main.php:227
+msgid "Adds meta robots noindex on every page of the site. Use on test or staging hosts so search engines do not index a draft site. Different from Tweaks \"Noindex for search, attachment and date archives\", which only targets low-value archive pages."
 msgstr ""
 
 #: src/Config/main.php:235
-msgid "Add all types at a glance widget"
+msgid "Data Base Optimization"
+msgstr ""
+
+#: src/Config/main.php:239
+msgid "Write right link to guid for New posts."
 msgstr ""
 
 #: src/Config/main.php:241
+msgid "When saving a new post, writes its permalink into guid instead of a temporary ?p=ID URL. Useful for RSS and some integrations."
+msgstr ""
+
+#: src/Config/main.php:245
+msgid "⚠️ This option enable interface for replace wp guide to right GUID."
+msgstr ""
+
+#: src/Config/main.php:247
+msgid "Opens an admin tool for bulk viewing and replacing GUID values. Change GUIDs deliberately — RSS subscribers may receive duplicate items."
+msgstr ""
+
+#: src/Config/main.php:255
+msgid "Admin dashboard widgets"
+msgstr ""
+
+#: src/Config/main.php:259
+msgid "Add all types at a glance widget"
+msgstr ""
+
+#: src/Config/main.php:261
+msgid "Expands the At a Glance widget on the admin dashboard: shows all public post types, taxonomies, and the user count."
+msgstr ""
+
+#: src/Config/main.php:265
 msgid "Plugins list"
 msgstr ""
 
-#: src/Config/main.php:253
-msgid "Users role info"
+#: src/Config/main.php:267
+msgid "Adds a list of installed plugins with versions to the dashboard. Visible to administrators only."
 msgstr ""
 
-#: src/Config/main.php:263
-msgid "Contact Form 7 settings"
-msgstr ""
-
-#: src/Config/main.php:268
-msgid "Show additional shortcode?"
+#: src/Config/main.php:273
+msgid "Shows server, domain, and WP_DEBUG information. Useful for diagnostics, but avoid enabling on shared hosting unless needed."
 msgstr ""
 
 #: src/Config/main.php:279
+msgid "Adds a WordPress roles list widget to the dashboard. Helps you recall role slugs when configuring permissions."
+msgstr ""
+
+#: src/Config/main.php:288
+msgid "Contact Form 7 settings"
+msgstr ""
+
+#: src/Config/main.php:292
+msgid "Show additional shortcode?"
+msgstr ""
+
+#: src/Config/main.php:294
+msgid "Shows a hint with extra CF7 shortcodes: date, time, URL, IP, and user agent. Handy when collecting technical data from a form."
+msgstr ""
+
+#: src/Config/main.php:304
 msgid "Polylang settings"
 msgstr ""
 
-#: src/Config/main.php:284
+#: src/Config/main.php:309
 msgid "Hide languages in wp Front. Enter lang slug, separated: \", \"."
 msgstr ""
 
-#: src/Config/main.php:286
-msgid "Space must be entered!"
+#: src/Config/main.php:311
+msgid "List of Polylang language slugs to hide in the frontend switcher. Example: en, de. Spaces after commas are allowed."
 msgstr ""
 
-#: src/Config/tweaks.php:8
+#: src/Config/tweaks.php:22
 msgid "Remove WP-Version in Header"
 msgstr ""
 
-#: src/Config/tweaks.php:14
+#: src/Config/tweaks.php:24
+msgid "Removes the WordPress version number from page HTML and RSS. A small security measure: attackers have a harder time targeting a specific WP version."
+msgstr ""
+
+#: src/Config/tweaks.php:28
 msgid "WP-Emojis deacivation"
 msgstr ""
 
-#: src/Config/tweaks.php:20
+#: src/Config/tweaks.php:30
+msgid "Disables WordPress emoji scripts and styles. Pages load faster, especially if you do not use emoji in content."
+msgstr ""
+
+#: src/Config/tweaks.php:34
 msgid "Remove Windows Live Writer"
 msgstr ""
 
-#: src/Config/tweaks.php:26
+#: src/Config/tweaks.php:36
+msgid "Removes the wlwmanifest link from the head. It was only needed for the old Windows Live Writer app and is not required on modern sites."
+msgstr ""
+
+#: src/Config/tweaks.php:40
 msgid "Remove RSD-Link"
 msgstr ""
 
-#: src/Config/tweaks.php:32
-msgid "Remove RSS links"
+#: src/Config/tweaks.php:42
+msgid "Removes the RSD link for external editors. It is an extra technical tag in the head that is usually unused."
 msgstr ""
 
-#: src/Config/tweaks.php:38
+#: src/Config/tweaks.php:46
+msgid "⚠️ Remove RSS links"
+msgstr ""
+
+#: src/Config/tweaks.php:48
+msgid "Removes RSS feed links from the head. Enable only if you are sure RSS is not needed. For a blog it is usually better to leave this off so readers and aggregators can find your feed."
+msgstr ""
+
+#: src/Config/tweaks.php:52
 msgid "Remove shortlink in the header"
 msgstr ""
 
-#: src/Config/tweaks.php:44
+#: src/Config/tweaks.php:54
+msgid "Removes the shortlink — a short service URL for the page. It is not needed for SEO or visitors."
+msgstr ""
+
+#: src/Config/tweaks.php:58
 msgid "Remove adjacent links to posts in the header"
 msgstr ""
 
-#: src/Config/tweaks.php:50
+#: src/Config/tweaks.php:60
+msgid "Removes link rel=\"prev/next\" from the head. If the theme already outputs previous/next post navigation, this tag is redundant."
+msgstr ""
+
+#: src/Config/tweaks.php:64
 msgid "Set limit post revisions to 5"
 msgstr ""
 
-#: src/Config/tweaks.php:56
-msgid "Block http-requests by plugins/themes"
+#: src/Config/tweaks.php:66
+msgid "Limits the number of saved post revisions to 5. This reduces database size without hurting day-to-day editing."
 msgstr ""
 
-#: src/Config/tweaks.php:62
-msgid "Disable heartbeat"
+#: src/Config/tweaks.php:70
+msgid "⚠️ Block WordPress.org update HTTP requests"
 msgstr ""
 
-#: src/Config/tweaks.php:68
-msgid "Remove jQuery Migrate"
+#: src/Config/tweaks.php:72
+msgid "Blocks background requests to api.wordpress.org and downloads.wordpress.org. Useful on closed servers, but WordPress will stop checking core, plugin, and theme updates. Skipped automatically when General Settings → Disable all updates is enabled."
 msgstr ""
 
-#: src/Config/tweaks.php:74
+#: src/Config/tweaks.php:76
+msgid "⚠️ Disable heartbeat on frontend (slow down in admin)"
+msgstr ""
+
+#: src/Config/tweaks.php:78
+msgid "Disables Heartbeat on the public site and slows it down in the admin. This reduces extra AJAX requests. Post autosave remains, but runs less often."
+msgstr ""
+
+#: src/Config/tweaks.php:82
+msgid "⚠️ Remove jQuery Migrate"
+msgstr ""
+
+#: src/Config/tweaks.php:84
+msgid "Removes jquery-migrate on the frontend. It may speed up the site but can break older themes and plugins. Enable only after checking forms, sliders, and menus."
+msgstr ""
+
+#: src/Config/tweaks.php:88
 msgid "Disable new themes on major WP updates"
 msgstr ""
 
-#: src/Config/tweaks.php:80
+#: src/Config/tweaks.php:90
+msgid "Prevents WordPress from installing a new default theme during a major core update. Convenient if you use only your own theme."
+msgstr ""
+
+#: src/Config/tweaks.php:94
 msgid "Disable XML-RPC"
 msgstr ""
 
-#: src/Config/tweaks.php:86
+#: src/Config/tweaks.php:96
+msgid "Disables XML-RPC — an old interface for remote publishing and some attacks. If you do not publish via external XML-RPC apps, it is safer to keep this enabled."
+msgstr ""
+
+#: src/Config/tweaks.php:100
 msgid "Remove post by email function"
 msgstr ""
 
-#: src/Config/tweaks.php:92
-msgid "Disable agressive update"
+#: src/Config/tweaks.php:102
+msgid "Disables publishing posts by email. Almost nobody needs this feature, and it is better to close an unused entry point."
 msgstr ""
 
-#: src/Config/tweaks.php:98
+#: src/Config/tweaks.php:106
+msgid "⚠️ Disable agressive update"
+msgstr ""
+
+#: src/Config/tweaks.php:108
+msgid "Disables automatic update checks on every admin visit. Reduces load, but even administrators will not see update notices until they open Updates manually. Skipped automatically when General Settings → Disable all updates is enabled."
+msgstr ""
+
+#: src/Config/tweaks.php:112
 msgid "Disable URL auto-linking in comments"
 msgstr ""
 
-#: src/Config/tweaks.php:104
+#: src/Config/tweaks.php:114
+msgid "Stops URLs in comments from being turned into clickable links automatically. Useful against spam and unwanted outbound links in comments. Different from General Settings → Disable link Nofollow in comment, which only removes rel=\"nofollow\"."
+msgstr ""
+
+#: src/Config/tweaks.php:118
 msgid "Remove login-shake on errors"
 msgstr ""
 
-#: src/Config/tweaks.php:110
+#: src/Config/tweaks.php:120
+msgid "Removes the login form shake on wrong username or password. It does not affect site behavior — only the login page animation."
+msgstr ""
+
+#: src/Config/tweaks.php:124
 msgid "Empty WP-Trash every 14 days"
 msgstr ""
 
-#: src/Config/tweaks.php:116
-msgid "Allow download types file: SVG, DOC, djv .."
+#: src/Config/tweaks.php:126
+msgid "Automatically empties the WordPress trash after 14 days. Helps keep deleted posts and comments from bloating the database."
 msgstr ""
 
-#: src/Config/tweaks.php:122
+#: src/Config/tweaks.php:130
+msgid "⚠️ Allow download types file: SVG, DOC, djv .."
+msgstr ""
+
+#: src/Config/tweaks.php:132
+msgid "Allows uploading additional file types: SVG, DOC, WebP, and others. SVG is handy for icons but may contain malicious code — upload only trusted files. Also adds WebP and SVG MIME types; use settings 34 and 35 below for media library preview support."
+msgstr ""
+
+#: src/Config/tweaks.php:136
 msgid "Disable pingback from this site to this site"
 msgstr ""
 
-#: src/Config/tweaks.php:128
+#: src/Config/tweaks.php:138
+msgid "Prevents the site from sending pingbacks to itself. This is useless load and sometimes a source of spam."
+msgstr ""
+
+#: src/Config/tweaks.php:142
 msgid "Hide adminbar in frontend for contributors, authors and subscribers"
 msgstr ""
 
-#: src/Config/tweaks.php:137
+#: src/Config/tweaks.php:144
+msgid "Hides the admin bar on the frontend for authors, contributors, and subscribers. Editors and administrators still see it."
+msgstr ""
+
+#: src/Config/tweaks.php:148
 msgid "Add VK and OK to user profile"
 msgstr ""
 
-#: src/Config/tweaks.php:143
+#: src/Config/tweaks.php:150
+msgid "Adds VK and Odnoklassniki fields to the user profile and removes outdated AIM/Jabber/Yahoo IM fields."
+msgstr ""
+
+#: src/Config/tweaks.php:154
 msgid "Showing usages memory and time generate site page"
 msgstr ""
 
-#: src/Config/tweaks.php:149
-msgid "Remove Standard WP widget"
+#: src/Config/tweaks.php:156
+msgid "Shows page generation time and memory usage in an HTML comment at the bottom of the page. Visible only to administrators. Better to leave off on production."
 msgstr ""
 
-#: src/Config/tweaks.php:155
+#: src/Config/tweaks.php:160
+msgid "⚠️ Remove Standard WP widget"
+msgstr ""
+
+#: src/Config/tweaks.php:162
+msgid "Removes all default WordPress widgets from the available list. Dangerous on unfamiliar sites: you can lose already configured sidebar blocks."
+msgstr ""
+
+#: src/Config/tweaks.php:166
 msgid "AutoRemove readme.html and license.txt files"
 msgstr ""
 
-#: src/Config/tweaks.php:161
-msgid "Add notice for posts if they have status \"pending\" "
+#: src/Config/tweaks.php:168
+msgid "Deletes readme.html and license.txt from the site root when an administrator opens the admin. These files can reveal the WordPress version to outsiders."
 msgstr ""
 
-#: src/Config/tweaks.php:167
-msgid "Disable select taxonomy in top of metabox in post-edit page."
+#: src/Config/tweaks.php:172
+msgid "Add search filter for taxonomy checklists in post editor"
 msgstr ""
 
-#: src/Config/tweaks.php:173
+#: src/Config/tweaks.php:174
+msgid "Adds a search field above category and tag lists in the post editor. Very helpful when you have many terms."
+msgstr ""
+
+#: src/Config/tweaks.php:178
+msgid "Keep selected taxonomy terms in place (disable checked on top)"
+msgstr ""
+
+#: src/Config/tweaks.php:180
+msgid "Does not move selected categories and tags to the top of the list. Makes long category trees easier to scan."
+msgstr ""
+
+#: src/Config/tweaks.php:184
 msgid "If posts have status \"pending\" show numbers it in menu"
 msgstr ""
 
-#: src/Config/tweaks.php:179
+#: src/Config/tweaks.php:186
+msgid "Shows a Pending count next to the Posts menu item in the admin."
+msgstr ""
+
+#: src/Config/tweaks.php:190
 msgid "Showing message \"Update wordpress\" only admin"
 msgstr ""
 
-#: src/Config/tweaks.php:185
+#: src/Config/tweaks.php:192
+msgid "Hides WordPress update notices from editors, authors, and other users without administrator rights."
+msgstr ""
+
+#: src/Config/tweaks.php:196
 msgid "Repalse [...] to \"Read more ...\" for posts"
 msgstr ""
 
-#: src/Config/tweaks.php:191
+#: src/Config/tweaks.php:198
+msgid "Replaces the default [...] excerpt marker with a Read more... link."
+msgstr ""
+
+#: src/Config/tweaks.php:202
 msgid "Allow shortcode in \"Text\" widget"
 msgstr ""
 
-#: src/Config/tweaks.php:197
-msgid "Get jquery from google cloud"
+#: src/Config/tweaks.php:204
+msgid "Allows shortcodes to run in text and block widgets. Needed if you insert [shortcode] directly into a widget."
 msgstr ""
 
-#: src/Config/tweaks.php:203
-#, php-format
-msgid "Remove autotop function. Remove %s tags in post content."
+#: src/Config/tweaks.php:208
+msgid "⚠️ Get jquery from google cloud"
 msgstr ""
 
-#: src/Config/tweaks.php:209
+#: src/Config/tweaks.php:210
+msgid "Loads jQuery from Google CDN instead of the WordPress bundled version. It may speed up loading but often breaks theme and plugin compatibility. Better to leave off by default."
+msgstr ""
+
+#: src/Config/tweaks.php:214
+msgid "⚠️ Disable shortcode_unautop (keep paragraph tags around shortcodes)"
+msgstr ""
+
+#: src/Config/tweaks.php:216
+msgid "Disables automatic <p> wrapping around shortcodes. Needed only if layout around shortcodes breaks. Not required on most sites."
+msgstr ""
+
+#: src/Config/tweaks.php:220
 msgid "Allow WEBP support for media"
 msgstr ""
 
-#: src/Config/tweaks.php:215
+#: src/Config/tweaks.php:222
+msgid "Allows uploading and previewing WebP images in the media library. WebP is also allowed by setting 19 above; this option adds preview support in the library."
+msgstr ""
+
+#: src/Config/tweaks.php:226
 msgid "Allow SVG support for media"
 msgstr ""
 
-#: src/Config/tweaks.php:221
+#: src/Config/tweaks.php:228
+msgid "Helps SVG files display correctly in the media library. Works together with setting 19 above, which allows SVG uploads."
+msgstr ""
+
+#: src/Config/tweaks.php:232
 msgid "Disable browser checking in dashboard"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:82
+#: src/Config/tweaks.php:234
+msgid "Disables outdated browser checks in the WordPress dashboard. Removes an extra request to WordPress.org and annoying warnings."
+msgstr ""
+
+#: src/Config/tweaks.php:238
+msgid "Change login error message"
+msgstr ""
+
+#: src/Config/tweaks.php:240
+msgid "Shows a generic Incorrect username or password message instead of hints like that user does not exist. This improves login page security."
+msgstr ""
+
+#: src/Config/tweaks.php:244
+msgid "⚠️ Extend login session to 1 year when \"Remember Me\" is checked"
+msgstr ""
+
+#: src/Config/tweaks.php:246
+msgid "Extends the login cookie to 1 year when Remember Me is checked. Without the checkbox the default session length stays unchanged. Do not enable on shared computers."
+msgstr ""
+
+#: src/Config/tweaks.php:250
+msgid "Disable wp-embed script on frontend"
+msgstr ""
+
+#: src/Config/tweaks.php:252
+msgid "Disables the wp-embed.js script WordPress loads for post embeds. On a regular site it is rarely needed and saves a few kilobytes."
+msgstr ""
+
+#: src/Config/tweaks.php:256
+msgid "Disable dashicons CSS for guests"
+msgstr ""
+
+#: src/Config/tweaks.php:258
+msgid "Does not load dashicons CSS for logged-out visitors. Saves about 30 KB if the frontend has no admin UI elements."
+msgstr ""
+
+#: src/Config/tweaks.php:262
+msgid "⚠️ Disable REST API for unauthorized users"
+msgstr ""
+
+#: src/Config/tweaks.php:264
+msgid "Closes the REST API for guests. Improves security but may break some forms, frontend Gutenberg blocks, and integrations. Enable only after testing."
+msgstr ""
+
+#: src/Config/tweaks.php:268
+msgid "Noindex for search, attachment and date archives"
+msgstr ""
+
+#: src/Config/tweaks.php:270
+msgid "Adds noindex for search results, attachment pages, and date archives. These pages are rarely useful in Google and often create duplicates. Different from General Settings → Disable site indexing, which blocks the entire site."
+msgstr ""
+
+#: src/Config/tweaks.php:274
+msgid "⚠️ Redirect author archives to home page"
+msgstr ""
+
+#: src/Config/tweaks.php:276
+msgid "Redirects author archive pages /author/name/ to the home page. Useful for a single-author blog. On a multi-author site it is better to leave this off."
+msgstr ""
+
+#: src/Config/tweaks.php:280
+msgid "Disable theme and plugin file editor in admin"
+msgstr ""
+
+#: src/Config/tweaks.php:282
+msgid "Prevents editing theme and plugin PHP files from the admin. Recommended for security: changes should go through git or FTP deliberately."
+msgstr ""
+
+#: src/Config/tweaks.php:286
+msgid "Disable application passwords"
+msgstr ""
+
+#: src/Config/tweaks.php:288
+msgid "Disables Application Passwords for REST API access. Rarely needed; if you do not use external apps with WP access, it is safer to keep this enabled."
+msgstr ""
+
+#: src/Config/tweaks.php:292
+msgid "⚠️ Remove global theme styles on frontend"
+msgstr ""
+
+#: src/Config/tweaks.php:294
+msgid "Removes global-styles and classic-theme-styles on the frontend. It may speed up classic themes but can break blocks and typography. Check the site appearance after enabling."
+msgstr ""
+
+#: src/Config/tweaks.php:298
+msgid "Remove REST and oEmbed discovery links from head"
+msgstr ""
+
+#: src/Config/tweaks.php:300
+msgid "Removes REST API and oEmbed discovery links from the head. Visitors do not need them, and they reveal extra site structure."
+msgstr ""
+
+#: src/Config/tweaks.php:304
+msgid "Block WordPress and Automattic tracking pixel"
+msgstr ""
+
+#: src/Config/tweaks.php:306
+msgid "Blocks requests to pixel.wp.com, stats.wp.com, and WordPress Events in the admin. Also disables WooCommerce/Jetpack tracking when those plugins are installed. Does not block core updates."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:519
+msgid "Как работают перенаправления"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:521
+#, php-format
+msgid "Плагин отдаёт ответ %1$s и перенаправляет посетителя с одного адреса на другой. Указывайте пути без домена — от корня WordPress, например %2$s (не /wp/old-page/, если сайт в подпапке). Абсолютные URL (https://...) — только в поле «Куда». Запросы к %3$s и %4$s никогда не перенаправляются."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:529
+msgid "Слеш в конце URL"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:530
+msgid "/page и /page/ считаются одинаковыми. Можно писать в любом виде — плагин сравнивает пути без учёта завершающего слеша."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:531
+msgid "Простые правила"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:535
+msgid "Массовый импорт CSV"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:536
+msgid "Одна строка = одно правило. Разделители: запятая, ; или табуляция. Строки с # — комментарии. После сохранения правила попадут в список ниже."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:539
+msgid "Подстановочный знак * (не regex)"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:540
+msgid "Это не полноценные регулярные выражения — поддерживается только символ *. Включите опцию «Подстановочные знаки» выше."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:546
+msgid "Что важно помнить"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:547
+msgid "Параметры запроса (?utm=...) при сравнении не учитываются. Если правило совпало — редирект сработает и для URL с query string. Не создавайте циклы: /a → /b и /b → /a."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:558
+msgid "каталог rwsite"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:558
+msgid "GitHub"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:566
+#, php-format
+msgid "Показано: %1$s из %2$d. Источник: %3$s."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:573
+msgid "Обновить список"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:578
+msgid "Поиск по названию, описанию или репозиторию"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:578
+msgid "Поиск плагинов"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:579
+msgid "Категория"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:580
+msgid "Все категории"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:592
+msgid "Не удалось загрузить список плагинов:"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:594
+msgid "Не удалось загрузить список плагинов."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:598
+msgid "По вашему запросу ничего не найдено."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:908
 msgid "Wordpress Addon"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:93
+#: src/Config/wp-addon-settings.php:919
 msgid "General Settings"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:100
+#: src/Config/wp-addon-settings.php:926
 msgid "Tweaks"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:107
+#: src/Config/wp-addon-settings.php:933
 msgid "Cache"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:109
-msgid "Page caching saves ready HTML pages to a file. When a user visits the site, instead of executing PHP code and database queries, they are shown the saved page immediately. This speeds up site loading by 5-10 times.<br><br><strong>When to use:</strong> On a finished site with high traffic. <strong>When to disable:</strong> During development or if content changes frequently.<br><br><strong>Important:</strong> Cached pages are stored in the wp-content/cache/pages/ folder as .gz files."
+#: src/Config/wp-addon-settings.php:935
+msgid "Page caching saves ready HTML and gzip files. Apache rules are installed automatically. For Nginx, include the generated wp-content/cache/pages/nginx.conf file inside the HTTPS server block and reload Nginx. Disable other full-page cache plugins to avoid conflicts."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:114
+#: src/Config/wp-addon-settings.php:940
 msgid "Enable page caching"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:115
+#: src/Config/wp-addon-settings.php:941
 msgid "Main switch for enabling/disabling cache. When ON: all site pages are saved to cache. When OFF: cache is not used, pages are generated each time anew."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:121
+#: src/Config/wp-addon-settings.php:947
 msgid "Cache lifetime (seconds)"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:122
-msgid "How many seconds to store the cached page. After this time, the page will be recreated. For a news site - 1800 sec (30 min). For static - 3600 sec (1 hour)."
+#: src/Config/wp-addon-settings.php:948
+msgid "How long browsers may reuse a cached page. Cached files are also purged automatically whenever posts, terms, comments, menus, widgets or theme settings change. The recommended default is 3600 seconds."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:130
+#: src/Config/wp-addon-settings.php:956
 msgid "Do not cache for logged-in users"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:131
+#: src/Config/wp-addon-settings.php:957
 msgid "If a user is logged into admin or personal account - show them fresh pages without cache. Otherwise, they may not see their changes or notifications."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:137
+#: src/Config/wp-addon-settings.php:963
 msgid "Do not cache these pages"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:138
+#: src/Config/wp-addon-settings.php:964
 msgid "Pages that change frequently and should not be cached. One line - one URL. Examples: /wp-admin/ (admin), /checkout/ (checkout), /cart/ (cart), /my-account/ (personal account)."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:144
+#: src/Config/wp-addon-settings.php:970
 msgid "Preload these pages"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:145
+#: src/Config/wp-addon-settings.php:971
 msgid "Pages for auto-caching every hour. <strong>Leave empty for automatic mode:</strong> the home page + all pages from the main site menu (up to 10 pcs) will be loaded. Or specify manually: one URL per line, for example /about/, /services/"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:151
+#: src/Config/wp-addon-settings.php:977
 msgid "Clear cache on post publish"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:152
+#: src/Config/wp-addon-settings.php:978
 msgid "When you publish a new article or edit an old one - automatically delete all cache. So readers will immediately see fresh content. Disable if you publish often - this will slow down the site."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:160
+#: src/Config/wp-addon-settings.php:991
 msgid "Asset Minification"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:162
+#: src/Config/wp-addon-settings.php:993
 msgid "Asset optimization is a comprehensive system for improving site performance by minifying and combining CSS/JavaScript files. The module automatically analyzes all connected resources and applies optimal optimization strategies.<br><br><strong>Benefits:</strong><br>• Reduce file size by 20-40%<br>• Decrease number of HTTP requests<br>• Speed up page loading<br>• Better PageSpeed Insights scores<br><br><strong>Automatic logic:</strong><br>• Excludes WordPress system resources<br>• Does not process files smaller than 1KB<br>• Skips already minified files<br>• Analyzes resource loading priorities"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:167
+#: src/Config/wp-addon-settings.php:998
 msgid "Enable asset optimization"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:168
+#: src/Config/wp-addon-settings.php:999
 msgid "Main switch of the optimization module. When enabled, intelligent processing of all CSS and JavaScript resources on the site is activated. Recommended to enable on production sites for maximum performance."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:174
+#: src/Config/wp-addon-settings.php:1005
 msgid "Minify CSS files"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:175
+#: src/Config/wp-addon-settings.php:1006
 msgid "Removes from CSS files: comments, extra spaces, line breaks and tabs. Does not process files that are already minified or smaller than 1KB. Traffic savings: 15-30% per file."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:182
+#: src/Config/wp-addon-settings.php:1013
 msgid "Minify JavaScript files"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:183
+#: src/Config/wp-addon-settings.php:1014
 msgid "Compresses JS code by removing comments, extra spaces and formatting. Skips minified files and files smaller than 1KB. Important: check functionality after enabling, as some plugins may have minification-sensitive code."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:190
+#: src/Config/wp-addon-settings.php:1021
 msgid "Combine CSS files"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:191
+#: src/Config/wp-addon-settings.php:1022
 msgid "Collects all suitable CSS files into one combined file, reducing the number of HTTP requests to the server. Automatically excludes WordPress system styles. Effective for sites with 3+ CSS files."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:198
+#: src/Config/wp-addon-settings.php:1029
 msgid "Combine JavaScript files"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:199
+#: src/Config/wp-addon-settings.php:1030
 msgid "Combines JS files into one loaded in the footer. Reduces the number of requests, but may break loading order. Recommended to test for JavaScript errors after enabling."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:206
+#: src/Config/wp-addon-settings.php:1037
 msgid "Implement critical CSS"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:207
+#: src/Config/wp-addon-settings.php:1038
 msgid "Automatically extracts and embeds inline critical CSS styles (header, menu, main content) for instant display of above-the-fold content. Improves First Contentful Paint score in Lighthouse."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:214
+#: src/Config/wp-addon-settings.php:1045
 msgid "Defer non-critical CSS"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:215
+#: src/Config/wp-addon-settings.php:1046
 msgid "Loads non-critical CSS files asynchronously after page rendering. Prevents render blocking, but may cause brief \"flash of unstyled content\" (FOUC)."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:222
+#: src/Config/wp-addon-settings.php:1053
 msgid "Exclude CSS files"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:223
+#: src/Config/wp-addon-settings.php:1054
 msgid "List of CSS file handles separated by comma that should not be optimized. Examples: critical-styles, admin-css, custom-admin-styles. WordPress system files are excluded automatically."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:230
+#: src/Config/wp-addon-settings.php:1061
 msgid "Exclude JavaScript files"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:231
+#: src/Config/wp-addon-settings.php:1062
 msgid "JS file handles separated by comma for exclusion from optimization. Examples: google-analytics, facebook-pixel, custom-scripts. WordPress system scripts (jQuery, etc.) are excluded automatically."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:240
+#: src/Config/wp-addon-settings.php:1071
 msgid "Lazy Loading"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:242
+#: src/Config/wp-addon-settings.php:1073
 msgid "Lazy loading of images and media files is a performance optimization technique where resources are loaded only when they come into the user's view. The module uses the modern Intersection Observer API with fallback for older browsers.<br><br><strong>Benefits:</strong><br>• Reduced page load time<br>• Traffic savings (especially on mobile devices)<br>• Improved Core Web Vitals (LCP, CLS)<br>• Automatic image compression with blur placeholder<br><br><strong>Support:</strong><br>• Images (img)<br>• Iframe (YouTube, Vimeo videos)<br>• Video elements<br>• Blur placeholder for smooth loading<br>• Fallback for IE11+"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:247
+#: src/Config/wp-addon-settings.php:1078
 msgid "Enable lazy loading"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:248
+#: src/Config/wp-addon-settings.php:1079
 msgid "Main switch of the module. When enabled, lazy loading is activated for selected media types. Recommended to enable on all sites for improved performance."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:254
+#: src/Config/wp-addon-settings.php:1085
 msgid "Media types for lazy loading"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:255
+#: src/Config/wp-addon-settings.php:1086
 msgid "Select element types for which lazy loading will be applied. Images are most effective for optimization."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:257
+#: src/Config/wp-addon-settings.php:1088
 msgid "Images (img)"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:258
+#: src/Config/wp-addon-settings.php:1089
 msgid "Iframe (YouTube, Vimeo)"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:259
+#: src/Config/wp-addon-settings.php:1090
 msgid "Video elements"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:267
+#: src/Config/wp-addon-settings.php:1098
 msgid "Blur effect intensity"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:268
+#: src/Config/wp-addon-settings.php:1099
 msgid "Degree of blur placeholder blur. Value 1 - weak blur, 10 - strong. Recommended 3-7 for optimal quality and performance balance."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:277
+#: src/Config/wp-addon-settings.php:1108
 msgid "Viewport margin (rootMargin)"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:278
+#: src/Config/wp-addon-settings.php:1109
 msgid "Distance from viewport edge at which to start loading. Example: 50px - loading 50px before element appears. 10% - 10% of viewport height."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:288
+#: src/Config/wp-addon-settings.php:1119
 msgid "Visibility threshold"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:289
+#: src/Config/wp-addon-settings.php:1120
 msgid "The portion of the element that must enter the viewport to start loading. 0.1 = 10% of element visible. 1.0 = entire element visible."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:299
+#: src/Config/wp-addon-settings.php:1130
 msgid "Enable fallback for older browsers"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:300
+#: src/Config/wp-addon-settings.php:1131
 msgid "Use scroll event listeners instead of Intersection Observer in browsers without IO API support. Slows performance but ensures compatibility."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:309
+#: src/Config/wp-addon-settings.php:1140
 msgid "Media Cleanup"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:311
+#: src/Config/wp-addon-settings.php:1142
 msgid "This section allows you to clean up unused image sizes to free up disk space. WordPress generates multiple sizes for each uploaded image, but if your theme or plugins don't use all of them, they take up unnecessary space. Use this tool to identify and remove such files.<br><br><strong>When to use:</strong> After changing themes, disabling plugins that generate custom sizes, or optimizing site performance.<br><br><strong>Precautions:</strong> Always create a backup before cleanup. Use \"Preview Cleanup\" first to see what will be deleted. The tool preserves original images and \"scaled\" versions (up to 2000px). Deleted files cannot be recovered!"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:316
+#: src/Config/wp-addon-settings.php:1147
+msgid "Enable Media Cleanup"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1148
+msgid "Registers the cleanup AJAX actions. Keep disabled until you are ready to review and remove generated image sizes."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1154
 msgid "Clean up unused image sizes"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:317
+#: src/Config/wp-addon-settings.php:1156
 #, php-format
 msgid "This will delete all image sizes except: %s. Files will be deleted permanently!"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:317
+#: src/Config/wp-addon-settings.php:1156
 msgid "Preview Cleanup"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:317
+#: src/Config/wp-addon-settings.php:1156
 msgid "Start Cleanup"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:317
+#: src/Config/wp-addon-settings.php:1156
 msgid "Loading preview..."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:317
+#: src/Config/wp-addon-settings.php:1156
 msgid "Are you sure? This action cannot be undone."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:317
+#: src/Config/wp-addon-settings.php:1156
 msgid "Processing..."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:324
+#: src/Config/wp-addon-settings.php:1163
 msgid "Redirects"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:326
-msgid "301 redirect management. Create redirect rules from one URL to another. Supports both simple redirection and wildcard (*) usage for folder redirection.<br><br><strong>Simple redirects:</strong> /old-page/ → /new-page/<br><strong>Wildcard redirects:</strong> /old-folder/* → /new-folder/*<br><br><strong>Important:</strong> Redirects apply to all requests except wp-admin and wp-login to prevent admin access blocking."
+#: src/Config/wp-addon-settings.php:1165
+msgid "301 redirect management for old URLs, moved pages and bulk migrations. Read the guide below for slash rules, wildcard examples and CSV import format."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:331
+#: src/Config/wp-addon-settings.php:1174
+msgid "Enable redirects"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1175
+msgid "When disabled, redirect rules are saved but not applied on the site."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1181
 msgid "Use wildcard redirects"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:332
-msgid "Enable for * symbol support in URLs. Example: /old-folder/* will redirect all pages from old-folder to corresponding pages in new-folder."
+#: src/Config/wp-addon-settings.php:1182
+msgid "Required for rules with *. Without this option only exact URL matches work, e.g. /old-page/ → /new-page/."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:338
+#: src/Config/wp-addon-settings.php:1188
+msgid "Bulk CSV import"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1189
+msgid "Paste rules here and save settings. Format: source,destination — one rule per line. Duplicate source URLs are overwritten. The field is cleared after a successful import."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1206
 msgid "Redirect rules"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:339
-msgid "Add redirection rules. Request - source URL (relative to site root), Destination - target URL."
+#: src/Config/wp-addon-settings.php:1207
+msgid "Manual rule list. «Request URL» is the old address visitors open. «Destination URL» is where they should land. Trailing slashes are optional."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:344
+#: src/Config/wp-addon-settings.php:1212
 msgid "Request URL"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:345
-msgid "Source URL for redirection. Example: /old-page/ or /old-folder/*"
+#: src/Config/wp-addon-settings.php:1213
+msgid "Old URL path relative to site root. Examples: /old-page/, /old-page (same), /old-folder/* with wildcards enabled."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:353
+#: src/Config/wp-addon-settings.php:1221
 msgid "Destination URL"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:354
-msgid "Target URL. Can be relative (/new-page/) or absolute (https://example.com/new-page/)"
+#: src/Config/wp-addon-settings.php:1222
+msgid "New address: site path (/new-page/) or full URL (https://example.com/page/). For wildcards use * in the same position as in the source."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:367
+#: src/Config/wp-addon-settings.php:1235
 msgid "Shortcodes and Widgets"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:376
+#: src/Config/wp-addon-settings.php:1242
+msgid "Cookie Banner"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1244
+msgid "Cookie consent banner with configurable text, links, button mode and deferred analytics loading."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1252
 msgid "Custom code"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:382
+#: src/Config/wp-addon-settings.php:1258
 msgid "CSS Code in Header"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:392
+#: src/Config/wp-addon-settings.php:1268
 msgid "Any HTML code or Analytics code in header."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:404
+#: src/Config/wp-addon-settings.php:1280
 msgid "Any HTML code in footer."
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:417
+#: src/Config/wp-addon-settings.php:1295
+msgid "Markdown Editor позволяет писать и редактировать контент в удобном Markdown-синтаксисе. При сохранении Markdown автоматически конвертируется в HTML и сохраняется в основное поле контента — сам исходник Markdown нигде не хранится, и посты на сайте всегда отдают чистый HTML.<br><br><strong>Как работает синхронизация с обычным редактором:</strong><br>• если контент правили в Markdown — сохраненный HTML получается из Markdown<br>• если правили только в стандартном редакторе (TinyMCE) — его HTML сохраняется как есть, а Markdown-поле просто обновляется при следующем открытии"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1300
+msgid "Enable Markdown editor"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1301
+msgid "Включает Markdown-редактор для записей и страниц. В основном поле поста сохраняется только HTML, а исходный Markdown конвертируется при сохранении и не хранится отдельно."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1307
+msgid "Post types"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1308
+msgid "Типы записей, для которых будет доступен Markdown-редактор. Конвертация в HTML и синхронизация с основным редактором применяется только к выбранным типам."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1319
+msgid "Replace the standard editor"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1320
+msgid "Скрывает стандартный редактор TinyMCE и оставляет только Markdown. Если выключено — оба редактора доступны, и при сохранении учитываются только те, в которых были правки."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1327
+msgid "Live preview"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1328
+msgid "Показывает предпросмотр Markdown рядом с редактором и добавляет кнопку «Side-by-side». При выключении предпросмотр полностью скрывается."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1335
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1336
+msgid "Горячие клавиши для быстрого форматирования: Ctrl+B (жирный), Ctrl+I (курсив), Ctrl+K (ссылка)."
+msgstr ""
+
+#: src/Config/wp-addon-settings.php:1375
 msgid "Backup Settings"
 msgstr ""
 
-#: src/Config/wp-addon-settings.php:421
+#: src/Config/wp-addon-settings.php:1379
 msgid "Download settings now"
 msgstr ""
 
-#: src/Config/wp-widgets.php:13
+#: src/Config/wp-addon-settings.php:1388
+msgid "Мои плагины"
+msgstr ""
+
+#: src/Config/wp-widgets.php:12
 msgid "Disable guttenberg for widgets"
 msgstr ""
 
-#: src/Config/wp-widgets.php:19
+#: src/Config/wp-widgets.php:18
 msgid "Enable Duplicate widgets"
 msgstr ""
 
-#: src/Config/wp-widgets.php:32
+#: src/Config/wp-widgets.php:31
 msgid "Components"
 msgstr ""
 
-#: src/Config/wp-widgets.php:42
+#: src/Config/wp-widgets.php:41
 msgid "Enable FAQ shortcode"
 msgstr ""
 
-#: src/Config/wp-widgets.php:43
-#: src/Config/wp-widgets.php:50
+#: src/Config/wp-widgets.php:42
+#: src/Config/wp-widgets.php:49
 msgid "WPBakery Page Builder support "
 msgstr ""
 
-#: src/Config/wp-widgets.php:49
+#: src/Config/wp-widgets.php:48
 msgid "Enable Table of Content shortcode"
 msgstr ""
 
-#: src/Config/wp-widgets.php:62
+#: src/Config/wp-widgets.php:61
 msgid "Yearly archive widget"
 msgstr ""
 
-#: src/Config/_options.php:7
+#: src/Config/_options.php:6
 msgid "by Aleksey Tihomirov"
 msgstr ""
 
-#: src/Config/_options.php:41
+#: src/Config/_options.php:39
 msgid "With love by <span style=\"color: #ED4301;\">A</span> Tikhomirov"
 msgstr ""
 
-#: src/Core/Plugin.php:104
-msgid "Error downloading CodeStar Framework. Please install it manually from https://github.com/Codestar/codestar-framework"
+#: src/Core/Plugin.php:123
+msgid "WP Addon requires the bundled CodeStar Framework. Reinstall the plugin from a complete release package."
 msgstr ""
 
-#: src/Core/Plugin.php:117
-msgid "Error unpacking CodeStar Framework. Please install it manually."
+#: src/Config/main.php:93
+msgid "Removes /category/ from category URLs. Permalinks are flushed automatically when this option changes."
 msgstr ""
 
-#: src/Core/Plugin.php:130
-msgid "CodeStar Framework not found after installation. Please install it manually."
+#: src/Config/main.php:99
+msgid "Enables pretty URLs for nested tags such as /tag/git/submodules/. The rewrite rule maps to the final tag slug, not the full path. Permalinks are flushed automatically when this option changes."
+msgstr ""
+
+#: src/Config/main.php:116
+msgid "Categories to hide on the frontend"
+msgstr ""
+
+#: src/Config/main.php:118
+msgid "Select categories that should be hidden from archives, feeds, and direct category URLs. Legacy comma-separated IDs are still supported."
+msgstr ""
+
+#: src/Config/main.php:205
+msgid "Bootstrap 3 is the supported framework for the current theme and shortcodes. Bootstrap 5 and Tailwind are reserved for future use and may not match the frontend styles yet."
+msgstr ""
+
+#: src/Config/main.php:210
+msgid "Bootstrap 3 (recommended)"
+msgstr ""
+
+#: src/Config/main.php:211
+msgid "Bootstrap 5 (future)"
+msgstr ""
+
+#: src/Config/main.php:212
+msgid "Tailwind CSS (future)"
+msgstr ""
+
+#: functions/users/UserFilter.php:52
+#: functions/users/UserFilter.php:135
+msgid "Filter by role"
+msgstr ""
+
+#: functions/posts/fix_guid.php:41
+msgid "You do not have permission to access this page."
+msgstr ""
+
+#: functions/posts/fix_guid.php:74
+msgid "Update all GUID fields in the posts table with permalinks."
+msgstr ""
+
+#: functions/posts/fix_guid.php:81
+msgid "View all revisions stored in the posts table."
+msgstr ""
+
+#: functions/posts/fix_guid.php:87
+msgid "Delete all revisions and related rows."
+msgstr ""
+
+#: functions/posts/fix_guid.php:125
+msgid "Bulk GUID replacement"
+msgstr ""
+
+#: functions/posts/fix_guid.php:128
+msgid "This action replaces GUID values for all published public posts with their permalinks. RSS subscribers may receive duplicate items."
+msgstr ""
+
+#: functions/posts/fix_guid.php:131
+msgid "Replace GUID values for all published posts?"
+msgstr ""
+
+#: functions/posts/fix_guid.php:133
+msgid "Replace all GUID values"
+msgstr ""
+
+#: functions/posts/fix_guid.php:160
+msgid "The query returned no results."
+msgstr ""
+
+#: functions/posts/fix_guid.php:183
+msgid "Updated:"
+msgstr ""
+
+#, php-format
+#: functions/posts/fix_guid.php:183
+msgid "Previous GUID: %s"
+msgstr ""
+
+#: functions/posts/fix_guid.php:185
+msgid "Not updated:"
+msgstr ""
+
+#: functions/posts/fix_guid.php:205
+msgid "Post or page ID"
+msgstr ""
+
+#: functions/posts/fix_guid.php:225
+msgid "All revisions were removed from posts and related rows in term_relationships, postmeta, and comments."
+msgstr ""
+
+#: functions/posts/fix_guid.php:235
+msgid "No revisions found."
 msgstr ""

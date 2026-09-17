@@ -38,16 +38,23 @@
 36: Disable browser checking in dashboard
 37: Change login error message
 38: Extend login session to 1 year
+39: Disable wp-embed on frontend
+40: Disable dashicons for guests
+41: Disable REST API for guests
+42: Noindex for search, attachment and date archives
+43: Redirect author archives to home
+44: Disable theme and plugin editor in admin
+45: Disable application passwords
+46: Remove global theme styles on frontend
+47: Remove REST and oEmbed discovery links from head
+48: Block WordPress and Automattic tracking pixel
 
  */
 
 function wptweaker_setting_1()
 {
-    remove_action('wp_head', 'wp_generator'); // из заголовка
-    add_filter('the_generator', '__return_empty_string'); // из фидов и URL
-    if (file_exists(ABSPATH.'/readme.txt')) {
-        unlink(ABSPATH.'/readme.txt');
-    }
+    remove_action('wp_head', 'wp_generator');
+    add_filter('the_generator', '__return_empty_string');
 }
 
 /** Disable Emo */
@@ -68,6 +75,8 @@ function wptweaker_setting_2()
         if (is_array($plugins)) {
             return array_diff($plugins, ['wpemoji']);
         }
+
+        return $plugins;
     }
 
     function disable_emojis_remove_dns_prefetch($urls, $relation_type)
@@ -118,16 +127,47 @@ function wptweaker_setting_8()
 
 function wptweaker_setting_9()
 {
-    add_filter('pre_http_request', '__return_true', 100);
+    if (function_exists('wp_addon_is_root_setting_enabled') && wp_addon_is_root_setting_enabled('disable_auto_update')) {
+        return;
+    }
+
+    add_filter('pre_http_request', 'wptweaker_block_wordpress_org_requests', 10, 3);
+}
+
+function wptweaker_block_wordpress_org_requests($preempt, $parsed_args, $url)
+{
+    $blocked_hosts = ['api.wordpress.org', 'downloads.wordpress.org'];
+
+    foreach ($blocked_hosts as $host) {
+        if (str_contains($url, $host)) {
+            return new WP_Error(
+                'wptweaker_http_blocked',
+                __('WordPress.org update request blocked by wp-addon tweak.', 'wp-addon')
+            );
+        }
+    }
+
+    return $preempt;
 }
 
 function wptweaker_setting_10()
 {
-    add_action('init', 'stop_heartbeat', 1);
-    function stop_heartbeat()
-    {
+    add_action('init', 'wptweaker_stop_frontend_heartbeat', 1);
+    add_filter('heartbeat_settings', 'wptweaker_slow_admin_heartbeat');
+}
+
+function wptweaker_stop_frontend_heartbeat()
+{
+    if (! is_admin()) {
         wp_deregister_script('heartbeat');
     }
+}
+
+function wptweaker_slow_admin_heartbeat($settings)
+{
+    $settings['interval'] = 60;
+
+    return $settings;
 }
 function wptweaker_setting_11()
 {
@@ -169,7 +209,10 @@ function wptweaker_setting_14()
 
 function wptweaker_setting_15()
 {
-    // disable aggressive update
+    if (function_exists('wp_addon_is_root_setting_enabled') && wp_addon_is_root_setting_enabled('disable_auto_update')) {
+        return;
+    }
+
     if (is_admin()) {
         remove_action('admin_init', '_maybe_update_core');
         remove_action('admin_init', '_maybe_update_plugins');
@@ -224,10 +267,17 @@ function wptweaker_setting_19()
 
 function wptweaker_setting_20()
 {
-    // Отключаем пинги на свои же посты
     add_action('pre_ping', function (&$links) {
+        $host = wp_parse_url(home_url(), PHP_URL_HOST);
+
+        if (! is_string($host) || $host === '') {
+            return;
+        }
+
+        $host = str_replace('www.', '', $host);
+
         foreach ($links as $k => $val) {
-            if (strpos($val, str_replace('www.', '', $_SERVER['HTTP_HOST'])) !== false) {
+            if (str_contains($val, $host)) {
                 unset($links[$k]);
             }
         }
@@ -236,15 +286,31 @@ function wptweaker_setting_20()
 
 function wptweaker_setting_21()
 {
-    /* Отключение админ-бара для всех, кроме админа */
-    function disable_admin_bar()
-    {
-        if (! current_user_can('edit_posts')) {
-            add_filter('show_admin_bar', '__return_false');
-            add_action('admin_print_scripts-profile.php', 'hide_admin_bar_settings');
-        }
+    add_action('init', 'wptweaker_disable_admin_bar_for_low_roles', 9);
+    add_action('admin_print_scripts-profile.php', 'wptweaker_hide_admin_bar_settings');
+}
+
+function wptweaker_should_hide_admin_bar()
+{
+    return ! current_user_can('edit_others_posts') && ! current_user_can('manage_options');
+}
+
+function wptweaker_disable_admin_bar_for_low_roles()
+{
+    if (! wptweaker_should_hide_admin_bar()) {
+        return;
     }
-    add_action('init', 'disable_admin_bar', 9);
+
+    add_filter('show_admin_bar', '__return_false');
+}
+
+function wptweaker_hide_admin_bar_settings()
+{
+    if (! wptweaker_should_hide_admin_bar()) {
+        return;
+    }
+
+    echo '<style>.show-admin-bar{display:none;}</style>';
 }
 
 function wptweaker_setting_22()
@@ -263,7 +329,24 @@ function wptweaker_setting_22()
 
 function wptweaker_setting_23()
 {
-    // Функционал перенесен в класс PerformanceTweaks
+    add_action('wp_footer', 'wptweaker_render_performance_info', 9999);
+}
+
+function wptweaker_render_performance_info()
+{
+    if (! current_user_can('manage_options')) {
+        return;
+    }
+
+    $time = timer_stop(0, 3);
+    $memory = size_format(memory_get_peak_usage(true));
+
+    printf(
+        '<!-- %1$s: %2$s s, %3$s -->',
+        esc_html__('Page generated', 'wp-addon'),
+        esc_html((string) $time),
+        esc_html((string) $memory)
+    );
 }
 
 function wptweaker_setting_24()
@@ -295,10 +378,22 @@ function wptweaker_setting_25()
         $license_file = ABSPATH.'/license.txt';
         $readme_file = ABSPATH.'/readme.html';
 
-        if (file_exists($license_file) && current_user_can('manage_options')) {
-            $deleted = unlink($license_file) && unlink($readme_file);
+        if (current_user_can('manage_options')) {
+            $deleted = [];
 
-            if (! $deleted) {
+            if (file_exists($license_file)) {
+                $deleted['license.txt'] = unlink($license_file);
+            }
+
+            if (file_exists($readme_file)) {
+                $deleted['readme.html'] = unlink($readme_file);
+            }
+
+            if ($deleted === []) {
+                return;
+            }
+
+            if (in_array(false, $deleted, true)) {
                 $GLOBALS['readmedel'] = sprintf(__('Failed to delete files license.txt and readme.html from folder %s. Please delete them manually!', 'wp-addon'), ABSPATH);
             } else {
                 $GLOBALS['readmedel'] = sprintf(__('Files license.txt and readme.html have been deleted from folder %s.', 'wp-addon'), ABSPATH);
@@ -406,9 +501,10 @@ function wptweaker_setting_30()
 
 function wptweaker_setting_31()
 {
-    // # Шорткоды в виджете "Текст"
     if (! is_admin()) {
         add_filter('widget_text', 'do_shortcode', 11);
+        add_filter('widget_text_content', 'do_shortcode', 11);
+        add_filter('widget_block_content', 'do_shortcode', 11);
     }
 }
 
@@ -487,12 +583,223 @@ function wptweaker_setting_36()
     add_filter('pre_site_transient_browser_'.md5($user_agent), '__return_null');
 }
 
+function wptweaker_setting_37()
+{
+    add_filter('login_errors', 'wptweaker_generic_login_error_message');
+}
+
+function wptweaker_generic_login_error_message()
+{
+    return '<strong>'.esc_html__('Error:', 'wp-addon').'</strong> '.
+        esc_html__('Incorrect username or password.', 'wp-addon');
+}
+
 function wptweaker_setting_38()
 {
-    // Увеличение времени сессии до 1 года
-    add_filter('auth_cookie_expiration', 'extend_login_session_year', 10, 3);
-    function extend_login_session_year($seconds, $user_id, $remember)
-    {
-        return YEAR_IN_SECONDS;
+    add_filter('auth_cookie_expiration', 'wptweaker_extend_login_session', 10, 3);
+}
+
+function wptweaker_extend_login_session($seconds, $user_id, $remember)
+{
+    if (! $remember) {
+        return $seconds;
     }
+
+    return YEAR_IN_SECONDS;
+}
+
+function wptweaker_setting_39()
+{
+    remove_action('wp_head', 'wp_oembed_add_host_js');
+    add_action('wp_footer', 'wptweaker_disable_wp_embed_script');
+}
+
+function wptweaker_disable_wp_embed_script()
+{
+    wp_deregister_script('wp-embed');
+}
+
+function wptweaker_setting_40()
+{
+    add_action('wp_enqueue_scripts', 'wptweaker_dequeue_dashicons_for_guests', 100);
+}
+
+function wptweaker_dequeue_dashicons_for_guests()
+{
+    if (! is_user_logged_in()) {
+        wp_deregister_style('dashicons');
+    }
+}
+
+function wptweaker_setting_41()
+{
+    add_filter('rest_authentication_errors', 'wptweaker_restrict_rest_api');
+}
+
+function wptweaker_restrict_rest_api($result)
+{
+    if (is_wp_error($result) || $result === true) {
+        return $result;
+    }
+
+    if (! is_user_logged_in()) {
+        return new WP_Error(
+            'rest_not_logged_in',
+            __('You must be logged in to access the REST API.', 'wp-addon'),
+            ['status' => 401]
+        );
+    }
+
+    return $result;
+}
+
+function wptweaker_setting_42()
+{
+    add_filter('wp_robots', 'wptweaker_add_noindex_robots');
+}
+
+function wptweaker_is_noindex_context()
+{
+    return is_search() || is_attachment() || is_date();
+}
+
+function wptweaker_should_noindex_context(string $context)
+{
+    return in_array($context, ['search', 'attachment', 'date'], true);
+}
+
+function wptweaker_add_noindex_robots($robots)
+{
+    if (! wptweaker_is_noindex_context()) {
+        return $robots;
+    }
+
+    $robots['noindex'] = true;
+    $robots['follow'] = true;
+
+    return $robots;
+}
+
+function wptweaker_setting_43()
+{
+    add_action('template_redirect', 'wptweaker_redirect_author_archives');
+}
+
+function wptweaker_redirect_author_archives()
+{
+    if (! is_author()) {
+        return;
+    }
+
+    wp_safe_redirect(home_url('/'), 301);
+    exit;
+}
+
+function wptweaker_setting_44()
+{
+    if (! defined('DISALLOW_FILE_EDIT')) {
+        define('DISALLOW_FILE_EDIT', true);
+    }
+}
+
+function wptweaker_setting_45()
+{
+    add_filter('wp_is_application_passwords_available', '__return_false');
+}
+
+function wptweaker_setting_46()
+{
+    add_action('wp_enqueue_scripts', 'wptweaker_remove_global_styles', 100);
+}
+
+function wptweaker_remove_global_styles()
+{
+    wp_dequeue_style('global-styles');
+    wp_dequeue_style('classic-theme-styles');
+    remove_action('wp_enqueue_scripts', 'wp_enqueue_global_styles');
+    remove_action('wp_footer', 'wp_enqueue_global_styles', 1);
+}
+
+function wptweaker_setting_47()
+{
+    add_action('init', 'wptweaker_remove_discovery_head_links', 20);
+    add_filter('wp_headers', 'wptweaker_remove_pingback_header');
+}
+
+function wptweaker_remove_discovery_head_links()
+{
+    remove_action('wp_head', 'rest_output_link_wp_head', 10);
+    remove_action('wp_head', 'wp_oembed_add_discovery_links', 10);
+    remove_action('template_redirect', 'rest_output_link_header', 11);
+    add_filter('oembed_discovery_links', '__return_empty_array');
+}
+
+function wptweaker_remove_pingback_header($headers)
+{
+    unset($headers['X-Pingback']);
+
+    return $headers;
+}
+
+function wptweaker_setting_48()
+{
+    add_filter('pre_http_request', 'wptweaker_block_wp_tracking_requests', 10, 3);
+    add_action('admin_init', 'wptweaker_disable_community_events');
+    add_action('init', 'wptweaker_disable_plugin_tracking_hooks', 999);
+    add_filter('woocommerce_allow_tracking', '__return_false');
+    add_filter('woocommerce_apply_user_tracking', '__return_false');
+}
+
+function wptweaker_is_wp_tracking_url($url)
+{
+    $blocked_fragments = [
+        'pixel.wp.com',
+        'stats.wp.com',
+        'api.wordpress.org/events',
+    ];
+
+    foreach ($blocked_fragments as $fragment) {
+        if (str_contains($url, $fragment)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function wptweaker_block_wp_tracking_requests($preempt, $parsed_args, $url)
+{
+    if (! wptweaker_is_wp_tracking_url($url)) {
+        return $preempt;
+    }
+
+    return new WP_Error(
+        'wptweaker_tracking_blocked',
+        __('WordPress tracking request blocked by wp-addon tweak.', 'wp-addon')
+    );
+}
+
+function wptweaker_disable_community_events()
+{
+    remove_action('wp_dashboard_setup', 'wp_dashboard_events_news');
+    add_filter('pre_site_transient_dashboard_events', '__return_null');
+}
+
+function wptweaker_disable_plugin_tracking_hooks()
+{
+    remove_action('wp_footer', 'stats_footer', 101);
+    remove_action('wp_head', 'stats_init', 8);
+    add_filter('jetpack_enable_stats', '__return_false');
+    add_filter('jetpack_active_modules', 'wptweaker_disable_jetpack_stats_module');
+}
+
+function wptweaker_disable_jetpack_stats_module($modules)
+{
+    if (! is_array($modules)) {
+        return $modules;
+    }
+
+    unset($modules['stats']);
+
+    return $modules;
 }

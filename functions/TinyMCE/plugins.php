@@ -124,15 +124,8 @@ function tiny_advanced()
         return $in;
     }, 9, 1);
 
-    // Add Google Scripts for use with the editor
-    add_action('init', function () {
-        $fonts_url = [
-            'https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800',
-            'https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css',
-        ];
-        foreach ($fonts_url as $font_url) {
-            add_editor_style(str_replace(',', '%2C', $font_url));
-        }
+    add_action('init', static function () {
+        add_editor_style('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
     });
 }
 
