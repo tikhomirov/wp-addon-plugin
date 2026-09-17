@@ -138,6 +138,30 @@ class WP_Addon_Settings
         ];
     }
 
+    /**
+     * Re-normalize cached plugin rows and drop legacy/broken entries
+     * (e.g. old wp_addon_github_plugins cache without slug/title).
+     */
+    private function sanitize_cached_catalog(array $cached_plugins): array
+    {
+        $normalized = [];
+
+        foreach ($cached_plugins as $plugin) {
+            if (! is_array($plugin)) {
+                continue;
+            }
+
+            $item = $this->normalize_catalog_plugin($plugin);
+            if ($item['slug'] === '' || $item['slug'] === 'wp-addon-plugin') {
+                continue;
+            }
+
+            $normalized[] = $item;
+        }
+
+        return $normalized;
+    }
+
     private function fetch_plugins_catalog_payload(): ?array
     {
         if (post_type_exists('plugin') && class_exists('\WpPackages\PluginsApi')) {
@@ -187,7 +211,7 @@ class WP_Addon_Settings
         $cache_key = 'wp_addon_plugins_catalog';
         $cached_plugins = get_transient($cache_key);
         if (is_array($cached_plugins) && ! empty($cached_plugins)) {
-            return $cached_plugins;
+            return $this->sanitize_cached_catalog($cached_plugins);
         }
 
         $body = $this->fetch_plugins_catalog_payload();
@@ -229,7 +253,7 @@ class WP_Addon_Settings
         $cache_key = 'wp_addon_github_plugins';
         $cached_plugins = get_transient($cache_key);
         if (is_array($cached_plugins) && ! empty($cached_plugins)) {
-            return $cached_plugins;
+            return $this->sanitize_cached_catalog($cached_plugins);
         }
 
         $owner = $this->get_github_owner();
@@ -509,6 +533,45 @@ class WP_Addon_Settings
         $html .= '</article>';
 
         return $html;
+    }
+
+    private function getRedirectsInstructionsHtml(): string
+    {
+        $homeExample = esc_html('/old-page/');
+
+        return '<div style="background:#f0f6fc;border:1px solid #d0d7de;border-radius:6px;padding:16px;margin:0 0 16px;line-height:1.55;color:#1d2327;">'
+            .'<h4 style="margin:0 0 12px;">'.esc_html__('Как работают перенаправления', 'wp-addon').'</h4>'
+            .'<p style="margin:0 0 12px;">'.sprintf(
+                esc_html__('Плагин отдаёт ответ %1$s и перенаправляет посетителя с одного адреса на другой. Указывайте пути без домена — от корня WordPress, например %2$s (не /wp/old-page/, если сайт в подпапке). Абсолютные URL (https://...) — только в поле «Куда». Запросы к %3$s и %4$s никогда не перенаправляются.', 'wp-addon'),
+                '<code>301 Moved Permanently</code>',
+                '<code>'.$homeExample.'</code>',
+                '<code>/wp-admin</code>',
+                '<code>/wp-login</code>'
+            ).'</p>'
+            .'<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;">'
+            .'<div>'
+            .'<strong>'.esc_html__('Слеш в конце URL', 'wp-addon').'</strong><br>'
+            .esc_html__('/page и /page/ считаются одинаковыми. Можно писать в любом виде — плагин сравнивает пути без учёта завершающего слеша.', 'wp-addon')
+            .'<br><br><strong>'.esc_html__('Простые правила', 'wp-addon').'</strong><br>'
+            .'<code>/old-page/ → /new-page/</code><br>'
+            .'<code>/archive/2020/ → /archive/</code><br>'
+            .'<code>/contact → https://t.me/username</code>'
+            .'<br><br><strong>'.esc_html__('Массовый импорт CSV', 'wp-addon').'</strong><br>'
+            .esc_html__('Одна строка = одно правило. Разделители: запятая, ; или табуляция. Строки с # — комментарии. После сохранения правила попадут в список ниже.', 'wp-addon')
+            .'</div>'
+            .'<div>'
+            .'<strong>'.esc_html__('Подстановочный знак * (не regex)', 'wp-addon').'</strong><br>'
+            .esc_html__('Это не полноценные регулярные выражения — поддерживается только символ *. Включите опцию «Подстановочные знаки» выше.', 'wp-addon')
+            .'<br><br><code>/old-blog/* → /blog/*</code><br>'
+            .'<code>/docs/*/edit → /help/*/edit</code><br>'
+            .'<code>/ru/* → /en/*</code><br>'
+            .'<code>/shop/category/* → /catalog/*</code><br>'
+            .'<code>/files/*.pdf → /media/*.pdf</code>'
+            .'<br><br><strong>'.esc_html__('Что важно помнить', 'wp-addon').'</strong><br>'
+            .esc_html__('Параметры запроса (?utm=...) при сравнении не учитываются. Если правило совпало — редирект сработает и для URL с query string. Не создавайте циклы: /a → /b и /b → /a.', 'wp-addon')
+            .'</div>'
+            .'</div>'
+            .'</div>';
     }
 
     public function get_plugins_html()
@@ -1123,33 +1186,55 @@ class WP_Addon_Settings
         \CSF::createSection($prefix, [
             'title' => __('Redirects', 'wp-addon'),
             'icon' => 'fa fa-share',
-            'description' => __('301 redirect management. Create redirect rules from one URL to another. Supports both simple redirection and wildcard (*) usage for folder redirection.<br><br><strong>Simple redirects:</strong> /old-page/ → /new-page/<br><strong>Wildcard redirects:</strong> /old-folder/* → /new-folder/*<br><br><strong>Important:</strong> Redirects apply to all requests except wp-admin and wp-login to prevent admin access blocking.', 'wp-addon'),
+            'description' => __('301 redirect management for old URLs, moved pages and bulk migrations. Read the guide below for slash rules, wildcard examples and CSV import format.', 'wp-addon'),
             'fields' => [
+                [
+                    'type' => 'content',
+                    'content' => $this->getRedirectsInstructionsHtml(),
+                ],
                 [
                     'id' => 'redirect_enable',
                     'type' => 'switcher',
                     'title' => __('Enable redirects', 'wp-addon'),
-                    'desc' => __('When disabled, redirect rules are not registered or processed.', 'wp-addon'),
+                    'desc' => __('When disabled, redirect rules are saved but not applied on the site.', 'wp-addon'),
                     'default' => true,
                 ],
                 [
                     'id' => 'redirects_wildcard',
                     'type' => 'switcher',
                     'title' => __('Use wildcard redirects', 'wp-addon'),
-                    'desc' => __('Enable for * symbol support in URLs. Example: /old-folder/* will redirect all pages from old-folder to corresponding pages in new-folder.', 'wp-addon'),
+                    'desc' => __('Required for rules with *. Without this option only exact URL matches work, e.g. /old-page/ → /new-page/.', 'wp-addon'),
                     'default' => false,
+                ],
+                [
+                    'id' => 'redirects_csv_import',
+                    'type' => 'code_editor',
+                    'title' => __('Bulk CSV import', 'wp-addon'),
+                    'desc' => __('Paste rules here and save settings. Format: source,destination — one rule per line. Duplicate source URLs are overwritten. The field is cleared after a successful import.', 'wp-addon'),
+                    'settings' => [
+                        'theme' => 'mbo',
+                        'mode' => 'shell',
+                        'lineNumbers' => true,
+                        'tabSize' => 2,
+                    ],
+                    'attributes' => [
+                        'rows' => 12,
+                        'placeholder' => "# source,destination\n/old-page/,/new-page/\n/old-blog/*,/blog/*\n/ru/docs/*,/en/docs/*",
+                    ],
+                    'default' => '',
+                    'sanitize' => false,
                 ],
                 [
                     'id' => 'redirects_rules',
                     'type' => 'repeater',
                     'title' => __('Redirect rules', 'wp-addon'),
-                    'desc' => __('Add redirection rules. Request - source URL (relative to site root), Destination - target URL.', 'wp-addon'),
+                    'desc' => __('Manual rule list. «Request URL» is the old address visitors open. «Destination URL» is where they should land. Trailing slashes are optional.', 'wp-addon'),
                     'fields' => [
                         [
                             'id' => 'request',
                             'type' => 'text',
                             'title' => __('Request URL', 'wp-addon'),
-                            'desc' => __('Source URL for redirection. Example: /old-page/ or /old-folder/*', 'wp-addon'),
+                            'desc' => __('Old URL path relative to site root. Examples: /old-page/, /old-page (same), /old-folder/* with wildcards enabled.', 'wp-addon'),
                             'attributes' => [
                                 'placeholder' => '/old-page/',
                             ],
@@ -1158,7 +1243,7 @@ class WP_Addon_Settings
                             'id' => 'destination',
                             'type' => 'text',
                             'title' => __('Destination URL', 'wp-addon'),
-                            'desc' => __('Target URL. Can be relative (/new-page/) or absolute (https://example.com/new-page/)', 'wp-addon'),
+                            'desc' => __('New address: site path (/new-page/) or full URL (https://example.com/page/). For wildcards use * in the same position as in the source.', 'wp-addon'),
                             'attributes' => [
                                 'placeholder' => '/new-page/',
                             ],
