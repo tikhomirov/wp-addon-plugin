@@ -180,6 +180,8 @@ class Plugin
         $this->imageOptimizationService = new ImageOptimizationService;
         $this->ensureCookieBannerDefaults();
 
+        require_once $this->dir.'functions/main-settings-helpers.php';
+
         // Load functions and modules
         $this->loadModules();
     }
