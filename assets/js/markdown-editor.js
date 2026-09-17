@@ -25,6 +25,73 @@ jQuery(document).ready(function($) {
                 return;
             }
             
+            var options = typeof markdownAjax !== 'undefined' ? markdownAjax : {};
+            var previewEnabled = options.enable_preview !== false;
+            var shortcutsEnabled = options.enable_shortcuts !== false;
+            
+            var toolbar = [
+                "bold", "italic", "strikethrough", "heading", "|",
+                "quote", "unordered-list", "ordered-list", "|",
+                "link",
+                {
+                    name: "image",
+                    action: function customImageAction(editor) {
+                        var customUploader;
+                        if (customUploader) {
+                            customUploader.open();
+                            return;
+                        }
+                        
+                        customUploader = wp.media.frames.file_frame = wp.media({
+                            title: 'Выберите изображение',
+                            button: {
+                                text: 'Вставить в запись'
+                            },
+                            multiple: false
+                        });
+                        
+                        customUploader.on('select', function() {
+                            var attachment = customUploader.state().get('selection').first().toJSON();
+                            var url = attachment.url;
+                            var alt = attachment.alt || attachment.title || '';
+                            
+                            var cm = editor.codemirror;
+                            var stat = cm.getTokenAt(cm.getCursor());
+                            var imageMarkdown = '![' + alt + '](' + url + ')';
+                            
+                            cm.replaceSelection(imageMarkdown);
+                            cm.focus();
+                        });
+                        
+                        customUploader.open();
+                    },
+                    className: "fa fa-picture-o",
+                    title: "Вставить изображение (WP Media)"
+                },
+                "table", "horizontal-rule", "|"
+            ];
+            
+            if (previewEnabled) {
+                toolbar = toolbar.concat(["side-by-side", "fullscreen", "|", "guide"]);
+            } else {
+                toolbar.push("guide");
+            }
+            
+            var shortcuts = {};
+            if (shortcutsEnabled) {
+                shortcuts.toggleBold = "Cmd-B";
+                shortcuts.toggleItalic = "Cmd-I";
+                shortcuts.drawLink = "Cmd-K";
+            } else {
+                shortcuts.toggleBold = null;
+                shortcuts.toggleItalic = null;
+                shortcuts.drawLink = null;
+            }
+            if (!previewEnabled) {
+                shortcuts.togglePreview = null;
+                shortcuts.toggleSideBySide = null;
+            }
+            
             this.easyMDE = new EasyMDE({
                 element: this.textarea[0],
                 spellChecker: false,
@@ -32,54 +99,9 @@ jQuery(document).ready(function($) {
                     enabled: false,
                 },
                 status: ["lines", "words", "cursor"],
-                toolbar: [
-                    "bold", "italic", "strikethrough", "heading", "|",
-                    "quote", "unordered-list", "ordered-list", "|",
-                    "link", 
-                    {
-                        name: "image",
-                        action: function customImageAction(editor) {
-                            var customUploader;
-                            if (customUploader) {
-                                customUploader.open();
-                                return;
-                            }
-                            
-                            customUploader = wp.media.frames.file_frame = wp.media({
-                                title: 'Выберите изображение',
-                                button: {
-                                    text: 'Вставить в запись'
-                                },
-                                multiple: false
-                            });
-                            
-                            customUploader.on('select', function() {
-                                var attachment = customUploader.state().get('selection').first().toJSON();
-                                var url = attachment.url;
-                                var alt = attachment.alt || attachment.title || '';
-                                
-                                var cm = editor.codemirror;
-                                var stat = cm.getTokenAt(cm.getCursor());
-                                var imageMarkdown = '![' + alt + '](' + url + ')';
-                                
-                                cm.replaceSelection(imageMarkdown);
-                                cm.focus();
-                            });
-                            
-                            customUploader.open();
-                        },
-                        className: "fa fa-picture-o",
-                        title: "Вставить изображение (WP Media)"
-                    },
-                    "table", "horizontal-rule", "|",
-                    "side-by-side", "fullscreen", "|",
-                    "guide"
-                ],
-                shortcuts: typeof markdownAjax !== 'undefined' ? {
-                    "toggleBold": markdownAjax.enable_shortcuts ? "Cmd-B" : null,
-                    "toggleItalic": markdownAjax.enable_shortcuts ? "Cmd-I" : null,
-                    "drawLink": markdownAjax.enable_shortcuts ? "Cmd-K" : null,
-                } : {}
+                sideBySideFullscreen: previewEnabled,
+                toolbar: toolbar,
+                shortcuts: shortcuts
             });
             
             // Синхронизация EasyMDE с textarea для сохранения
