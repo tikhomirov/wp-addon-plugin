@@ -19,15 +19,40 @@
         window.addEventListener('load', callback, { once: true });
     }
 
+    function appendAnalyticsNode(node) {
+        if (!node || node.nodeType !== Node.ELEMENT_NODE) {
+            return;
+        }
+
+        if (node.tagName === 'SCRIPT') {
+            var script = document.createElement('script');
+            Array.prototype.forEach.call(node.attributes, function (attribute) {
+                script.setAttribute(attribute.name, attribute.value);
+            });
+            script.text = node.text || node.textContent || '';
+            document.body.appendChild(script);
+            return;
+        }
+
+        if (node.tagName === 'NOSCRIPT') {
+            var noscript = document.createElement('noscript');
+            noscript.innerHTML = node.innerHTML;
+            document.body.appendChild(noscript);
+            return;
+        }
+
+        document.body.appendChild(node.cloneNode(true));
+    }
+
     function loadAnalytics() {
-        if (!config.analyticsCode) {
+        var template = document.getElementById('wp-addon-cookie-analytics-code');
+
+        if (!template || !template.content) {
             return;
         }
 
         onReady(function () {
-            var script = document.createElement('script');
-            script.text = config.analyticsCode;
-            document.body.appendChild(script);
+            Array.prototype.forEach.call(template.content.childNodes, appendAnalyticsNode);
         });
     }
 

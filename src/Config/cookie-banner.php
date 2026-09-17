@@ -1,12 +1,16 @@
 <?php
 
+require_once __DIR__.'/cookie-banner-defaults.php';
+
+$cookieBannerDefaults = wp_addon_get_cookie_banner_defaults();
+
 return [
     [
         'id' => 'cookie_banner_enabled',
         'type' => 'switcher',
         'title' => __('Enable cookie banner', 'wp-addon'),
         'desc' => __('Shows a cookie consent banner on the frontend.', 'wp-addon'),
-        'default' => true,
+        'default' => $cookieBannerDefaults['cookie_banner_enabled'] === '1',
     ],
     [
         'id' => 'cookie_banner_position',
@@ -17,43 +21,43 @@ return [
             'bottom-left' => __('Bottom left', 'wp-addon'),
             'bottom-right' => __('Bottom right', 'wp-addon'),
         ],
-        'default' => 'bottom-center',
+        'default' => $cookieBannerDefaults['cookie_banner_position'],
         'dependency' => ['cookie_banner_enabled', '==', 'true'],
     ],
     [
         'id' => 'cookie_banner_text',
         'type' => 'textarea',
         'title' => __('Banner text', 'wp-addon'),
-        'desc' => __('Use {link1} and {link2} placeholders for links configured below.', 'wp-addon'),
-        'default' => __('🍪 Сайт использует cookie для работы и аналитики. {link1}', 'wp-addon'),
+        'desc' => __('Use {link1} and {link2} placeholders for links configured below. A cookie icon is added automatically on the frontend.', 'wp-addon'),
+        'default' => $cookieBannerDefaults['cookie_banner_text'],
         'dependency' => ['cookie_banner_enabled', '==', 'true'],
     ],
     [
         'id' => 'cookie_banner_link_1_text',
         'type' => 'text',
         'title' => __('Link 1 text', 'wp-addon'),
-        'default' => __('Подробнее', 'wp-addon'),
+        'default' => $cookieBannerDefaults['cookie_banner_link_1_text'],
         'dependency' => ['cookie_banner_enabled', '==', 'true'],
     ],
     [
         'id' => 'cookie_banner_link_1_url',
         'type' => 'text',
         'title' => __('Link 1 URL', 'wp-addon'),
-        'default' => '/privacy-policy/',
+        'default' => $cookieBannerDefaults['cookie_banner_link_1_url'],
         'dependency' => ['cookie_banner_enabled', '==', 'true'],
     ],
     [
         'id' => 'cookie_banner_link_2_text',
         'type' => 'text',
         'title' => __('Link 2 text', 'wp-addon'),
-        'default' => '',
+        'default' => $cookieBannerDefaults['cookie_banner_link_2_text'],
         'dependency' => ['cookie_banner_enabled', '==', 'true'],
     ],
     [
         'id' => 'cookie_banner_link_2_url',
         'type' => 'text',
         'title' => __('Link 2 URL', 'wp-addon'),
-        'default' => '',
+        'default' => $cookieBannerDefaults['cookie_banner_link_2_url'],
         'dependency' => ['cookie_banner_enabled', '==', 'true'],
     ],
     [
@@ -65,7 +69,7 @@ return [
             'one' => __('One button (accept)', 'wp-addon'),
             'two' => __('Two buttons (essential / accept all)', 'wp-addon'),
         ],
-        'default' => 'two',
+        'default' => $cookieBannerDefaults['cookie_banner_button_mode'],
         'dependency' => ['cookie_banner_enabled', '==', 'true'],
     ],
     [
@@ -73,14 +77,14 @@ return [
         'type' => 'text',
         'title' => __('Button 1 text', 'wp-addon'),
         'desc' => __('For one-button mode this is the accept button. For two-button mode this is the essential-only button.', 'wp-addon'),
-        'default' => __('Обязательные', 'wp-addon'),
+        'default' => $cookieBannerDefaults['cookie_banner_button_1_text'],
         'dependency' => ['cookie_banner_enabled', '==', 'true'],
     ],
     [
         'id' => 'cookie_banner_button_2_text',
         'type' => 'text',
         'title' => __('Button 2 text', 'wp-addon'),
-        'default' => __('Принять все', 'wp-addon'),
+        'default' => $cookieBannerDefaults['cookie_banner_button_2_text'],
         'dependency' => [
             ['cookie_banner_enabled', '==', 'true'],
             ['cookie_banner_button_mode', '==', 'two'],
@@ -90,12 +94,12 @@ return [
         'id' => 'cookie_banner_analytics_code',
         'type' => 'code_editor',
         'title' => __('Analytics code', 'wp-addon'),
-        'desc' => __('JavaScript executed after the user accepts analytics cookies. Leave empty to disable analytics loading.', 'wp-addon'),
+        'desc' => __('Paste the full counter HTML from Yandex Metrika or another service. The code is stored and injected as-is after consent. Leave empty to disable analytics loading.', 'wp-addon'),
         'settings' => [
             'theme' => 'monokai',
-            'mode' => 'javascript',
+            'mode' => 'htmlmixed',
         ],
-        'default' => "(function(m,e,t,r,i,k,a){\n  m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};\n  m[i].l=1*new Date();\n  for(var j=0;j<document.scripts.length;j++){\n    if(document.scripts[j].src===r){return;}\n  }\n  k=e.createElement(t),a=e.getElementsByTagName(t)[0];\n  k.async=1;k.src=r;a.parentNode.insertBefore(k,a)\n})(window,document,\"script\",\"https://mc.yandex.ru/metrika/tag.js\",\"ym\");\n\nym(21441994,\"init\",{\n  clickmap:true,\n  trackLinks:true,\n  accurateTrackBounce:true,\n  webvisor:true,\n  trackHash:true\n});",
+        'default' => $cookieBannerDefaults['cookie_banner_analytics_code'],
         'sanitize' => false,
         'dependency' => ['cookie_banner_enabled', '==', 'true'],
     ],

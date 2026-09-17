@@ -27,13 +27,12 @@ class CookieBanner implements ModuleInterface
 
     public function isEnabled(): bool
     {
-        $value = $this->optionService->getSetting('cookie_banner_enabled', true);
+        $defaults = $this->getDefaults();
 
-        if ($value === '' || $value === null) {
-            return true;
-        }
-
-        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        return filter_var(
+            $this->optionService->getSetting('cookie_banner_enabled', $defaults['cookie_banner_enabled']),
+            FILTER_VALIDATE_BOOLEAN
+        );
     }
 
     public function enqueueAssets(): void
@@ -55,7 +54,6 @@ class CookieBanner implements ModuleInterface
 
         wp_localize_script('wp-addon-cookie-banner', 'wpAddonCookieBanner', [
             'buttonMode' => $this->getButtonMode(),
-            'analyticsCode' => $this->getAnalyticsCode(),
             'storageKey' => 'cookie_consent',
             'dateKey' => 'cookie_consent_date',
         ]);
@@ -67,8 +65,9 @@ class CookieBanner implements ModuleInterface
         $buttonMode = $this->getButtonMode();
         $button1Text = $this->getButtonText(1);
         $button2Text = $this->getButtonText(2);
+        $defaults = $this->getDefaults();
         $text = $this->renderText(
-            (string) $this->optionService->getSetting('cookie_banner_text', __('🍪 Сайт использует cookie для работы и аналитики. {link1}', 'wp-addon')),
+            (string) $this->optionService->getSetting('cookie_banner_text', $defaults['cookie_banner_text']),
             $this->getLinks()
         );
 
@@ -82,7 +81,7 @@ class CookieBanner implements ModuleInterface
         >
             <div class="wp-addon-cookie-banner__inner">
                 <div class="wp-addon-cookie-banner__text">
-                    <?php echo $text; ?>
+                    <?php echo $this->formatBannerText($text); ?>
                 </div>
                 <div class="wp-addon-cookie-banner__actions">
                     <?php if ($buttonMode === 'two') { ?>
@@ -112,7 +111,35 @@ class CookieBanner implements ModuleInterface
                 </div>
             </div>
         </div>
+        <?php $this->renderAnalyticsTemplate(); ?>
         <?php
+    }
+
+    public function renderAnalyticsTemplate(): void
+    {
+        $analyticsCode = $this->getAnalyticsCode();
+
+        if ($analyticsCode === '') {
+            return;
+        }
+
+        echo '<template id="wp-addon-cookie-analytics-code" hidden>';
+        echo $analyticsCode;
+        echo '</template>';
+    }
+
+    public function getAnalyticsCode(): string
+    {
+        return trim((string) $this->optionService->getSetting('cookie_banner_analytics_code', ''));
+    }
+
+    public function formatBannerText(string $text): string
+    {
+        if (strpos($text, '🍪') === false) {
+            $text = '🍪 '.$text;
+        }
+
+        return $text;
     }
 
     public function renderText(string $template, array $links): string
@@ -146,9 +173,19 @@ class CookieBanner implements ModuleInterface
             : $text;
     }
 
+    private function getDefaults(): array
+    {
+        if (! function_exists('wp_addon_get_cookie_banner_defaults')) {
+            require_once dirname(__DIR__).'/src/Config/cookie-banner-defaults.php';
+        }
+
+        return wp_addon_get_cookie_banner_defaults();
+    }
+
     private function getPosition(): string
     {
-        $position = (string) $this->optionService->getSetting('cookie_banner_position', 'bottom-center');
+        $defaults = $this->getDefaults();
+        $position = (string) $this->optionService->getSetting('cookie_banner_position', $defaults['cookie_banner_position']);
 
         return in_array($position, ['bottom-center', 'bottom-left', 'bottom-right'], true)
             ? $position
@@ -157,57 +194,36 @@ class CookieBanner implements ModuleInterface
 
     private function getButtonMode(): string
     {
-        $mode = (string) $this->optionService->getSetting('cookie_banner_button_mode', 'two');
+        $defaults = $this->getDefaults();
+        $mode = (string) $this->optionService->getSetting('cookie_banner_button_mode', $defaults['cookie_banner_button_mode']);
 
         return $mode === 'one' ? 'one' : 'two';
     }
 
     private function getButtonText(int $number): string
     {
-        if ($number === 1) {
-            $default = $this->getButtonMode() === 'one'
-                ? __('Принять', 'wp-addon')
-                : __('Обязательные', 'wp-addon');
+        $defaults = $this->getDefaults();
 
-            return (string) $this->optionService->getSetting('cookie_banner_button_1_text', $default);
+        if ($number === 1) {
+            return (string) $this->optionService->getSetting('cookie_banner_button_1_text', $defaults['cookie_banner_button_1_text']);
         }
 
-        return (string) $this->optionService->getSetting('cookie_banner_button_2_text', __('Принять все', 'wp-addon'));
+        return (string) $this->optionService->getSetting('cookie_banner_button_2_text', $defaults['cookie_banner_button_2_text']);
     }
 
     private function getLinks(): array
     {
+        $defaults = $this->getDefaults();
+
         return [
             [
-                'text' => (string) $this->optionService->getSetting('cookie_banner_link_1_text', __('Подробнее', 'wp-addon')),
-                'url' => (string) $this->optionService->getSetting('cookie_banner_link_1_url', '/privacy-policy/'),
+                'text' => (string) $this->optionService->getSetting('cookie_banner_link_1_text', $defaults['cookie_banner_link_1_text']),
+                'url' => (string) $this->optionService->getSetting('cookie_banner_link_1_url', $defaults['cookie_banner_link_1_url']),
             ],
             [
-                'text' => (string) $this->optionService->getSetting('cookie_banner_link_2_text', ''),
-                'url' => (string) $this->optionService->getSetting('cookie_banner_link_2_url', ''),
+                'text' => (string) $this->optionService->getSetting('cookie_banner_link_2_text', $defaults['cookie_banner_link_2_text']),
+                'url' => (string) $this->optionService->getSetting('cookie_banner_link_2_url', $defaults['cookie_banner_link_2_url']),
             ],
         ];
-    }
-
-    private function getAnalyticsCode(): string
-    {
-        $default = "(function(m,e,t,r,i,k,a){\n"
-            ."  m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};\n"
-            ."  m[i].l=1*new Date();\n"
-            ."  for(var j=0;j<document.scripts.length;j++){\n"
-            ."    if(document.scripts[j].src===r){return;}\n"
-            ."  }\n"
-            ."  k=e.createElement(t),a=e.getElementsByTagName(t)[0];\n"
-            ."  k.async=1;k.src=r;a.parentNode.insertBefore(k,a)\n"
-            .'})(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");\n\n'
-            .'ym(21441994,"init",{\n'
-            .'  clickmap:true,\n'
-            .'  trackLinks:true,\n'
-            .'  accurateTrackBounce:true,\n'
-            .'  webvisor:true,\n'
-            .'  trackHash:true\n'
-            .'});';
-
-        return trim((string) $this->optionService->getSetting('cookie_banner_analytics_code', $default));
     }
 }
