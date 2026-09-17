@@ -1,0 +1,97 @@
+(function () {
+    'use strict';
+
+    var config = window.wpAddonCookieBanner || {};
+    var storageKey = config.storageKey || 'cookie_consent';
+    var dateKey = config.dateKey || 'cookie_consent_date';
+    var banner = document.getElementById('wp-addon-cookie-banner');
+
+    if (!banner) {
+        return;
+    }
+
+    function onReady(callback) {
+        if (document.readyState === 'complete') {
+            callback();
+            return;
+        }
+
+        window.addEventListener('load', callback, { once: true });
+    }
+
+    function loadAnalytics() {
+        if (!config.analyticsCode) {
+            return;
+        }
+
+        onReady(function () {
+            var script = document.createElement('script');
+            script.text = config.analyticsCode;
+            document.body.appendChild(script);
+        });
+    }
+
+    function shouldLoadAnalytics(consent) {
+        if (!consent) {
+            return false;
+        }
+
+        if (config.buttonMode === 'one') {
+            return consent === 'accepted';
+        }
+
+        return consent === 'all';
+    }
+
+    function hideBanner() {
+        banner.style.display = 'none';
+    }
+
+    function showBanner() {
+        banner.style.display = 'block';
+    }
+
+    function saveConsent(type) {
+        try {
+            localStorage.setItem(storageKey, type);
+            localStorage.setItem(dateKey, new Date().toISOString());
+        } catch (error) {
+            // Ignore storage errors in private mode.
+        }
+    }
+
+    function handleConsent(type) {
+        saveConsent(type);
+        hideBanner();
+
+        if (shouldLoadAnalytics(type)) {
+            loadAnalytics();
+        }
+    }
+
+    window.wpAddonCookieAccept = handleConsent;
+
+    var consent = null;
+
+    try {
+        consent = localStorage.getItem(storageKey);
+    } catch (error) {
+        consent = null;
+    }
+
+    if (!consent) {
+        showBanner();
+    } else if (shouldLoadAnalytics(consent)) {
+        loadAnalytics();
+    }
+
+    banner.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-cookie-consent]');
+
+        if (!button) {
+            return;
+        }
+
+        handleConsent(button.getAttribute('data-cookie-consent'));
+    });
+})();

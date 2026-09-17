@@ -183,6 +183,7 @@ class Plugin
             'PageCache' => [$this->optionService],
             'AssetMinification' => [$this->optionService],
             'LazyLoading' => [$this->optionService, $this->imageOptimizationService],
+            'CookieBanner' => [$this->optionService],
         ];
 
         $files = glob($this->dir.'functions/*.php') ?: [];

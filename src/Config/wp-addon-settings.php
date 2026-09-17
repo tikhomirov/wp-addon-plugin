@@ -767,6 +767,14 @@ class WP_Addon_Settings
             'fields' => require __DIR__.'/wp-widgets.php',
         ]);
 
+        // Cookie Banner
+        \CSF::createSection($prefix, [
+            'title' => __('Cookie Banner', 'wp-addon'),
+            'icon' => 'fa fa-cookie-bite',
+            'description' => __('Cookie consent banner with configurable text, links, button mode and deferred analytics loading.', 'wp-addon'),
+            'fields' => require_once __DIR__.'/cookie-banner.php',
+        ]);
+
         do_action('wp_addon_settings_section', $prefix);
 
         // Custom Code

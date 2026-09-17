@@ -1,0 +1,102 @@
+<?php
+
+return [
+    [
+        'id' => 'cookie_banner_enabled',
+        'type' => 'switcher',
+        'title' => __('Enable cookie banner', 'wp-addon'),
+        'desc' => __('Shows a cookie consent banner on the frontend.', 'wp-addon'),
+        'default' => true,
+    ],
+    [
+        'id' => 'cookie_banner_position',
+        'type' => 'select',
+        'title' => __('Banner position', 'wp-addon'),
+        'options' => [
+            'bottom-center' => __('Bottom center', 'wp-addon'),
+            'bottom-left' => __('Bottom left', 'wp-addon'),
+            'bottom-right' => __('Bottom right', 'wp-addon'),
+        ],
+        'default' => 'bottom-center',
+        'dependency' => ['cookie_banner_enabled', '==', 'true'],
+    ],
+    [
+        'id' => 'cookie_banner_text',
+        'type' => 'textarea',
+        'title' => __('Banner text', 'wp-addon'),
+        'desc' => __('Use {link1} and {link2} placeholders for links configured below.', 'wp-addon'),
+        'default' => __('🍪 Сайт использует cookie для работы и аналитики. {link1}', 'wp-addon'),
+        'dependency' => ['cookie_banner_enabled', '==', 'true'],
+    ],
+    [
+        'id' => 'cookie_banner_link_1_text',
+        'type' => 'text',
+        'title' => __('Link 1 text', 'wp-addon'),
+        'default' => __('Подробнее', 'wp-addon'),
+        'dependency' => ['cookie_banner_enabled', '==', 'true'],
+    ],
+    [
+        'id' => 'cookie_banner_link_1_url',
+        'type' => 'text',
+        'title' => __('Link 1 URL', 'wp-addon'),
+        'default' => '/privacy-policy/',
+        'dependency' => ['cookie_banner_enabled', '==', 'true'],
+    ],
+    [
+        'id' => 'cookie_banner_link_2_text',
+        'type' => 'text',
+        'title' => __('Link 2 text', 'wp-addon'),
+        'default' => '',
+        'dependency' => ['cookie_banner_enabled', '==', 'true'],
+    ],
+    [
+        'id' => 'cookie_banner_link_2_url',
+        'type' => 'text',
+        'title' => __('Link 2 URL', 'wp-addon'),
+        'default' => '',
+        'dependency' => ['cookie_banner_enabled', '==', 'true'],
+    ],
+    [
+        'id' => 'cookie_banner_button_mode',
+        'type' => 'select',
+        'title' => __('Buttons mode', 'wp-addon'),
+        'desc' => __('In two-button mode analytics code is loaded only after accepting all cookies.', 'wp-addon'),
+        'options' => [
+            'one' => __('One button (accept)', 'wp-addon'),
+            'two' => __('Two buttons (essential / accept all)', 'wp-addon'),
+        ],
+        'default' => 'two',
+        'dependency' => ['cookie_banner_enabled', '==', 'true'],
+    ],
+    [
+        'id' => 'cookie_banner_button_1_text',
+        'type' => 'text',
+        'title' => __('Button 1 text', 'wp-addon'),
+        'desc' => __('For one-button mode this is the accept button. For two-button mode this is the essential-only button.', 'wp-addon'),
+        'default' => __('Обязательные', 'wp-addon'),
+        'dependency' => ['cookie_banner_enabled', '==', 'true'],
+    ],
+    [
+        'id' => 'cookie_banner_button_2_text',
+        'type' => 'text',
+        'title' => __('Button 2 text', 'wp-addon'),
+        'default' => __('Принять все', 'wp-addon'),
+        'dependency' => [
+            ['cookie_banner_enabled', '==', 'true'],
+            ['cookie_banner_button_mode', '==', 'two'],
+        ],
+    ],
+    [
+        'id' => 'cookie_banner_analytics_code',
+        'type' => 'code_editor',
+        'title' => __('Analytics code', 'wp-addon'),
+        'desc' => __('JavaScript executed after the user accepts analytics cookies. Leave empty to disable analytics loading.', 'wp-addon'),
+        'settings' => [
+            'theme' => 'monokai',
+            'mode' => 'javascript',
+        ],
+        'default' => "(function(m,e,t,r,i,k,a){\n  m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};\n  m[i].l=1*new Date();\n  for(var j=0;j<document.scripts.length;j++){\n    if(document.scripts[j].src===r){return;}\n  }\n  k=e.createElement(t),a=e.getElementsByTagName(t)[0];\n  k.async=1;k.src=r;a.parentNode.insertBefore(k,a)\n})(window,document,\"script\",\"https://mc.yandex.ru/metrika/tag.js\",\"ym\");\n\nym(21441994,\"init\",{\n  clickmap:true,\n  trackLinks:true,\n  accurateTrackBounce:true,\n  webvisor:true,\n  trackHash:true\n});",
+        'sanitize' => false,
+        'dependency' => ['cookie_banner_enabled', '==', 'true'],
+    ],
+];
