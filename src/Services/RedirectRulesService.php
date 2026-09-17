@@ -5,7 +5,6 @@ namespace WpAddon\Services;
 class RedirectRulesService
 {
     /**
-     * @param  mixed  $rules
      * @return array<int, array{request: string, destination: string}>
      */
     public static function normalizeRules(mixed $rules): array
@@ -38,7 +37,6 @@ class RedirectRulesService
     }
 
     /**
-     * @param  mixed  $rules
      * @return array<string, string>
      */
     public static function toMap(mixed $rules): array

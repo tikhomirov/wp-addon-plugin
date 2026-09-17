@@ -1,5 +1,7 @@
 <?php
 
+use functions\users\UserFilter;
+
 require_once dirname(__DIR__, 2).'/functions/main-settings-helpers.php';
 
 describe('main settings helper extensions', function () {
@@ -96,7 +98,7 @@ describe('UserFilter sanitization', function () {
         $_GET['role_filter'] = '1';
         $_GET['role'] = 'editor';
 
-        $filter = new functions\users\UserFilter;
+        $filter = new UserFilter;
         $filter->filter_users_by_role_section($query);
 
         expect($query->query_vars['role'] ?? null)->toBe('editor');
@@ -107,7 +109,7 @@ describe('UserFilter sanitization', function () {
         $_GET['role_filter'] = '1';
         $_GET['role'] = '<script>';
 
-        $filter = new functions\users\UserFilter;
+        $filter = new UserFilter;
         $filter->filter_users_by_role_section($query);
 
         expect($query->query_vars['role'] ?? null)->toBeNull();

@@ -10,7 +10,6 @@ if (! function_exists('absint')) {
 /**
  * Testable helpers for "General Settings" options.
  */
-
 function wp_addon_main_settings(): array
 {
     $settings = get_option('wp-addon', []);

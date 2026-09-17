@@ -765,7 +765,8 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         {
             global $mock_wp_roles;
 
-            return new class ($mock_wp_roles ?? ['administrator' => 'Administrator']) {
+            return new class($mock_wp_roles ?? ['administrator' => 'Administrator'])
+            {
                 /** @var array<string, string> */
                 private array $roles;
 
