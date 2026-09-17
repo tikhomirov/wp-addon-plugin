@@ -1,6 +1,6 @@
 {
   "name": "rwsite/wp-addon-plugin",
-  "description": "Massive Addon for WordPress;",
+    "description": "Performance, security, and admin enhancements for WordPress 6.6+ — WP Tweaker (48 toggles), redirects, cookie banner, Markdown editor, and plugin catalog.",
   "license": "MIT",
   "type": "wordpress-plugin",
   "authors": [
