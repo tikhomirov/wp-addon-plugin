@@ -484,7 +484,7 @@ class WP_Addon_Settings
         \CSF::createSection($prefix, [
             'title' => __('Cache', 'wp-addon'),
             'icon' => 'fa fa-database',
-            'description' => __('Page caching saves ready HTML pages to a file. When a user visits the site, instead of executing PHP code and database queries, they are shown the saved page immediately. This speeds up site loading by 5-10 times.<br><br><strong>When to use:</strong> On a finished site with high traffic. <strong>When to disable:</strong> During development or if content changes frequently.<br><br><strong>Important:</strong> Cached pages are stored in the wp-content/cache/pages/ folder as .gz files.', 'wp-addon'),
+            'description' => __('Page caching saves ready HTML and gzip files. Apache rules are installed automatically. For Nginx, include the generated wp-content/cache/pages/nginx.conf file inside the HTTPS server block and reload Nginx. Disable other full-page cache plugins to avoid conflicts.', 'wp-addon'),
             'fields' => [
                 [
                     'id' => 'cache_enabled',
@@ -497,7 +497,7 @@ class WP_Addon_Settings
                     'id' => 'cache_ttl',
                     'type' => 'number',
                     'title' => __('Cache lifetime (seconds)', 'wp-addon'),
-                    'desc' => __('How many seconds to store the cached page. After this time, the page will be recreated. For a news site - 1800 sec (30 min). For static - 3600 sec (1 hour).', 'wp-addon'),
+                    'desc' => __('How long browsers may reuse a cached page. Cached files are also purged automatically whenever posts, terms, comments, menus, widgets or theme settings change. The recommended default is 3600 seconds.', 'wp-addon'),
                     'default' => 3600,
                     'min' => 300,
                     'max' => 86400,
@@ -514,7 +514,7 @@ class WP_Addon_Settings
                     'type' => 'textarea',
                     'title' => __('Do not cache these pages', 'wp-addon'),
                     'desc' => __('Pages that change frequently and should not be cached. One line - one URL. Examples: /wp-admin/ (admin), /checkout/ (checkout), /cart/ (cart), /my-account/ (personal account).', 'wp-addon'),
-                    'default' => "/wp-admin/\n/wp-login.php\n/checkout/\n/cart/",
+                    'default' => "/wp-admin/\n/wp-login.php\n/wp-json/\n/xmlrpc.php\n/cart/\n/checkout/\n/my-account/",
                 ],
                 [
                     'id' => 'cache_preload_pages',

@@ -3,6 +3,7 @@
 use WpAddon\Interfaces\ModuleInterface;
 use WpAddon\Services\CacheService;
 use WpAddon\Services\OptionService;
+use WpAddon\Services\PageCacheNginxService;
 use WpAddon\Services\PageCacheRewriteService;
 
 class PageCache implements ModuleInterface
@@ -13,6 +14,8 @@ class PageCache implements ModuleInterface
 
     private PageCacheRewriteService $rewriteService;
 
+    private PageCacheNginxService $nginxService;
+
     private array $config;
 
     public function __construct(OptionService $optionService)
@@ -21,6 +24,7 @@ class PageCache implements ModuleInterface
         $this->loadConfig();
         $this->cache = new CacheService($this->config['cache_dir'], $this->config['ttl']);
         $this->rewriteService = new PageCacheRewriteService;
+        $this->nginxService = new PageCacheNginxService;
     }
 
     public function init(): void
@@ -47,7 +51,11 @@ class PageCache implements ModuleInterface
             return;
         }
 
-        if ($this->rewriteService->sync($this->config['cache_dir'], $this->config['ttl'])) {
+        $cacheUrlPath = $this->getCacheUrlPath();
+        $nginxSynced = $this->nginxService->sync($this->config['cache_dir'], $cacheUrlPath, $this->config['ttl']);
+        $apacheSynced = $this->isNginx() || $this->rewriteService->sync($this->config['cache_dir'], $this->config['ttl']);
+
+        if ($nginxSynced && $apacheSynced) {
             update_option('wp_addon_page_cache_rules', $version, false);
         }
     }
@@ -315,6 +323,23 @@ class PageCache implements ModuleInterface
         }
 
         return array_slice(array_values(array_unique($pages)), 0, 10);
+    }
+
+    private function getCacheUrlPath(): string
+    {
+        $contentDirectory = trailingslashit(wp_normalize_path(WP_CONTENT_DIR));
+        $cacheDirectory = trailingslashit(wp_normalize_path($this->config['cache_dir']));
+        $relativeDirectory = str_starts_with($cacheDirectory, $contentDirectory)
+            ? trim(substr($cacheDirectory, strlen($contentDirectory)), '/')
+            : 'cache/pages';
+        $contentPath = trim((string) wp_parse_url(content_url(), PHP_URL_PATH), '/');
+
+        return '/'.trim($contentPath.'/'.$relativeDirectory, '/');
+    }
+
+    private function isNginx(): bool
+    {
+        return stripos((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''), 'nginx') !== false;
     }
 
     private function normalizeLines(string $value): array
