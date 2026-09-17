@@ -30,6 +30,8 @@ class PageCache implements ModuleInterface
     public function init(): void
     {
         add_action('wp_ajax_wp_addon_clear_page_cache', [$this, 'clearCacheAjax']);
+        add_action('admin_post_wp_addon_clear_page_cache', [$this, 'clearCacheFromAdminBar']);
+        add_action('admin_bar_menu', [$this, 'addAdminBarMenu'], 90);
 
         if (! $this->config['enabled']) {
             return;
@@ -120,6 +122,34 @@ class PageCache implements ModuleInterface
         wp_send_json_success(['message' => 'Page cache cleared.']);
     }
 
+    public function addAdminBarMenu(WP_Admin_Bar $adminBar): void
+    {
+        if (! current_user_can('manage_options')) {
+            return;
+        }
+
+        $adminBar->add_node([
+            'id' => 'wp-addon-clear-page-cache',
+            'parent' => false,
+            'title' => 'Clear page cache',
+            'href' => wp_nonce_url(admin_url('admin-post.php?action=wp_addon_clear_page_cache'), 'wp_addon_page_cache'),
+            'meta' => ['title' => 'Clear page cache'],
+        ]);
+    }
+
+    public function clearCacheFromAdminBar(): void
+    {
+        check_admin_referer('wp_addon_page_cache');
+        if (! current_user_can('manage_options')) {
+            wp_die('Forbidden', '', ['response' => 403]);
+        }
+
+        $this->cache->clearCache();
+        $redirect = wp_get_referer() ?: admin_url();
+        wp_safe_redirect(add_query_arg('wp_addon_page_cache_cleared', '1', $redirect));
+        exit;
+    }
+
     public function doPreload(): void
     {
         foreach ($this->getPreloadPages() as $url) {
@@ -168,9 +198,10 @@ class PageCache implements ModuleInterface
         $server = stripos((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''), 'nginx') !== false ? 'Nginx' : 'Apache';
         $htaccess = function_exists('get_home_path') ? get_home_path().'.htaccess' : ABSPATH.'.htaccess';
         $htaccessStatus = is_file($htaccess) && str_contains((string) file_get_contents($htaccess), '# BEGIN WP Addon Page Cache') ? 'active' : 'not installed';
-        $nginxConfig = trailingslashit($defaults['cache_dir']).'nginx.conf';
+        $cacheDirectory = rtrim($defaults['cache_dir'], '/\\').'/';
+        $nginxConfig = $cacheDirectory.'nginx.conf';
         $delivery = $server === 'Nginx' ? (is_file($nginxConfig) ? 'configuration generated; include and reload required' : 'configuration not generated') : $htaccessStatus;
-        $cacheFiles = glob(trailingslashit($defaults['cache_dir']).'*/*/index.html') ?: [];
+        $cacheFiles = glob($cacheDirectory.'*/*/index.html') ?: [];
         $nonce = wp_create_nonce('wp_addon_page_cache');
 
         return '<dl style="display:grid;grid-template-columns:max-content 1fr;gap:6px 16px">'
@@ -180,7 +211,7 @@ class PageCache implements ModuleInterface
             .'<dt>Nginx config</dt><dd><code>'.esc_html($nginxConfig).'</code></dd>'
             .'<dt>Cached pages</dt><dd><code>'.count($cacheFiles).'</code></dd>'
             .'</dl><button type="button" class="button" id="wp-addon-clear-page-cache">Clear page cache</button> <span id="wp-addon-page-cache-result"></span>'
-            .'<script>jQuery(function($){$("#wp-addon-clear-page-cache").on("click",function(){var button=$(this),result=$("#wp-addon-page-cache-result");button.prop("disabled",true);result.text("…");$.post(ajaxurl,{action:"wp_addon_clear_page_cache",nonce:"'.esc_js($nonce).'"}).done(function(response){result.text(response.data&&response.data.message?response.data.message:"Done");}).fail(function(){result.text("Error");}).always(function(){button.prop("disabled",false);});});});</script>';
+            .'<script>jQuery(function($){$("#wp-addon-clear-page-cache").on("click",function(){var button=$(this),result=$("#wp-addon-page-cache-result");button.prop("disabled",true);result.text("…");$.post(ajaxurl,{action:"wp_addon_clear_page_cache",nonce:"'.esc_attr($nonce).'"}).done(function(response){result.text(response.data&&response.data.message?response.data.message:"Done");}).fail(function(){result.text("Error");}).always(function(){button.prop("disabled",false);});});});</script>';
     }
 
     private function loadConfig(): void
