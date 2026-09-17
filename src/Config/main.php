@@ -247,6 +247,12 @@ $fields['seo'] = [
             false,
             __('Adds meta robots noindex on every page of the site. Use on test or staging hosts so search engines do not index a draft site. Different from Tweaks "Noindex for search, attachment and date archives", which only targets low-value archive pages.', 'wp-addon')
         ),
+        wpmain_switcher(
+            'rank_math_whitelabel',
+            __('Rank Math: whitelabel / remove credits', 'wp-addon'),
+            true,
+            __('Hides Rank Math branding in admin and removes credit comments from the page source and XML sitemaps. Enabled by default; works only when Rank Math is active. Does not unlock Pro features.', 'wp-addon')
+        ),
     ],
 ];
 
