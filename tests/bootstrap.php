@@ -319,10 +319,73 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         }
     }
 
+    if (! function_exists('remove_action')) {
+        function remove_action($tag, $callback, $priority = 10)
+        {
+            // Mock remove_action - do nothing
+        }
+    }
+
+    if (! function_exists('add_filter')) {
+        function add_filter($tag, $callback, $priority = 10, $accepted_args = 1)
+        {
+            // Mock add_filter - do nothing
+        }
+    }
+
+    if (! function_exists('wp_dequeue_style')) {
+        function wp_dequeue_style($handle)
+        {
+            // Mock wp_dequeue_style - do nothing
+        }
+    }
+
     if (! function_exists('is_admin')) {
         function is_admin()
         {
+            global $mock_is_admin;
+
+            if (isset($mock_is_admin)) {
+                return (bool) $mock_is_admin;
+            }
+
             return false;
+        }
+    }
+
+    if (! function_exists('is_search')) {
+        function is_search()
+        {
+            global $mock_is_search;
+
+            return (bool) ($mock_is_search ?? false);
+        }
+    }
+
+    if (! function_exists('is_attachment')) {
+        function is_attachment()
+        {
+            global $mock_is_attachment;
+
+            return (bool) ($mock_is_attachment ?? false);
+        }
+    }
+
+    if (! function_exists('is_date')) {
+        function is_date()
+        {
+            global $mock_is_date;
+
+            return (bool) ($mock_is_date ?? false);
+        }
+    }
+
+    if (! function_exists('is_author')) {
+        function is_author()
+        {
+            global $mock_is_author;
+
+            return (bool) ($mock_is_author ?? false);
         }
     }
 
@@ -557,10 +620,76 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         }
     }
 
+    if (! defined('MINUTE_IN_SECONDS')) {
+        define('MINUTE_IN_SECONDS', 60);
+    }
+
+    if (! defined('HOUR_IN_SECONDS')) {
+        define('HOUR_IN_SECONDS', 60 * MINUTE_IN_SECONDS);
+    }
+
+    if (! defined('DAY_IN_SECONDS')) {
+        define('DAY_IN_SECONDS', 24 * HOUR_IN_SECONDS);
+    }
+
+    if (! defined('YEAR_IN_SECONDS')) {
+        define('YEAR_IN_SECONDS', 365 * DAY_IN_SECONDS);
+    }
+
+    if (! class_exists('WP_Error')) {
+        class WP_Error
+        {
+            public string $code;
+
+            public string $message;
+
+            public mixed $data;
+
+            public function __construct($code = '', $message = '', $data = '')
+            {
+                $this->code = (string) $code;
+                $this->message = (string) $message;
+                $this->data = $data;
+            }
+
+            public function get_error_code(): string
+            {
+                return $this->code;
+            }
+
+            public function get_error_message(): string
+            {
+                return $this->message;
+            }
+
+            public function get_error_data($code = '')
+            {
+                if ($code === '' || $code === $this->code) {
+                    return $this->data;
+                }
+
+                return null;
+            }
+        }
+    }
+
+    if (! function_exists('is_wp_error')) {
+        function is_wp_error($thing)
+        {
+            return $thing instanceof WP_Error;
+        }
+    }
+
     if (! function_exists('current_user_can')) {
         function current_user_can($capability)
         {
-            return true; // Assume admin for tests
+            global $mock_user_capabilities;
+
+            if (is_array($mock_user_capabilities)) {
+                return in_array($capability, $mock_user_capabilities, true);
+            }
+
+            return true;
         }
     }
 
@@ -586,20 +715,159 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
     if (! function_exists('is_user_logged_in')) {
         function is_user_logged_in()
         {
+            global $mock_is_user_logged_in;
+
+            if (isset($mock_is_user_logged_in)) {
+                return (bool) $mock_is_user_logged_in;
+            }
+
             return true;
+        }
+    }
+
+    if (! class_exists('WP_User')) {
+        class WP_User
+        {
+            public int $ID = 0;
+
+            /** @var array<int, string> */
+            public array $roles = [];
         }
     }
 
     if (! function_exists('wp_get_current_user')) {
         function wp_get_current_user()
         {
-            return (object) [
-                'ID' => 1,
-                'user_login' => 'testuser',
-                'user_email' => 'test@example.com',
-                'display_name' => 'Test User',
-                'roles' => ['administrator'],
+            global $mock_wp_current_user;
+
+            if ($mock_wp_current_user instanceof WP_User) {
+                return $mock_wp_current_user;
+            }
+
+            if (is_object($mock_wp_current_user)) {
+                $user = new WP_User;
+                $user->ID = (int) ($mock_wp_current_user->ID ?? 0);
+                $user->roles = (array) ($mock_wp_current_user->roles ?? []);
+
+                return $user;
+            }
+
+            $user = new WP_User;
+            $user->ID = 1;
+            $user->roles = ['administrator'];
+
+            return $user;
+        }
+    }
+
+    if (! function_exists('wp_roles')) {
+        function wp_roles()
+        {
+            global $mock_wp_roles;
+
+            return new class ($mock_wp_roles ?? ['administrator' => 'Administrator']) {
+                /** @var array<string, string> */
+                private array $roles;
+
+                public function __construct(array $roles)
+                {
+                    $this->roles = $roles;
+                }
+
+                public function get_names(): array
+                {
+                    return $this->roles;
+                }
+            };
+        }
+    }
+
+    if (! function_exists('rest_is_ip_address')) {
+        function rest_is_ip_address($ip)
+        {
+            return filter_var($ip, FILTER_VALIDATE_IP) !== false ? $ip : false;
+        }
+    }
+
+    if (! class_exists('WP_Post_Type')) {
+        class WP_Post_Type
+        {
+            public string $name = '';
+
+            public string $label = '';
+
+            public object $labels;
+        }
+    }
+
+    if (! class_exists('WP_Term')) {
+        class WP_Term
+        {
+            public int $term_id = 0;
+
+            public string $name = '';
+        }
+    }
+
+    if (! function_exists('get_post_types')) {
+        function get_post_types($args = [], $output = 'names')
+        {
+            global $mock_post_types;
+
+            $types = $mock_post_types ?? [
+                'post' => (object) ['name' => 'post', 'label' => 'Posts', 'labels' => (object) ['name' => 'Posts']],
+                'page' => (object) ['name' => 'page', 'label' => 'Pages', 'labels' => (object) ['name' => 'Pages']],
             ];
+
+            if ($output === 'objects') {
+                return $types;
+            }
+
+            return array_keys($types);
+        }
+    }
+
+    if (! function_exists('get_categories')) {
+        function get_categories($args = [])
+        {
+            global $mock_categories;
+
+            return $mock_categories ?? [];
+        }
+    }
+
+    if (! function_exists('shortcode_exists')) {
+        function shortcode_exists($tag)
+        {
+            return false;
+        }
+    }
+
+    if (! function_exists('add_shortcode')) {
+        function add_shortcode($tag, $callback)
+        {
+            return true;
+        }
+    }
+
+    if (! function_exists('do_shortcode')) {
+        function do_shortcode($content)
+        {
+            return $content;
+        }
+    }
+
+    if (! function_exists('wp_unslash')) {
+        function wp_unslash($value)
+        {
+            return is_string($value) ? stripslashes($value) : $value;
+        }
+    }
+
+    if (! function_exists('sanitize_key')) {
+        function sanitize_key($key)
+        {
+            return preg_replace('/[^a-z0-9_\-]/', '', strtolower((string) $key));
         }
     }
 
@@ -661,10 +929,73 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         }
     }
 
+    if (! function_exists('remove_action')) {
+        function remove_action($tag, $callback, $priority = 10)
+        {
+            // Mock remove_action - do nothing
+        }
+    }
+
+    if (! function_exists('add_filter')) {
+        function add_filter($tag, $callback, $priority = 10, $accepted_args = 1)
+        {
+            // Mock add_filter - do nothing
+        }
+    }
+
+    if (! function_exists('wp_dequeue_style')) {
+        function wp_dequeue_style($handle)
+        {
+            // Mock wp_dequeue_style - do nothing
+        }
+    }
+
     if (! function_exists('is_admin')) {
         function is_admin()
         {
+            global $mock_is_admin;
+
+            if (isset($mock_is_admin)) {
+                return (bool) $mock_is_admin;
+            }
+
             return false;
+        }
+    }
+
+    if (! function_exists('is_search')) {
+        function is_search()
+        {
+            global $mock_is_search;
+
+            return (bool) ($mock_is_search ?? false);
+        }
+    }
+
+    if (! function_exists('is_attachment')) {
+        function is_attachment()
+        {
+            global $mock_is_attachment;
+
+            return (bool) ($mock_is_attachment ?? false);
+        }
+    }
+
+    if (! function_exists('is_date')) {
+        function is_date()
+        {
+            global $mock_is_date;
+
+            return (bool) ($mock_is_date ?? false);
+        }
+    }
+
+    if (! function_exists('is_author')) {
+        function is_author()
+        {
+            global $mock_is_author;
+
+            return (bool) ($mock_is_author ?? false);
         }
     }
 
@@ -714,6 +1045,13 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         function __($text, $domain = 'default')
         {
             return $text;
+        }
+    }
+
+    if (! function_exists('esc_html__')) {
+        function esc_html__($text, $domain = 'default')
+        {
+            return esc_html($text);
         }
     }
 }

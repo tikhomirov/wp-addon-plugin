@@ -1,83 +1,72 @@
+(function () {
+    tinymce.PluginManager.add('bootstrap', function (editor) {
+        function insert(content) {
+            editor.insertContent(content);
+        }
 
-var selection = window.getSelection().toString();
-//console.log(selection);
+        function wrapSelection(html) {
+            if (typeof tinyMCE !== 'undefined' && tinyMCE.activeEditor && tinyMCE.activeEditor.selection) {
+                tinyMCE.activeEditor.selection.setContent(html);
+                return;
+            }
 
-(function() {
-    tinymce.PluginManager.add('bootstrap', function( editor, url ) { // id кнопки true_mce_button должен быть везде один и тот же
+            insert(html);
+        }
 
-        editor.addButton( 'bootstrap', { // id кнопки true_mce_button
-            icon:  'bootstrap', // мой собственный CSS класс, благодаря которому я задам иконку кнопки
-            type:  'menubutton', // unic type
-            text:  'Bootstrap 3',
-            title: 'Bootstrap shortcode (v3)', // всплывающая подсказка при наведении
-            menu: [ // тут начинается первый выпадающий список
-                /* {
-                     text: 'Элементы форм',
-                     menu: [ // тут начинается второй выпадающий список внутри первого
-                         {
-                             text: 'Разделитель',
-                             onclick: function() {
-                                 editor.windowManager.open( {
-                                     title: 'Задайте параметры поля',
-                                     body: [
-                                         {
-                                             type: 'textbox', // тип textbox = текстовое поле
-                                             name: 'textboxName', // ID, будет использоваться ниже
-                                             label: 'ID и name текстового поля', // лейбл
-                                             value: 'comment' // значение по умолчанию
-                                         },
-                                         {
-                                             type: 'textbox', // тип textbox = текстовое поле
-                                             name: 'multilineName',
-                                             label: 'Значение текстового поля по умолчанию',
-                                             value: 'Привет',
-                                             multiline: true, // большое текстовое поле - textarea
-                                             minWidth: 300, // минимальная ширина в пикселях
-                                             minHeight: 100 // минимальная высота в пикселях
-                                         },
-                                         {
-                                             type: 'listbox', // тип listbox = выпадающий список select
-                                             name: 'listboxName',
-                                             label: 'Заполнение',
-                                             'values': [ // значения выпадающего списка
-                                                 {text: 'Обязательное', value: '1'}, // лейбл, значение
-                                                 {text: 'Необязательное', value: '2'}
-                                             ]
-                                         }
-                                     ],
-                                     onsubmit: function( e ) { // это будет происходить после заполнения полей и нажатии кнопки отправки
-                                         editor.insertContent( '[textarea id="' + e.data.textboxName + '" value="' + e.data.multilineName + '" required="' + e.data.listboxName + '"]');
-                                     }
-                                 });
-                             }
-                         },
-                     ]
-                 },
-                 { // второй элемент первого выпадающего списка, просто вставляет [misha]
-                     text: 'Шорткод [misha]',
-                     onclick: function() {
-                         editor.insertContent('[misha]');
-                     }
-                 },*/
+        editor.addButton('bootstrap', {
+            icon: 'bootstrap',
+            type: 'menubutton',
+            text: 'Bootstrap 3',
+            title: 'Bootstrap 3 shortcodes',
+            menu: [
                 {
                     text: 'Dividers',
                     menu: [
-                        { // второй элемент вложенного выпадающего списка, прост вставляет шорткод [button]
+                        {
                             text: 'Divider Full',
                             onclick: function () {
-                                editor.insertContent('<hr />');
+                                insert('<hr />');
                             }
                         },
-                        { // второй элемент вложенного выпадающего списка, прост вставляет шорткод [button]
+                        {
                             text: 'Divider Short',
                             onclick: function () {
-                                editor.insertContent('<hr class="short">');
+                                insert('<hr class="short">');
                             }
                         },
-                        { // второй элемент вложенного выпадающего списка, прост вставляет шорткод [button]
+                        {
                             text: 'Divider Dashed',
                             onclick: function () {
-                                editor.insertContent('<hr class="dashed">');
+                                insert('<hr class="dashed">');
+                            }
+                        }
+                    ]
+                },
+                {
+                    text: 'Typography',
+                    menu: [
+                        {
+                            text: 'Lead paragraph',
+                            onclick: function () {
+                                wrapSelection('<p class="lead">Lead paragraph text</p>');
+                            }
+                        },
+                        {
+                            text: 'Blockquote',
+                            onclick: function () {
+                                wrapSelection('<blockquote><p>Quote text</p><footer>Author</footer></blockquote>');
+                            }
+                        },
+                        {
+                            text: 'Label default',
+                            onclick: function () {
+                                insert('<span class="label label-default">Label</span>');
+                            }
+                        },
+                        {
+                            text: 'Badge',
+                            onclick: function () {
+                                insert('<span class="badge">1</span>');
                             }
                         }
                     ]
@@ -87,53 +76,158 @@ var selection = window.getSelection().toString();
                     menu: [
                         {
                             text: 'Check List',
-                            /*onclick: function (e) {
-                                editor.insertContent('<ul class="list list-style-check"><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul>');
-                            },*/
-                            onclick: function(e) {
-                                tinyMCE.activeEditor.selection.setContent('<ul class="list list-style-check"><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul>');
-                            },
+                            onclick: function () {
+                                wrapSelection('<ul class="list list-style-check"><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul>');
+                            }
                         },
                         {
                             text: 'Star list',
-                            onclick: function (e) {
-                                editor.insertContent('<ul class="list list-style-star"><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul>');
+                            onclick: function () {
+                                insert('<ul class="list list-style-star"><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul>');
                             }
                         }
                     ]
                 },
                 {
-                    text: 'Columns',
+                    text: 'Grid',
                     menu: [
                         {
-                            text: 'Columns 2',
-                            onclick: function(e) {
-                                tinyMCE.activeEditor.selection.setContent('<div class="row"><div class="col-sm-6">Column 1</div><div class="col-md-6">Column 2</div></div>');
-                            },
-                        },
-                        {
-                            text: 'Columns 3',
-                            onclick: function (e) {
-                                editor.insertContent('<div class="row"><div class="col-sm-4">Column 1</div><div class="col-sm-4">Column 2</div><div class="col-sm-4">Column 3</div></div>');
+                            text: '2 columns',
+                            onclick: function () {
+                                wrapSelection('<div class="row"><div class="col-sm-6">Column 1</div><div class="col-sm-6">Column 2</div></div>');
                             }
                         },
                         {
-                            text: 'Columns 4',
-                            onclick: function (e) {
-                                editor.insertContent('<div class="row"><div class="col-sm-3">Column 1</div><div class="col-sm-3">Column 2</div><div class="col-sm-3">Column 3</div><div class="col-md-3">Column 4</div></div>');
+                            text: '3 columns',
+                            onclick: function () {
+                                insert('<div class="row"><div class="col-sm-4">Column 1</div><div class="col-sm-4">Column 2</div><div class="col-sm-4">Column 3</div></div>');
+                            }
+                        },
+                        {
+                            text: '4 columns',
+                            onclick: function () {
+                                insert('<div class="row"><div class="col-sm-3">Column 1</div><div class="col-sm-3">Column 2</div><div class="col-sm-3">Column 3</div><div class="col-sm-3">Column 4</div></div>');
+                            }
+                        },
+                        {
+                            text: 'Sidebar layout (8/4)',
+                            onclick: function () {
+                                insert('<div class="row"><div class="col-sm-8">Main content</div><div class="col-sm-4">Sidebar</div></div>');
                             }
                         }
                     ]
+                },
+                {
+                    text: 'Buttons',
+                    menu: [
+                        {
+                            text: 'Default button',
+                            onclick: function () {
+                                insert('<a class="btn btn-default" href="#">Button</a>');
+                            }
+                        },
+                        {
+                            text: 'Primary button',
+                            onclick: function () {
+                                insert('<a class="btn btn-primary" href="#">Button</a>');
+                            }
+                        },
+                        {
+                            text: 'Success button',
+                            onclick: function () {
+                                insert('<a class="btn btn-success" href="#">Button</a>');
+                            }
+                        },
+                        {
+                            text: 'Button group',
+                            onclick: function () {
+                                insert('<div class="btn-group" role="group"><a class="btn btn-default" href="#">Left</a><a class="btn btn-default" href="#">Middle</a><a class="btn btn-default" href="#">Right</a></div>');
+                            }
+                        }
+                    ]
+                },
+                {
+                    text: 'Alerts',
+                    menu: [
+                        {
+                            text: 'Info alert',
+                            onclick: function () {
+                                insert('<div class="alert alert-info" role="alert"><strong>Info:</strong> Message text.</div>');
+                            }
+                        },
+                        {
+                            text: 'Success alert',
+                            onclick: function () {
+                                insert('<div class="alert alert-success" role="alert"><strong>Success:</strong> Message text.</div>');
+                            }
+                        },
+                        {
+                            text: 'Warning alert',
+                            onclick: function () {
+                                insert('<div class="alert alert-warning" role="alert"><strong>Warning:</strong> Message text.</div>');
+                            }
+                        },
+                        {
+                            text: 'Danger alert',
+                            onclick: function () {
+                                insert('<div class="alert alert-danger" role="alert"><strong>Error:</strong> Message text.</div>');
+                            }
+                        }
+                    ]
+                },
+                {
+                    text: 'Panels',
+                    menu: [
+                        {
+                            text: 'Default panel',
+                            onclick: function () {
+                                insert('<div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title">Panel title</h3></div><div class="panel-body">Panel content</div></div>');
+                            }
+                        },
+                        {
+                            text: 'Primary panel',
+                            onclick: function () {
+                                insert('<div class="panel panel-primary"><div class="panel-heading"><h3 class="panel-title">Panel title</h3></div><div class="panel-body">Panel content</div></div>');
+                            }
+                        }
+                    ]
+                },
+                {
+                    text: 'Wells',
+                    menu: [
+                        {
+                            text: 'Default well',
+                            onclick: function () {
+                                wrapSelection('<div class="well">Well content</div>');
+                            }
+                        },
+                        {
+                            text: 'Large well',
+                            onclick: function () {
+                                wrapSelection('<div class="well well-lg">Large well content</div>');
+                            }
+                        },
+                        {
+                            text: 'Small well',
+                            onclick: function () {
+                                wrapSelection('<div class="well well-sm">Small well content</div>');
+                            }
+                        }
+                    ]
+                },
+                {
+                    text: 'Jumbotron',
+                    onclick: function () {
+                        insert('<div class="jumbotron"><h1>Heading</h1><p>Lead copy for a simple hero unit.</p><p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a></p></div>');
+                    }
                 },
                 {
                     text: 'FAQ',
-                    onclick: function (e) {
-                        editor.insertContent('[faq]\n' +
-                            '[question title="Вопрос 1"] ответ 1... [/question]\n' +
-                            '[question title="Вопрос 2"] ответ 2... [/question]\n' +
-                            '[question title="Вопрос 3"] ответ 3... [/question]\n' +
-                            '[question title="Вопрос 4"] ответ 4... [/question]\n' +
-                            '[question title="Вопрос 5"] ответ 5... [/question]\n' +
+                    onclick: function () {
+                        insert('[faq]\n' +
+                            '[question title="Question 1"] Answer 1... [/question]\n' +
+                            '[question title="Question 2"] Answer 2... [/question]\n' +
+                            '[question title="Question 3"] Answer 3... [/question]\n' +
                             '[/faq]');
                     }
                 }

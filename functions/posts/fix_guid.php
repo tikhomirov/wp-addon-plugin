@@ -25,7 +25,7 @@ function write_right_guid()
 
 function fix_guid()
 {
-    add_filter('admin_menu', function () {
+    add_filter('admin_menu', static function () {
         add_options_page(
             __('Guid repair', 'wp-addon'),
             __('Guid repair', 'wp-addon'),
@@ -37,39 +37,55 @@ function fix_guid()
 
     function krg_admin_page()
     {
-        $url = $_SERVER['REQUEST_URI'];
-        $url = preg_replace('@&krg=.*@', '', $url);
+        if (! current_user_can('manage_options')) {
+            wp_die(esc_html__('You do not have permission to access this page.', 'wp-addon'));
+        }
+
+        $tab = isset($_GET['krg']) ? sanitize_key((string) wp_unslash($_GET['krg'])) : 'look_all_guide';
+        $baseUrl = admin_url('options-general.php?page=krg_admin_page');
         $separator = ' | ';
-        $tab = $_GET['krg'] ?? '';
+
+        if (
+            $tab === 'update_all_guid'
+            && isset($_POST['krg_update_all_guid'])
+            && check_admin_referer('krg_update_all_guid')
+        ) {
+            krg_guid('update');
+            $tab = 'look_all_guide';
+        }
 
         ?>
 
         <div class="wrap">
 
             <div class="icon32"></div>
-            <h2><?= __('Guid repair', 'wp-addon'); ?></h2>
+            <h2><?php esc_html_e('Guid repair', 'wp-addon'); ?></h2>
 
             <h1 class="screen-reader-text">GUID</h1>
 
             <ul class="subsubsub">
                 <li>
-                    <a href='<?= $url ?>&krg=look_all_guide' class=" <?= $tab === 'look_all_guide' || $tab === '' ? 'bold' : ''; ?>">
-                        <?= __('View all GUID', 'wp-addon')?>
-                    </a> <?= $separator ?>
+                    <a href="<?php echo esc_url(add_query_arg('krg', 'look_all_guide', $baseUrl)); ?>" class="<?php echo $tab === 'look_all_guide' ? 'bold' : ''; ?>">
+                        <?php esc_html_e('View all GUID', 'wp-addon'); ?>
+                    </a> <?php echo esc_html($separator); ?>
                 </li>
-                <li><a href='<?= $url ?>&krg=update_all_guid' class=" <?= $tab === 'update_all_guid' ? 'bold' : ''; ?>"
-                       title='Обновить в БД в таблице "posts" все поля guide ( в них запишутся постоянные ссылки на страницы )'>
-                        <?= __('Update all GUID', 'wp-addon')?>
-                    </a> <?= $separator ?>
+                <li>
+                    <a href="<?php echo esc_url(add_query_arg('krg', 'update_all_guid', $baseUrl)); ?>" class="<?php echo $tab === 'update_all_guid' ? 'bold' : ''; ?>"
+                       title="<?php esc_attr_e('Update all GUID fields in the posts table with permalinks.', 'wp-addon'); ?>">
+                        <?php esc_html_e('Update all GUID', 'wp-addon'); ?>
+                    </a> <?php echo esc_html($separator); ?>
                 </li>
-                <li><a href='<?= $url ?>&krg=look_all_revision' class=" <?= $tab === 'look_all_revision' ? 'bold' : ''; ?>"
-                       title='Посмотреть все существующие в БД в таблице "posts" ревизии записей'>
-		                <?= __('All revision', 'wp-addon')?>
-                    </a> <?= $separator ?>
+                <li>
+                    <a href="<?php echo esc_url(add_query_arg('krg', 'look_all_revision', $baseUrl)); ?>" class="<?php echo $tab === 'look_all_revision' ? 'bold' : ''; ?>"
+                       title="<?php esc_attr_e('View all revisions stored in the posts table.', 'wp-addon'); ?>">
+                        <?php esc_html_e('All revision', 'wp-addon'); ?>
+                    </a> <?php echo esc_html($separator); ?>
                 </li>
-                <li><a href='<?= $url ?>&krg=delete_all_revision' class=" <?= $tab === 'delete_all_revision' ? 'bold' : ''; ?>"
-                       title='Удалить все ревизии и соответствующие им поля в таблицах term_relationships и postmeta'>
-		                <?= __('Remove all revision', 'wp-addon')?></a>
+                <li>
+                    <a href="<?php echo esc_url(add_query_arg('krg', 'delete_all_revision', $baseUrl)); ?>" class="<?php echo $tab === 'delete_all_revision' ? 'bold' : ''; ?>"
+                       title="<?php esc_attr_e('Delete all revisions and related rows.', 'wp-addon'); ?>">
+                        <?php esc_html_e('Remove all revision', 'wp-addon'); ?>
+                    </a>
                 </li>
             </ul>
             <br class="clear">
@@ -83,15 +99,14 @@ function fix_guid()
             </style>
 
             <?php
-            switch ($_GET['krg'] ?? '') {
-
-                case 'update_all_guid' :
-                    krg_guid('update');
+            switch ($tab) {
+                case 'update_all_guid':
+                    krg_render_guid_update_form();
                     break;
-                case 'look_all_revision' :
+                case 'look_all_revision':
                     look_all_revision();
                     break;
-                case 'delete_all_revision' :
+                case 'delete_all_revision':
                     delete_all_revision();
                     break;
                 default:
@@ -103,105 +118,130 @@ function fix_guid()
         <?php
     }
 
-    /* ========= GUID ========= */
-    /* Обновить все поля Guid в БД таблице posts. Функция запишет в эти поля пермалинки страниц. Функция на установку постоянных ссылок в БД (permalink)
-    --------------------------------------------------------------------------------------- */
+    function krg_render_guid_update_form(): void
+    {
+        ?>
+        <div id="submitdiv" class="postbox">
+            <h3 style="margin:0;padding:8px;"><span><?php esc_html_e('Bulk GUID replacement', 'wp-addon'); ?></span></h3>
+            <div style="padding:12px 20px;">
+                <p><?php esc_html_e('This action replaces GUID values for all published public posts with their permalinks. RSS subscribers may receive duplicate items.', 'wp-addon'); ?></p>
+                <form method="post" action="<?php echo esc_url(add_query_arg('krg', 'update_all_guid', admin_url('options-general.php?page=krg_admin_page'))); ?>" onsubmit="return confirm('<?php echo esc_js(__('Replace GUID values for all published posts?', 'wp-addon')); ?>');">
+                    <?php wp_nonce_field('krg_update_all_guid'); ?>
+                    <input type="hidden" name="krg_update_all_guid" value="1">
+                    <?php submit_button(__('Replace all GUID values', 'wp-addon'), 'delete', 'submit', false); ?>
+                </form>
+            </div>
+        </div>
+        <?php
+    }
+
     function krg_guid($action)
     {
-
         global $wpdb;
 
-        $post_types = get_post_types(['public' => true], 'names');
-        if (! $post_types) {
+        $postTypes = get_post_types(['public' => true], 'names');
+
+        if (! is_array($postTypes) || $postTypes === []) {
             return null;
         }
-        unset($post_types['attachment']);
 
-        $post_types = "'".implode("','", $post_types)."'";
-        $SQL = "SELECT ID, post_date, post_title, guid
-        FROM $wpdb->posts p
-        WHERE p.post_type IN ($post_types)
-        AND p.post_status = 'publish'";
-        $results = $wpdb->get_results($SQL);
+        unset($postTypes['attachment']);
+        $placeholders = implode(', ', array_fill(0, count($postTypes), '%s'));
+        $sql = $wpdb->prepare(
+            "SELECT ID, post_date, post_title, guid
+            FROM {$wpdb->posts}
+            WHERE post_type IN ($placeholders)
+            AND post_status = 'publish'",
+            ...array_values($postTypes)
+        );
+        $results = $wpdb->get_results($sql);
 
         if (! $results) {
-            return print 'Запрос вернул пустой результат';
+            echo '<p>'.esc_html__('The query returned no results.', 'wp-addon').'</p>';
+
+            return null;
         }
 
-        // Обновить все поля Guid в БД таблице posts.
-        if ($action == 'update') {
+        if ($action === 'update') {
             echo "<div id='submitdiv' class='postbox'>
 				<h3 style='margin:0;padding:8px;'><span>№ / ID / guid</span></h3>
 				<ol style='padding-left:20px;'>";
 
             foreach ($results as $reslt) {
                 $guid = $reslt->guid;
+                $permalink = get_permalink((int) $reslt->ID);
+                $updated = $wpdb->update(
+                    $wpdb->posts,
+                    ['guid' => $permalink],
+                    ['ID' => (int) $reslt->ID],
+                    ['%s'],
+                    ['%d']
+                );
 
-                $permalink = get_permalink($reslt->ID);
-
-                if ($wpdb->query("UPDATE $wpdb->posts SET guid = '$permalink' WHERE ID = $reslt->ID LIMIT 1")) {
-                    echo "<li> Обновлено: <span>id: $reslt->ID</span> <a href='$permalink' title='guid который был: $guid '>$permalink</a></li>";
+                if ($updated !== false) {
+                    echo '<li>'.esc_html__('Updated:', 'wp-addon').' <span>id: '.esc_html((string) $reslt->ID).'</span> <a href="'.esc_url($permalink).'" title="'.esc_attr(sprintf(__('Previous GUID: %s', 'wp-addon'), $guid)).'">'.esc_html($permalink).'</a></li>';
                 } else {
-                    echo "<li>Не обнволено: id: $reslt->ID: <a href='$permalink' title='guid который был: $guid '>$permalink</a></li>";
+                    echo '<li>'.esc_html__('Not updated:', 'wp-addon').' id: '.esc_html((string) $reslt->ID).': <a href="'.esc_url($permalink).'" title="'.esc_attr(sprintf(__('Previous GUID: %s', 'wp-addon'), $guid)).'">'.esc_html($permalink).'</a></li>';
                 }
             }
             echo '</ol></div>';
 
-        } // Посмотреть все поля Guid в БД таблице posts.
-        elseif ($action == 'look') {
+            return null;
+        }
 
+        if ($action === 'look') {
             echo "<div id='submitdiv' class='postbox'>
 				<h3 style='margin:0;padding:8px;'><span>№ / ID / guid</span></h3>
 				<ol style='padding-left:20px;'>";
 
             foreach ($results as $reslt) {
-                $ID = $reslt->ID;
+                $ID = (int) $reslt->ID;
                 $guid = $reslt->guid;
+                $style = (strpos($guid, '?p=') !== false || strpos($guid, '?page_id=') !== false)
+                    ? " style='color:#f00;'"
+                    : " style='color:green;'";
 
-                (strpos($guid, '?p=')
-                 || strpos($guid,
-                     '?page_id=')) !== false ? $style = " style='color:#f00;'" : $style = " style='color:green;'";
-
-                echo "<li><span title='ID поста или страницы'>id: $ID</span>  <a $style href='$guid'>$guid</a></li>";
+                echo '<li><span title="'.esc_attr__('Post or page ID', 'wp-addon').'">id: '.esc_html((string) $ID).'</span>  <a'.$style.' href="'.esc_url($guid).'">'.esc_html($guid).'</a></li>';
             }
             echo '</ol></div>';
-
         }
+
+        return null;
     }
 
-    /* ========= РЕВИЗИИ ========= */
-    /* Удалить все ревизии и соответствующие им поля в таблицах term_relationships и postmeta
-    ------------------------------------------------------- */
     function delete_all_revision()
     {
         global $wpdb;
 
         $sql = "DELETE a,b,c,d
-	FROM $wpdb->posts a
-		LEFT JOIN $wpdb->term_relationships b ON (a.ID = b.object_id)
-		LEFT JOIN $wpdb->postmeta c ON (a.ID = c.post_id)
-		LEFT JOIN $wpdb->comments d ON (a.ID = d.comment_post_ID)
+	FROM {$wpdb->posts} a
+		LEFT JOIN {$wpdb->term_relationships} b ON (a.ID = b.object_id)
+		LEFT JOIN {$wpdb->postmeta} c ON (a.ID = c.post_id)
+		LEFT JOIN {$wpdb->comments} d ON (a.ID = d.comment_post_ID)
 	WHERE a.post_type = 'revision'";
         $wpdb->query($sql);
 
-        echo "<font color='green'>Все ревизии были удалены из БД posts и соответствующие им поля в таблицах term_relationships, postmeta и wp_comments</font>";
+        echo '<p style="color:green;">'.esc_html__('All revisions were removed from posts and related rows in term_relationships, postmeta, and comments.', 'wp-addon').'</p>';
     }
 
-    /* Посмотреть все ревизии
-    -------------------------------------------------------- */
     function look_all_revision()
     {
         global $wpdb;
 
-        if (! $results = $wpdb->get_results("SELECT ID, post_date, post_title, post_status, guid, post_type FROM $wpdb->posts WHERE post_type = 'revision'")) {
-            return print "<font color='green'>Ревизий не найдено. Запрос вернул пустой результат</font>";
+        $results = $wpdb->get_results("SELECT ID, post_date, post_title, post_status, guid, post_type FROM {$wpdb->posts} WHERE post_type = 'revision'");
+
+        if (! $results) {
+            echo '<p style="color:green;">'.esc_html__('No revisions found.', 'wp-addon').'</p>';
+
+            return null;
         }
 
-        $d = 0;
-        $rrr = '';
-        foreach ($results as $reslt) {
-            $rrr .= "<li><font color='green'>".++$d.".</font> id: {$reslt->ID} | guid: <font color='red'>{$reslt->guid}</font> </li>";
+        echo '<ul>';
+        foreach ($results as $index => $reslt) {
+            echo '<li><span style="color:green;">'.esc_html((string) ($index + 1)).'.</span> id: '.esc_html((string) $reslt->ID).' | guid: <span style="color:red;">'.esc_html($reslt->guid).'</span></li>';
         }
-        echo "<ul>$rrr</ul>";
+        echo '</ul>';
+
+        return null;
     }
 }
