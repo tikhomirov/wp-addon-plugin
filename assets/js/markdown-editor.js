@@ -103,14 +103,40 @@ jQuery(document).ready(function($) {
                 toolbar: toolbar,
                 shortcuts: shortcuts
             });
-            
-            // Синхронизация EasyMDE с textarea для сохранения
+
+            // Фиксируем значение после инициализации EasyMDE,
+            // чтобы нормализация редактора не считалась правкой пользователя.
+            var initialMarkdown = this.easyMDE.value();
+            var editedInput = $('#markdown_edited');
+            if (editedInput.length) {
+                editedInput.data('initial', initialMarkdown);
+            }
+
+            // Синхронизация EasyMDE с textarea + флаг реальной правки MD
             this.easyMDE.codemirror.on("change", () => {
-                this.textarea.val(this.easyMDE.value());
+                var current = this.easyMDE.value();
+                this.textarea.val(current);
+                if (editedInput.length) {
+                    editedInput.val(current !== initialMarkdown ? '1' : '0');
+                }
             });
         },
         
         bindEvents: function() {
+            // Перед сохранением поста гарантируем актуальное значение textarea и флага.
+            var self = this;
+            $('#post').on('submit', function() {
+                if (!self.easyMDE) {
+                    return;
+                }
+                var current = self.easyMDE.value();
+                self.textarea.val(current);
+                var editedInput = $('#markdown_edited');
+                if (editedInput.length && editedInput.data('initial') !== undefined) {
+                    editedInput.val(current !== editedInput.data('initial') ? '1' : '0');
+                }
+            });
+
             // Добавление справки
             this.addMarkdownHelp();
         },

@@ -7,6 +7,35 @@ if (! function_exists('wp_unslash')) {
     }
 }
 
+if (! function_exists('wp_strip_all_tags')) {
+    function wp_strip_all_tags($string, $remove_breaks = false)
+    {
+        $string = preg_replace('@<(script|style)[^>]*?>.*?</\\1>@si', '', (string) $string);
+        $string = strip_tags($string);
+
+        if ($remove_breaks) {
+            $string = preg_replace('/[\r\n\t ]+/', ' ', $string);
+        }
+
+        return trim($string);
+    }
+}
+
+if (! function_exists('get_post')) {
+    function get_post($post = null, $output = 'OBJECT', $filter = 'raw')
+    {
+        global $mock_posts;
+
+        if (is_object($post)) {
+            return $post;
+        }
+
+        $post_id = (int) $post;
+
+        return $mock_posts[$post_id] ?? null;
+    }
+}
+
 if (! function_exists('metadata_exists')) {
     function metadata_exists($meta_type, $object_id, $meta_key)
     {
@@ -29,8 +58,17 @@ if (! function_exists('delete_post_meta')) {
 if (! function_exists('wp_update_post')) {
     function wp_update_post($postarr)
     {
-        global $mock_updated_posts;
+        global $mock_updated_posts, $mock_posts;
         $mock_updated_posts[] = $postarr;
+
+        if (isset($postarr['ID'], $postarr['post_content'])) {
+            $id = (int) $postarr['ID'];
+            if (! isset($mock_posts[$id])) {
+                $mock_posts[$id] = markdown_test_post($postarr['post_content'], 'post', $id);
+            } else {
+                $mock_posts[$id]->post_content = $postarr['post_content'];
+            }
+        }
 
         return $postarr['ID'];
     }
@@ -61,17 +99,19 @@ describe('MarkdownEditor Unit Tests', function () {
 
         $GLOBALS['mock_metadata'] = [];
         $GLOBALS['mock_updated_posts'] = [];
+        $GLOBALS['mock_posts'] = [];
 
         $_POST['markdown_nonce'] = 'test_nonce_save_markdown_content';
         $_POST['markdown_content'] = '';
+        $_POST['markdown_edited'] = '0';
 
         $this->editor = new MarkdownEditor;
     });
 
     afterEach(function () {
         unset($GLOBALS['mock_functions']['get_option']);
-        unset($GLOBALS['mock_metadata'], $GLOBALS['mock_updated_posts']);
-        unset($_POST['markdown_nonce'], $_POST['markdown_content']);
+        unset($GLOBALS['mock_metadata'], $GLOBALS['mock_updated_posts'], $GLOBALS['mock_posts']);
+        unset($_POST['markdown_nonce'], $_POST['markdown_content'], $_POST['markdown_edited']);
     });
 
     it('converts markdown to html with the fallback parser', function () {
@@ -86,6 +126,7 @@ describe('MarkdownEditor Unit Tests', function () {
         $before = markdown_test_post('<p>Old content</p>');
         $after = markdown_test_post('<p>Old content</p>');
         $_POST['markdown_content'] = "# New title\n\nNew text";
+        $_POST['markdown_edited'] = '1';
 
         $this->editor->saveMarkdownContent(1, $after, $before);
 
@@ -118,6 +159,30 @@ describe('MarkdownEditor Unit Tests', function () {
         expect($GLOBALS['mock_updated_posts'])->toBe([]);
     });
 
+    it('does not overwrite html edits even if markdown field still differs', function () {
+        $before = markdown_test_post('<p>Old</p>');
+        $after = markdown_test_post('<p>Edited in HTML editor</p>');
+        // Устаревший MD в форме, но без флага правки — HTML должен победить.
+        $_POST['markdown_content'] = "# Stale markdown\n\nShould not win";
+        $_POST['markdown_edited'] = '0';
+
+        $this->editor->saveMarkdownContent(1, $after, $before);
+
+        expect($GLOBALS['mock_updated_posts'])->toBe([]);
+    });
+
+    it('applies markdown when the edited flag is set even if html also changed', function () {
+        $before = markdown_test_post('<p>Old</p>');
+        $after = markdown_test_post('<p>Also touched in HTML</p>');
+        $_POST['markdown_content'] = '# From markdown';
+        $_POST['markdown_edited'] = '1';
+
+        $this->editor->saveMarkdownContent(1, $after, $before);
+
+        expect($GLOBALS['mock_updated_posts'])->toHaveCount(1);
+        expect($GLOBALS['mock_updated_posts'][0]['post_content'])->toContain('<h1>From markdown</h1>');
+    });
+
     it('removes stale markdown meta even when the field was not edited', function () {
         $GLOBALS['mock_metadata']['post'][1]['_markdown_content'] = 'stale markdown';
         $before = markdown_test_post('<p>Original</p>');
@@ -131,6 +196,7 @@ describe('MarkdownEditor Unit Tests', function () {
 
     it('does not store a new markdown meta value on save', function () {
         $_POST['markdown_content'] = "# Fresh title\n\nBody";
+        $_POST['markdown_edited'] = '1';
         $before = markdown_test_post('<p>Old</p>');
         $after = markdown_test_post('<p>Old</p>');
 
@@ -146,6 +212,7 @@ describe('MarkdownEditor Unit Tests', function () {
         $before = markdown_test_post('<p>Old</p>');
         $after = markdown_test_post('<p>Old</p>');
         $_POST['markdown_content'] = '# Edited';
+        $_POST['markdown_edited'] = '1';
 
         $this->editor->saveMarkdownContent(1, $after, $before);
 
@@ -162,6 +229,7 @@ describe('MarkdownEditor Unit Tests', function () {
         $before = markdown_test_post('<p>Old</p>', 'post');
         $after = markdown_test_post('<p>Old</p>', 'post');
         $_POST['markdown_content'] = '# Edited';
+        $_POST['markdown_edited'] = '1';
 
         $this->editor->saveMarkdownContent(1, $after, $before);
 
@@ -174,6 +242,7 @@ describe('MarkdownEditor Unit Tests', function () {
         $before = markdown_test_post('<p>Old</p>');
         $after = markdown_test_post('<p>Old</p>');
         $_POST['markdown_content'] = '# Edited';
+        $_POST['markdown_edited'] = '1';
 
         $this->editor->saveMarkdownContent(1, $after, $before);
 
@@ -193,6 +262,7 @@ describe('MarkdownEditor Unit Tests', function () {
     it('converts markdown to html on the first publish', function () {
         $post = markdown_test_post('', 'post', 3);
         $_POST['markdown_content'] = '# Hello';
+        $_POST['markdown_edited'] = '1';
 
         $this->editor->saveMarkdownOnFirstPublish(3, $post, false);
 
@@ -203,6 +273,7 @@ describe('MarkdownEditor Unit Tests', function () {
     it('ignores the first publish handler for existing posts', function () {
         $post = markdown_test_post('<p>Old</p>');
         $_POST['markdown_content'] = '# Edited';
+        $_POST['markdown_edited'] = '1';
 
         $this->editor->saveMarkdownOnFirstPublish(1, $post, true);
 

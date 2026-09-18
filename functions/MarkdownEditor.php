@@ -137,8 +137,10 @@ class MarkdownEditor implements ModuleInterface
      */
     public function renderMarkdownMetaBox($post): void
     {
-        // Markdown исходник не хранится: поле всегда заполняется из текущего HTML,
-        // чтобы редакторы не расходились друг с другом.
+        // Старый исходник MD больше не нужен: при наличии HTML удаляем meta.
+        $this->purgeStoredMarkdown((int) $post->ID, (string) $post->post_content);
+
+        // Поле всегда заполняется из текущего HTML — отдельного хранилища MD нет.
         $markdown_content = ! empty($post->post_content)
             ? $this->htmlToMarkdown($post->post_content)
             : '';
@@ -155,6 +157,7 @@ class MarkdownEditor implements ModuleInterface
         }
 
         echo '<div id="markdown-editor-container">';
+        echo '<input type="hidden" name="markdown_edited" id="markdown_edited" value="0">';
         echo '<textarea id="markdown-textarea" name="markdown_content" rows="20" style="width: 100%; font-family: monospace; font-size: 14px;">'.esc_textarea($markdown_content).'</textarea>';
         echo '</div>';
 
@@ -209,39 +212,72 @@ class MarkdownEditor implements ModuleInterface
         }
 
         $enabled_post_types = $this->getSetting('markdown_post_types', ['post', 'page']);
-        if (! in_array($post_after->post_type, $enabled_post_types)) {
+        if (! in_array($post_after->post_type, $enabled_post_types, true)) {
             return;
         }
 
         if (! isset($_POST['markdown_content'])) {
+            $this->purgeStoredMarkdown($post_id, (string) $post_after->post_content);
+
             return;
         }
 
         $new_markdown = wp_unslash($_POST['markdown_content']);
+        $markdown_edited = isset($_POST['markdown_edited']) && (string) $_POST['markdown_edited'] === '1';
+        $html_changed = is_object($post_before)
+            && isset($post_before->post_content, $post_after->post_content)
+            && $post_before->post_content !== $post_after->post_content;
 
-        // Значение, которое редактору нужно было показать, если его не трогали.
-        // Оно всегда выводится из HTML, поэтому правки в стандартном редакторе
-        // не перетираются сохраненным Markdown.
-        $expected_markdown = (! empty($post_before) && ! empty($post_before->post_content))
-            ? $this->htmlToMarkdown($post_before->post_content)
+        // Ожидаемый MD из HTML до сохранения — только для fallback-сравнения.
+        $expected_markdown = (is_object($post_before) && ! empty($post_before->post_content))
+            ? $this->htmlToMarkdown((string) $post_before->post_content)
             : '';
 
-        // Markdown редактировался осознанно: конвертируем его в HTML
-        // и пишем в единственный источник контента — post_content.
-        if ($new_markdown !== $expected_markdown && ! empty($new_markdown)) {
+        // MD → HTML только если пользователь реально правил Markdown.
+        // Если правили HTML в стандартном редакторе — его не перетираем.
+        $should_apply_markdown = false;
+
+        if ($markdown_edited) {
+            // Явная правка MD (включая очистку поля).
+            $should_apply_markdown = true;
+        } elseif (! $html_changed && $new_markdown !== '' && $new_markdown !== $expected_markdown) {
+            // Fallback: HTML не менялся, а непустой MD отличается (JS-флаг мог не сработать).
+            $should_apply_markdown = true;
+        }
+
+        if ($should_apply_markdown) {
             $this->saving = true;
 
             wp_update_post([
                 'ID' => $post_id,
-                'post_content' => $this->parseMarkdown($new_markdown),
+                'post_content' => $new_markdown !== ''
+                    ? $this->parseMarkdown($new_markdown)
+                    : '',
             ]);
 
             $this->saving = false;
         }
 
-        // Исходник Markdown не храним: удаляем возможные старые значения.
-        if (metadata_exists('post', $post_id, '_markdown_content')) {
+        // Исходник Markdown никогда не храним.
+        $fresh = function_exists('get_post') ? get_post($post_id) : null;
+        $html_for_purge = (is_object($fresh) && isset($fresh->post_content))
+            ? (string) $fresh->post_content
+            : (string) $post_after->post_content;
+        $this->purgeStoredMarkdown($post_id, $html_for_purge);
+    }
+
+    /**
+     * Удаляет сохранённый исходник Markdown, если есть HTML или всегда по запросу.
+     */
+    private function purgeStoredMarkdown(int $post_id, string $html_content = ''): void
+    {
+        $has_html = trim(wp_strip_all_tags($html_content)) !== '';
+
+        // При наличии HTML исходник MD удаляем всегда.
+        // Без HTML тоже чистим скрытое meta — единственный источник контента теперь post_content.
+        if ($has_html || metadata_exists('post', $post_id, '_markdown_content') || metadata_exists('post', $post_id, 'markdown_content')) {
             delete_post_meta($post_id, '_markdown_content');
+            delete_post_meta($post_id, 'markdown_content');
         }
     }
 
@@ -432,7 +468,7 @@ class MarkdownEditor implements ModuleInterface
             'markdown-editor',
             RW_PLUGIN_URL.'assets/js/markdown-editor.js',
             ['jquery', 'easymde'],
-            '1.1.0',
+            '1.2.0',
             true
         );
 
