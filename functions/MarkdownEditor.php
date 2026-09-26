@@ -134,26 +134,166 @@ class MarkdownEditor implements ModuleInterface
         wp_nonce_field('save_markdown_content', 'markdown_nonce');
         ?>
         <div id="wp-addon-editor-switcher-wrap" class="wp-addon-editor-switcher-wrap">
+            <style id="wp-addon-editor-switcher-style">
+                .wp-addon-editor-switcher-wrap {
+                    margin: 16px 0 0 0 !important;
+                    position: relative !important;
+                    box-sizing: border-box !important;
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif !important;
+                }
+                .wp-addon-editor-switcher-wrap * {
+                    box-sizing: border-box !important;
+                }
+                .wp-addon-builder-tabs-bar {
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: space-between !important;
+                    background: #f6f7f7 !important;
+                    border: 1px solid #c3c4c7 !important;
+                    border-bottom: 1px solid #dcdcde !important;
+                    border-radius: 6px 6px 0 0 !important;
+                    padding: 6px 12px !important;
+                    min-height: 46px !important;
+                    gap: 12px !important;
+                    flex-wrap: nowrap !important;
+                }
+                .wp-addon-builder-tabs {
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    background: #e2e4e7 !important;
+                    border-radius: 6px !important;
+                    padding: 3px !important;
+                    gap: 3px !important;
+                    flex-shrink: 0 !important;
+                }
+                .wp-addon-builder-tab {
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    gap: 7px !important;
+                    padding: 6px 16px !important;
+                    font-size: 13px !important;
+                    font-weight: 500 !important;
+                    line-height: 20px !important;
+                    border-radius: 4px !important;
+                    cursor: pointer !important;
+                    border: none !important;
+                    outline: none !important;
+                    background: transparent !important;
+                    color: #50575e !important;
+                    transition: all 0.15s ease-in-out !important;
+                    box-shadow: none !important;
+                    text-decoration: none !important;
+                    vertical-align: middle !important;
+                    user-select: none !important;
+                    -webkit-user-select: none !important;
+                }
+                .wp-addon-builder-tab:hover {
+                    background: rgba(255, 255, 255, 0.7) !important;
+                    color: #1d2327 !important;
+                }
+                .wp-addon-builder-tab.is-active {
+                    background: #2271b1 !important;
+                    color: #ffffff !important;
+                    font-weight: 600 !important;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
+                    cursor: default !important;
+                }
+                .wp-addon-builder-tab .dashicons {
+                    font-size: 17px !important;
+                    width: 17px !important;
+                    height: 17px !important;
+                    line-height: 17px !important;
+                    color: inherit !important;
+                }
+                .wp-addon-builder-tab .tab-md-icon {
+                    width: 16px !important;
+                    height: 16px !important;
+                    fill: currentColor !important;
+                    display: inline-block !important;
+                    vertical-align: middle !important;
+                }
+                .wp-addon-builder-actions {
+                    display: flex !important;
+                    align-items: center !important;
+                    margin-left: auto !important;
+                    gap: 8px !important;
+                }
+                .wp-addon-convert-btn {
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    gap: 5px !important;
+                    font-size: 12px !important;
+                    font-weight: 500 !important;
+                    height: 28px !important;
+                    line-height: 26px !important;
+                    padding: 0 10px !important;
+                    color: #50575e !important;
+                    background: #ffffff !important;
+                    border: 1px solid #c3c4c7 !important;
+                    border-radius: 4px !important;
+                    cursor: pointer !important;
+                    transition: all 0.15s ease-in-out !important;
+                    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04) !important;
+                    text-decoration: none !important;
+                }
+                .wp-addon-convert-btn:hover {
+                    color: #2271b1 !important;
+                    border-color: #2271b1 !important;
+                    background: #f6f7f7 !important;
+                }
+                .wp-addon-convert-btn .dashicons {
+                    font-size: 14px !important;
+                    width: 14px !important;
+                    height: 14px !important;
+                    line-height: 14px !important;
+                    color: inherit !important;
+                }
+                .wp-addon-markdown-container {
+                    background: #ffffff !important;
+                    border: 1px solid #c3c4c7 !important;
+                    border-top: none !important;
+                    padding: 0 !important;
+                    margin-bottom: 20px !important;
+                }
+                .wp-addon-markdown-container .editor-toolbar {
+                    border-top: none !important;
+                    border-left: none !important;
+                    border-right: none !important;
+                    border-color: #c3c4c7 !important;
+                    background: #fafafa !important;
+                }
+                .wp-addon-markdown-container .CodeMirror {
+                    border-left: none !important;
+                    border-right: none !important;
+                    border-bottom: none !important;
+                    border-color: #c3c4c7 !important;
+                }
+                #postdivrich {
+                    margin-top: 0 !important;
+                }
+                #postdivrich #wp-content-wrap {
+                    border-top: 1px solid #c3c4c7 !important;
+                }
+            </style>
             <div class="wp-addon-builder-tabs-bar">
                 <div class="wp-addon-builder-tabs">
                     <button type="button" class="wp-addon-builder-tab <?php echo $current_mode === 'classic' ? 'is-active' : ''; ?>" data-mode="classic">
-                        <span class="dashicons dashicons-editor-kitchensink"></span>
+                        <span class="dashicons dashicons-edit-page"></span>
                         <span class="tab-text"><?php esc_html_e('Классический редактор', 'wp-addon'); ?></span>
                     </button>
                     <button type="button" class="wp-addon-builder-tab <?php echo $current_mode === 'markdown' ? 'is-active' : ''; ?>" data-mode="markdown">
                         <svg class="tab-md-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
-                            <path d="M14 3H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM2 2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
-                            <path d="M3 11V5h1.5l1.5 2.5L7.5 5H9v6H7.5V7.5L6 10l-1.5-2.5V11H3zm8.5-3.5h1.5v3h-1.5v-3zm0-1h1.5L12 5l-1 1.5z"/>
+                            <path d="M14.5 2H1.5C.7 2 0 2.7 0 3.5v9c0 .8.7 1.5 1.5 1.5h13c.8 0 1.5-.7 1.5-1.5v-9c0-.8-.7-1.5-1.5-1.5zM7 11.5H5.5V7.2L3.8 9.3 2 7.2v4.3H.8V4.5h1.2l2 2.5 2-2.5h1.2v7zM14 8.5h-2V4.5h-1.5v4h-2L11 12l3-3.5z"/>
                         </svg>
                         <span class="tab-text"><?php esc_html_e('Markdown Редактор', 'wp-addon'); ?></span>
                     </button>
                 </div>
                 <div class="wp-addon-builder-actions">
-                    <button type="button" class="button button-small wp-addon-convert-btn" id="wp-addon-btn-convert-to-md" title="<?php esc_attr_e('Конвертировать HTML из классического редактора в Markdown', 'wp-addon'); ?>" style="<?php echo $current_mode === 'markdown' ? '' : 'display: none;'; ?>">
+                    <button type="button" class="wp-addon-convert-btn" id="wp-addon-btn-convert-to-md" title="<?php esc_attr_e('Конвертировать HTML из классического редактора в Markdown', 'wp-addon'); ?>" style="<?php echo $current_mode === 'markdown' ? '' : 'display: none;'; ?>">
                         <span class="dashicons dashicons-update"></span>
                         <span><?php esc_html_e('Импорт из HTML', 'wp-addon'); ?></span>
                     </button>
-                    <button type="button" class="button button-small wp-addon-convert-btn" id="wp-addon-btn-convert-to-html" title="<?php esc_attr_e('Конвертировать Markdown в HTML для классического редактора', 'wp-addon'); ?>" style="<?php echo $current_mode === 'classic' ? '' : 'display: none;'; ?>">
+                    <button type="button" class="wp-addon-convert-btn" id="wp-addon-btn-convert-to-html" title="<?php esc_attr_e('Конвертировать Markdown в HTML для классического редактора', 'wp-addon'); ?>" style="<?php echo $current_mode === 'classic' ? '' : 'display: none;'; ?>">
                         <span class="dashicons dashicons-update"></span>
                         <span><?php esc_html_e('Импорт из Markdown', 'wp-addon'); ?></span>
                     </button>
@@ -562,11 +702,14 @@ class MarkdownEditor implements ModuleInterface
             true
         );
 
+        $css_file = defined('RW_PLUGIN_DIR') ? RW_PLUGIN_DIR.'assets/css/markdown-editor.css' : '';
+        $css_version = ($css_file && file_exists($css_file)) ? (string) filemtime($css_file) : '1.5.2';
+
         wp_enqueue_style(
             'markdown-editor',
             RW_PLUGIN_URL.'assets/css/markdown-editor.css',
-            ['github-markdown-css', 'highlightjs-github'],
-            '1.0.0'
+            [],
+            $css_version
         );
 
         // Добавляем дополнительные стили для новых элементов Markdown

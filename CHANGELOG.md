@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [1.5.2] — 2026-09-26
+
+### Fixed
+
+- Polished builder switcher toolbar styling with guaranteed inline rendering to prevent unstyled button rendering and browser cache issues.
+- Replaced clunky SVG Markdown icon with clean official vector icon.
+- Replaced default button styling with sleek modern segmented pill tabs.
+- Added automatic stylesheet cache busting via `filemtime`.
+
 ## [1.5.1] — 2026-09-26
 
 ### Added
