@@ -1055,4 +1055,98 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
             return esc_html($text);
         }
     }
+
+    if (! function_exists('wp_parse_url')) {
+        function wp_parse_url($url, $component = -1)
+        {
+            $parts = parse_url((string) $url);
+
+            if (! is_array($parts)) {
+                return $parts;
+            }
+
+            // PHP_URL_SCHEME is -1, which is also the "no component" default,
+            // so only a real scheme component selects a key.
+            $key = match ($component) {
+                PHP_URL_HOST => 'host',
+                PHP_URL_PORT => 'port',
+                PHP_URL_USER => 'user',
+                PHP_URL_PASS => 'pass',
+                PHP_URL_PATH => 'path',
+                PHP_URL_QUERY => 'query',
+                PHP_URL_FRAGMENT => 'fragment',
+                default => null,
+            };
+
+            if ($key === null) {
+                return $parts;
+            }
+
+            return $parts[$key] ?? null;
+        }
+    }
+
+    if (! function_exists('get_site_option')) {
+        function get_site_option($option, $default = false)
+        {
+            return get_option($option, $default);
+        }
+    }
+
+    if (! function_exists('number_format_i18n')) {
+        function number_format_i18n($number, $decimals = 0)
+        {
+            return number_format((float) $number, (int) $decimals);
+        }
+    }
+
+    if (! defined('ARRAY_A')) {
+        define('ARRAY_A', 'ARRAY_A');
+    }
+
+    if (! defined('OBJECT')) {
+        define('OBJECT', 'OBJECT');
+    }
+
+    /**
+     * HTTP is never performed in tests. Register a body per URL in
+     * $mock_http_bodies to simulate a reachable page; anything else answers with
+     * a WP_Error, which is the same shape an unreachable host produces.
+     */
+    if (! function_exists('wp_safe_remote_get')) {
+        function wp_safe_remote_get($url, $args = [])
+        {
+            global $mock_http_bodies;
+
+            if (isset($mock_http_bodies[$url])) {
+                return [
+                    'response' => ['code' => 200],
+                    'body' => $mock_http_bodies[$url],
+                ];
+            }
+
+            return new WP_Error('http_request_failed', 'Could not resolve host.');
+        }
+    }
+
+    if (! function_exists('wp_remote_get')) {
+        function wp_remote_get($url, $args = [])
+        {
+            return wp_safe_remote_get($url, $args);
+        }
+    }
+
+    if (! function_exists('wp_remote_retrieve_body')) {
+        function wp_remote_retrieve_body($response)
+        {
+            return is_array($response) ? ($response['body'] ?? '') : '';
+        }
+    }
+
+    if (! function_exists('wp_remote_retrieve_response_code')) {
+        function wp_remote_retrieve_response_code($response)
+        {
+            return is_array($response) ? ($response['response']['code'] ?? 0) : 0;
+        }
+    }
 }

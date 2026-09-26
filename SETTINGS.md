@@ -93,6 +93,86 @@ Navigate to **WordPress Admin > Settings > WP Addon** to access the plugin confi
 - **Default**: Enabled
 - **Description**: Removes the website/URL field from comment forms.
 
+### Comment Spam Settings
+
+Replaces the Kama SpamBlock plugin. A blocked comment is never stored in the
+database, no notification email is sent, and the page cache is not purged.
+
+#### Enable Antispam
+- **Setting**: `antispam_enabled`
+- **Type**: Switcher
+- **Default**: Enabled
+- **Description**: Turns the whole comment spam filter on. When disabled no hook is registered at all.
+
+#### Score Threshold
+- **Setting**: `antispam_threshold`
+- **Type**: Number
+- **Default**: `3`
+- **Description**: Minimum total score that blocks a comment. Higher means fewer false positives, more spam gets through.
+
+#### Honeypot Field
+- **Setting**: `antispam_honeypot`
+- **Type**: Switcher
+- **Default**: Enabled
+- **Description**: Renders a hidden `antispam_website` field inside the comment form. Any value means a bot.
+
+#### Minimum Fill Time
+- **Setting**: `antispam_min_seconds`
+- **Type**: Number
+- **Default**: `3`
+- **Description**: Seconds a visitor must spend on the page before the form may be submitted. `0` disables the check. The timestamp is written by JavaScript, so a page served from cache is not affected.
+
+#### Hourly Comment Limit
+- **Setting**: `antispam_rate_hour`
+- **Type**: Number
+- **Default**: `0` (disabled)
+- **Description**: Maximum comments per IP per hour. `0` turns the limit off.
+
+#### Daily Comment Limit
+- **Setting**: `antispam_rate_day`
+- **Type**: Number
+- **Default**: `0` (disabled)
+- **Description**: Maximum comments per IP per day. `0` turns the limit off.
+
+#### Verify Pingback Backlinks
+- **Setting**: `antispam_check_backlinks`
+- **Type**: Switcher
+- **Default**: Enabled
+- **Description**: Fetches the source page of a pingback or trackback and requires a link back to the site.
+
+#### Trust Moderators
+- **Setting**: `antispam_trust_moderators`
+- **Type**: Switcher
+- **Default**: Enabled
+- **Description**: Skips every check for users who can moderate comments.
+
+#### Blocked Message
+- **Setting**: `antispam_blocked_message`
+- **Type**: Textarea
+- **Default**: `Your comment looks like spam and was rejected. Please review it and try again.`
+- **Description**: Message shown to the author when a comment is rejected. Returned with HTTP 403.
+
+#### How the score is counted
+
+| Signal | Weight |
+| --- | --- |
+| Body is a single random token (ASCII letters only, 16+ chars, mixed case) | 3 |
+| Author name is a random token by the same rule | 2 |
+| No Cyrillic and no whitespace in the body | 1 |
+| Three or more dots in the email local part | 1 |
+| First visit (no `comment_author_*` cookies) | 1 |
+
+The weights are additive, and the body token alone already reaches the default
+threshold. Device names, Git hashes and plain English words are not treated as
+random tokens.
+
+#### Blocked Attempts Statistics
+
+The section renders the number of blocked attempts for the last 30 days, a
+breakdown by reason, the most active IPs, and the last attempts table. Data
+lives in the `wp_addon_antispam_log` table and is pruned monthly by the
+`wp_addon_antispam_rotate` cron event, plus opportunistically every 50 writes.
+
 ## TinyMCE Editor Settings
 
 #### Disable Gutenberg

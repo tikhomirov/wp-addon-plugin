@@ -33,10 +33,33 @@ tests/
 │   ├── LazyLoadingIntegrationTest.php
 │   ├── SmokeTest.php
 │   └── ExampleTest.php
+├── wp-cli/                   # Скрипты, которым нужен настоящий WordPress
+│   └── comment-antispam-smoke.php
 └── Factories/                # Фабрики для тестовых данных
     ├── PostFactory.php
     ├── AssetFactory.php
     └── [Factory].php
+```
+
+## 🧪 Проверка на настоящем WordPress
+
+Pest работает на мок-окружении из `bootstrap.php`, поэтому часть вещей он
+доказать не может: создание таблицы через `dbDelta()`, реальное расписание cron,
+разметка `comment_form()` и то, что `wp_new_comment()` ничего не пишет при
+отказе. Для этого есть скрипт, который исполняется через WP-CLI:
+
+```bash
+make up
+docker compose exec php bash -lc \
+  'cd /var/www && HTTP_HOST=rwsite.local wp eval-file wp-content/plugins/wp-addon-plugin/tests/wp-cli/comment-antispam-smoke.php'
+```
+
+Скрипт печатает `PASS`/`FAIL` по каждой проверке и итог `passed/failed` в конце.
+Он оставляет строки в таблице `wp_addon_antispam_log`; очистить их:
+
+```bash
+docker compose exec mysql mysql -u root -proot rwsite \
+  -e "DELETE FROM rwp_wp_addon_antispam_log"
 ```
 
 ## 🚀 Быстрый старт

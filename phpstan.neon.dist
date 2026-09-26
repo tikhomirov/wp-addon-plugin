@@ -7,9 +7,14 @@ parameters:
         - src/Core/Plugin.php
         - src/Services/CacheService.php
         - src/Services/ImageOptimizationService.php
+        - src/Services/CommentAntispamScoringService.php
+        - src/Services/CommentAntispamBacklinkService.php
+        - src/Services/CommentAntispamRateLimitService.php
+        - src/Services/CommentAntispamLogService.php
         - functions/PageCache.php
         - functions/LazyLoading.php
         - functions/Redirects.php
+        - functions/comments/CommentAntispam.php
     scanFiles:
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
         - phpstan-bootstrap.php

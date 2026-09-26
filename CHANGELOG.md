@@ -2,6 +2,65 @@
 
 All notable changes to this project are documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Comment Spam module: honeypot field, client-side time trap, additive content
+  scoring, optional per-IP rate limits, and pingback/trackback backlink
+  verification
+- Blocked attempts log with IP, reason, score, user agent, and author details;
+  admin statistics with a reason breakdown, top IPs, and the last attempts
+- Monthly `wp_addon_antispam_rotate` cron event that prunes the log, plus
+  opportunistic pruning every 50 writes
+- `CommentAntispam` module, `CommentAntispamScoringService`,
+  `CommentAntispamBacklinkService`, `CommentAntispamRateLimitService`, and
+  `CommentAntispamLogService`
+- New `Comment Spam` settings section and assets
+  `assets/js/comment-antispam.js`, `assets/css/comment-antispam.css`
+- Unit tests for scoring, backlink verification, rate limits, the log store, and
+  the gate itself (`CommentAntispamScoringTest`, `CommentAntispamBacklinkTest`,
+  `CommentAntispamRateLimitTest`, `CommentAntispamLogServiceTest`,
+  `CommentAntispamModuleTest`)
+- `tests/wp-cli/comment-antispam-smoke.php`, a 79-check script for a real
+  WordPress, covering the log table, cron scheduling, `comment_form()` markup,
+  asset enqueue, the admin panel, and that `wp_new_comment()` writes nothing
+  when the gate rejects
+- Missing WordPress mocks in `tests/bootstrap.php`: `wp_parse_url`,
+  `get_site_option`, `number_format_i18n`, `ARRAY_A`, `wp_safe_remote_get`,
+  `wp_remote_get`, `wp_remote_retrieve_body`, `wp_remote_retrieve_response_code`
+
+### Changed
+
+- Spam is now rejected with a `WP_Error` and HTTP 403 instead of being stored
+  as `spam`, so no moderation queue entries, emails, or cache purges are
+  produced
+- REST comment creation is filtered through `rest_pre_insert_comment`, which
+  the comments controller uses instead of `pre_comment_approved`
+
+### Fixed
+
+- Rotation schedule now registers the custom `wp_addon_monthly` interval before
+  scheduling, so the cron event is actually created
+- REST rejections carry a `['status' => 403]` error payload, matching what
+  `rest_convert_error_to_response()` expects
+- The backlink pattern no longer contains a stray `\\s` in its lookahead, which
+  made a host that merely starts with the site host (`rwsite.rus` for
+  `rwsite.ru`) count as a valid backlink
+- The honeypot is hidden with inline styles as well as CSS, so it stays invisible
+  even if the stylesheet fails to load
+- Comments whose type is neither `comment`, `pingback` nor `trackback` are left
+  alone, and a comment already marked `spam` or `trash` by the disallowed keys
+  list keeps its original status
+- `CommentAntispam` builds its backlink and rate limit services on first use
+  instead of in `init()`, so the gate no longer depends on the initialisation
+  order
+
+### Removed
+
+- Kama SpamBlock (`wpackagist-plugin/kama-spamblock`) — its checks are now part
+  of the Comment Spam module
+
 ## [1.4.0] — 2026-09-17
 
 ### Requirements
