@@ -57,6 +57,12 @@ class MarkdownEditor implements ModuleInterface
 
     /**
      * Возвращает режим редактора для поста ('classic' или 'markdown').
+     *
+     * Приоритет определения:
+     * 1. Явно сохранённое значение в meta `_wp_addon_editor_mode`.
+     * 2. Наличие мета-поля `_markdown_content` (пост был создан в Markdown).
+     * 3. Наличие существующего HTML-контента — открываем в Classic, чтобы не ломать старые записи.
+     * 4. Для новых пустых записей — выбор из настройки `markdown_replace_tinymce`.
      */
     public function getPostEditorMode(int $post_id, $post = null): string
     {
@@ -66,7 +72,6 @@ class MarkdownEditor implements ModuleInterface
                 return $mode;
             }
 
-            // Проверяем наличие ранее сохранённого Markdown
             $markdown_meta = get_post_meta($post_id, '_markdown_content', true);
             if (! empty($markdown_meta)) {
                 return 'markdown';
@@ -74,18 +79,18 @@ class MarkdownEditor implements ModuleInterface
         }
 
         if ($post && ! empty($post->post_content)) {
-            // Существующий пост с контентом — открываем в классическом редакторе
             return 'classic';
         }
 
-        // Для новой пустой записи проверяем настройку по умолчанию
         return $this->getSetting('markdown_replace_tinymce', false) ? 'markdown' : 'classic';
     }
 
     /**
      * Возвращает содержимое Markdown для редактора.
-     * Если пост в классическом режиме (HTML), возвращает пустую строку,
-     * чтобы предотвратить нежелательное восстановление Markdown из HTML.
+     *
+     * КРИТИЧЕСКИ ВАЖНО: если пост открыт в режиме Classic (HTML), возвращаем пустую строку.
+     * Это гарантирует, что редактор Markdown не будет восстанавливать контент и не затрёт HTML
+     * при последующем сохранении.
      */
     public function getPostMarkdownContent(int $post_id, $post = null, string $mode = 'classic'): string
     {
@@ -282,11 +287,12 @@ class MarkdownEditor implements ModuleInterface
         if ($mode === 'markdown') {
             $new_markdown = isset($_POST['markdown_content']) ? wp_unslash($_POST['markdown_content']) : '';
 
-            // Сохраняем исходный Markdown в мета-поле
+            // Сохраняем исходный Markdown в мета-поле, предотвращая искажения при повторном открытии
             update_post_meta($post_id, '_markdown_content', $new_markdown);
 
             $parsed_html = $new_markdown !== '' ? $this->parseMarkdown($new_markdown) : '';
 
+            // Обновляем post_content в базе данных только если сконвертированный HTML отличается
             if ($post_after->post_content !== $parsed_html) {
                 $this->saving = true;
 
@@ -298,9 +304,9 @@ class MarkdownEditor implements ModuleInterface
                 $this->saving = false;
             }
         } else {
-            // В классическом режиме удаляем мета Markdown, чтобы контент не восстанавливался ошибочно
+            // В режиме Classic удаляем мета Markdown: пост ведётся в HTML, и MD не должен перезаписывать или восстанавливать контент
             $this->purgeStoredMarkdown($post_id);
-            // post_content не перезаписываем — WordPress уже сохранил HTML из классического редактора
+            // post_content не перезаписываем — WordPress уже сохранил актуальный HTML из классического редактора
         }
     }
 

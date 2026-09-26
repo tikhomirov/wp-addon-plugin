@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [1.5.1] — 2026-09-26
+
+### Added
+
+- Builder-style editor switcher tabs ("Классический редактор" / "Markdown Редактор") modeled after WPBakery / YOOtheme / Divi.
+- Separate post editing mode storage via `_wp_addon_editor_mode` post meta.
+- Verbatim raw Markdown storage in `_markdown_content` post meta to prevent lossy re-conversions.
+- Bidirectional on-demand conversion buttons and AJAX endpoint (`markdown_convert`).
+
+### Fixed
+
+- Fixed bug where clearing Markdown and typing HTML prevented post content from being saved.
+- Fixed bug where saving HTML caused Markdown editor to falsely restore/re-convert content on next load.
+- Preserved existing HTML posts without forcing automatic Markdown conversion.
+
 ## [1.5.0] — 2026-09-26
 
 ### Added
