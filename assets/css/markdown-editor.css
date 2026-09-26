@@ -1,45 +1,148 @@
-/* Markdown Editor Styles */
-.markdown-editor-tabs {
+/* ==========================================================================
+   Builder-style Switcher Bar (WPBakery / YOOtheme / Divi style)
+   ========================================================================== */
+.wp-addon-editor-switcher-wrap {
+    margin: 12px 0 0 0;
+    position: relative;
+}
+
+.wp-addon-builder-tabs-bar {
     display: flex;
-    margin-bottom: 0;
-    border-bottom: 1px solid #ccd0d4;
-}
-
-.tab-button {
-    background: #f1f1f1;
-    border: 1px solid #ccd0d4;
+    align-items: center;
+    justify-content: space-between;
+    background: #f0f0f1;
+    border: 1px solid #c3c4c7;
     border-bottom: none;
-    padding: 8px 16px;
-    cursor: pointer;
-    font-size: 13px;
-    color: #50575e;
-    margin-right: 4px;
     border-radius: 4px 4px 0 0;
-    transition: all 0.2s ease;
+    padding: 6px 10px;
+    gap: 12px;
 }
 
-.tab-button:hover {
-    background: #fafafa;
-    color: #1d2327;
+.wp-addon-builder-tabs {
+    display: flex;
+    gap: 6px;
+    align-items: center;
 }
 
-.tab-button.active {
-    background: #fff;
-    color: #1d2327;
+.wp-addon-builder-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
     font-weight: 600;
-    border-bottom: 1px solid #fff;
-    margin-bottom: -1px;
+    line-height: 1.4;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid #c3c4c7;
+    background: #ffffff;
+    color: #50575e;
+    transition: all 0.15s ease-in-out;
+    outline: none;
 }
 
-.tab-content {
-    border: 1px solid #ccd0d4;
+.wp-addon-builder-tab:hover {
+    background: #f6f7f7;
+    color: #1d2327;
+    border-color: #8c8f94;
+}
+
+.wp-addon-builder-tab.is-active {
+    background: #2271b1;
+    border-color: #2271b1;
+    color: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.wp-addon-builder-tab .dashicons {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+    line-height: 17px;
+    color: inherit;
+}
+
+.wp-addon-builder-tab .tab-md-icon {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    display: inline-block;
+}
+
+.wp-addon-builder-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wp-addon-convert-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px !important;
+    height: 28px !important;
+    line-height: 26px !important;
+    color: #50575e !important;
+    border-color: #c3c4c7 !important;
+}
+
+.wp-addon-convert-btn:hover {
+    color: #1d2327 !important;
+    border-color: #8c8f94 !important;
+}
+
+.wp-addon-convert-btn .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
+    color: inherit;
+}
+
+.wp-addon-convert-btn.updating-message::before {
+    margin-top: 4px;
+}
+
+/* ==========================================================================
+   Markdown Editor Container
+   ========================================================================== */
+.wp-addon-markdown-container {
+    background: #ffffff;
+    border: 1px solid #c3c4c7;
     border-top: none;
     padding: 0;
-    background: #fff;
+    margin-bottom: 20px;
 }
 
-.tab-content.active {
-    display: block !important;
+.wp-addon-markdown-container .editor-toolbar {
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-color: #c3c4c7;
+    background: #fff;
+    opacity: 1;
+    position: sticky;
+    top: 32px;
+    z-index: 100;
+}
+
+.wp-addon-markdown-container .CodeMirror {
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-color: #c3c4c7;
+    min-height: 400px;
+    font-size: 14px;
+    line-height: 1.6;
+    font-family: 'Courier New', Consolas, Monaco, monospace;
+}
+
+#postdivrich {
+    margin-top: 0 !important;
+}
+
+#postdivrich #wp-content-wrap {
+    border-top: 1px solid #c3c4c7;
 }
 
 #markdown-textarea {
@@ -55,20 +158,9 @@
     min-height: 400px;
 }
 
-/* Стили для EasyMDE */
-.editor-toolbar {
-    border-radius: 0;
-    border-color: #ccd0d4;
-    background: #fff;
-    opacity: 1;
-    position: sticky;
-    top: 32px; /* Учитываем админ-бар WP */
-    z-index: 100;
-}
-
-/* Фикс для мобильного админ-бара */
+/* Мобильный админ-бар */
 @media screen and (max-width: 782px) {
-    .editor-toolbar {
+    .wp-addon-markdown-container .editor-toolbar {
         top: 46px;
     }
 }
@@ -76,15 +168,6 @@
 .editor-toolbar.fullscreen {
     z-index: 100000;
     top: 0;
-}
-
-.CodeMirror {
-    border-radius: 0;
-    border-color: #ccd0d4;
-    min-height: 400px;
-    font-size: 14px;
-    line-height: 1.6;
-    font-family: 'Courier New', Consolas, Monaco, monospace;
 }
 
 .CodeMirror-fullscreen {
@@ -101,29 +184,28 @@
     display: block;
 }
 
-/* Фикс для Side-by-side и Fullscreen режима в админке WP */
+/* Side-by-side и Fullscreen режимы в админке WP */
 .editor-toolbar.fullscreen,
 .CodeMirror-fullscreen,
 .editor-preview-side {
-    z-index: 100000 !important; /* Выше всех элементов WP */
+    z-index: 100000 !important;
     position: fixed !important;
 }
 
 .editor-toolbar.fullscreen {
-    top: 0 !important; /* В фуллскрине прижимаем к верху */
+    top: 0 !important;
     height: 50px !important;
 }
 
 .CodeMirror-fullscreen {
-    top: 50px !important; /* Под тулбаром */
+    top: 50px !important;
     height: calc(100vh - 50px) !important;
 }
 
-/* При Side by Side предпросмотр должен быть справа */
 .editor-preview-side {
     right: 0 !important;
     bottom: 0 !important;
-    top: 50px !important; /* Под тулбаром */
+    top: 50px !important;
     width: 50% !important;
     height: calc(100vh - 50px) !important;
     border-left: 1px solid #ddd;
@@ -131,7 +213,6 @@
     z-index: 100001 !important;
 }
 
-/* Фикс для мобильного админ-бара */
 @media screen and (max-width: 782px) {
     .editor-toolbar.fullscreen {
         top: 0 !important;
@@ -143,18 +224,15 @@
     }
 }
 
-/* При Side by Side редактор должен быть слева */
 .CodeMirror-sided {
     width: 50% !important;
 }
 
-/* При Side by Side панель инструментов должна быть на всю ширину */
 .editor-toolbar.fullscreen::before,
 .editor-toolbar.fullscreen::after {
     display: none;
 }
 
-/* Скрываем левое меню WP, админ-бар и отступы при фуллскрине/side-by-side */
 body.editor-fullscreen #adminmenumain,
 body.editor-fullscreen #wpadminbar {
     display: none !important;
@@ -162,13 +240,10 @@ body.editor-fullscreen #wpadminbar {
 body.editor-fullscreen #wpcontent {
     margin-left: 0 !important;
 }
-
-/* Отключаем скролл страницы при полноэкранном режиме */
 body.editor-fullscreen {
     overflow: hidden !important;
 }
 
-/* Скрываем лишнюю кнопку Preview из тулбара EasyMDE (глазик) */
 .editor-toolbar button.preview {
     display: none !important;
 }
@@ -183,25 +258,14 @@ body.editor-fullscreen {
     box-shadow: 0 0 0 1px #3582c4;
 }
 
-/* Скрываем старые стили табов, так как они больше не нужны */
-.markdown-editor-tabs,
-.tab-button,
-.tab-content {
-    display: none !important;
-}
-
 .markdown-help {
-    margin-top: 16px;
+    margin: 16px;
     padding: 12px;
     background: #f0f6fc;
     border: 1px solid #d0d7de;
     border-radius: 6px;
     font-size: 12px;
     color: #656d76;
-}
-
-#markdown-editor-container {
-    position: relative;
 }
 
 .markdown-help h4 {
@@ -216,51 +280,35 @@ body.editor-fullscreen {
 }
 
 .markdown-help li {
-    margin-bottom: 2px;
+    margin-bottom: 4px;
 }
 
-/* Статус индикатор */
-.markdown-status {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    font-size: 11px;
-    color: #666;
-    background: #f0f0f1;
-    padding: 4px 8px;
+.markdown-help code {
+    background: #e1e4e8;
+    padding: 2px 4px;
     border-radius: 3px;
+    font-size: 11px;
 }
 
-.markdown-status.preview-updating {
-    background: #d63638;
-    color: #fff;
-}
-
-.markdown-status.preview-ready {
-    background: #00a32a;
-    color: #fff;
-}
-
-#markdown-editor-container {
-    position: relative;
-}
-
-/* Responsive */
 @media (max-width: 768px) {
-    .markdown-editor-tabs {
+    .wp-addon-builder-tabs-bar {
         flex-direction: column;
+        align-items: stretch;
     }
-    
-    .tab-button {
-        border-radius: 0;
-        margin-right: 0;
-        margin-bottom: 4px;
+
+    .wp-addon-builder-tabs {
+        flex-wrap: wrap;
     }
-    
-    .tab-button.active {
-        margin-bottom: 0;
+
+    .wp-addon-builder-tab {
+        flex: 1 1 auto;
+        justify-content: center;
     }
-    
+
+    .wp-addon-builder-actions {
+        justify-content: flex-end;
+    }
+
     #markdown-textarea {
         padding: 12px;
         font-size: 16px;

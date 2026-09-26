@@ -17,15 +17,11 @@ class MarkdownEditor implements ModuleInterface
             return;
         }
 
-        $this->addHook('add_meta_boxes', [$this, 'addMarkdownMetaBox']);
+        $this->addHook('edit_form_after_title', [$this, 'renderEditorSwitcher']);
         $this->addHook('post_updated', [$this, 'saveMarkdownContent'], 10, 3);
         $this->addHook('save_post', [$this, 'saveMarkdownOnFirstPublish'], 10, 3);
         $this->addHook('admin_enqueue_scripts', [$this, 'enqueueMarkdownAssets']);
-
-        if ($this->getSetting('markdown_replace_tinymce', false)) {
-            $this->addFilter('user_can_richedit', [$this, 'maybeDisableRichEdit']);
-            $this->addHook('admin_init', [$this, 'disableVisualEditor']);
-        }
+        $this->addHook('wp_ajax_markdown_convert', [$this, 'ajaxConvertContent']);
     }
 
     /**
@@ -47,121 +43,172 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * Отключает визуальный редактор TinyMCE для постов с поддержкой Markdown
+     * Оставлено для обратной совместимости.
      */
-    public function maybeDisableRichEdit($can_richedit): bool
+    public function maybeDisableRichEdit($can_richedit)
     {
-        global $pagenow, $typenow;
-
-        // Проверяем, что мы на странице редактирования поста
-        if (! in_array($pagenow, ['post.php', 'post-new.php'])) {
-            return $can_richedit;
-        }
-
-        // Получаем тип поста
-        $post_type = $typenow;
-        if (! $post_type && isset($_GET['post_type'])) {
-            $post_type = sanitize_text_field($_GET['post_type']);
-        } elseif (! $post_type && isset($_GET['post'])) {
-            $post_id = intval($_GET['post']);
-            $post_type = get_post_type($post_id);
-        } elseif (! $post_type) {
-            $post_type = 'post'; // По умолчанию
-        }
-
-        // Проверяем, поддерживается ли этот тип поста
-        $enabled_post_types = $this->getSetting('markdown_post_types', ['post', 'page']);
-        if (! in_array($post_type, $enabled_post_types)) {
-            return $can_richedit;
-        }
-
-        return false; // Отключаем визуальный редактор
+        return $can_richedit;
     }
 
     /**
-     * Дополнительный метод для полного отключения визуального редактора
+     * Оставлено для обратной совместимости.
      */
-    public function disableVisualEditor(): void
-    {
-        global $pagenow, $typenow;
+    public function disableVisualEditor(): void {}
 
-        // Проверяем, что мы на странице редактирования поста
-        if (! in_array($pagenow, ['post.php', 'post-new.php'])) {
+    /**
+     * Возвращает режим редактора для поста ('classic' или 'markdown').
+     *
+     * Приоритет определения:
+     * 1. Явно сохранённое значение в meta `_wp_addon_editor_mode`.
+     * 2. Наличие мета-поля `_markdown_content` (пост был создан в Markdown).
+     * 3. Наличие существующего HTML-контента — открываем в Classic, чтобы не ломать старые записи.
+     * 4. Для новых пустых записей — выбор из настройки `markdown_replace_tinymce`.
+     */
+    public function getPostEditorMode(int $post_id, $post = null): string
+    {
+        if ($post_id > 0) {
+            $mode = get_post_meta($post_id, '_wp_addon_editor_mode', true);
+            if (! empty($mode) && in_array($mode, ['classic', 'markdown'], true)) {
+                return $mode;
+            }
+
+            $markdown_meta = get_post_meta($post_id, '_markdown_content', true);
+            if (! empty($markdown_meta)) {
+                return 'markdown';
+            }
+        }
+
+        if ($post && ! empty($post->post_content)) {
+            return 'classic';
+        }
+
+        return $this->getSetting('markdown_replace_tinymce', false) ? 'markdown' : 'classic';
+    }
+
+    /**
+     * Возвращает содержимое Markdown для редактора.
+     *
+     * КРИТИЧЕСКИ ВАЖНО: если пост открыт в режиме Classic (HTML), возвращаем пустую строку.
+     * Это гарантирует, что редактор Markdown не будет восстанавливать контент и не затрёт HTML
+     * при последующем сохранении.
+     */
+    public function getPostMarkdownContent(int $post_id, $post = null, string $mode = 'classic'): string
+    {
+        if ($mode === 'classic') {
+            return '';
+        }
+
+        if ($post_id > 0) {
+            $markdown_meta = get_post_meta($post_id, '_markdown_content', true);
+            if (! empty($markdown_meta)) {
+                return $markdown_meta;
+            }
+        }
+
+        // Fallback для старых постов при переключении в Markdown:
+        if ($post && ! empty($post->post_content)) {
+            return $this->htmlToMarkdown($post->post_content);
+        }
+
+        return '';
+    }
+
+    /**
+     * Отрисовывает переключатель табов (Классический / Markdown) в стиле билдеров (WPBakery/YOOtheme/Divi)
+     * и встроенную область Markdown-редактора.
+     */
+    public function renderEditorSwitcher($post): void
+    {
+        if (! $this->isMarkdownEnabled() || ! $post) {
             return;
         }
 
-        // Получаем тип поста
-        $post_type = $typenow;
-        if (! $post_type && isset($_GET['post_type'])) {
-            $post_type = sanitize_text_field($_GET['post_type']);
-        } elseif (! $post_type && isset($_GET['post'])) {
-            $post_id = intval($_GET['post']);
-            $post_type = get_post_type($post_id);
+        $enabled_post_types = $this->getSetting('markdown_post_types', ['post', 'page']);
+        if (! in_array($post->post_type, $enabled_post_types, true)) {
+            return;
         }
 
-        // Проверяем, поддерживается ли этот тип поста
-        $enabled_post_types = $this->getSetting('markdown_post_types', ['post', 'page']);
-        if ($post_type && in_array($post_type, $enabled_post_types)) {
-            // Отключаем визуальный редактор принудительно
-            add_filter('wp_default_editor', function () {
-                return 'html';
-            });
-        }
+        $current_mode = $this->getPostEditorMode((int) $post->ID, $post);
+        $markdown_content = $this->getPostMarkdownContent((int) $post->ID, $post, $current_mode);
+
+        wp_nonce_field('save_markdown_content', 'markdown_nonce');
+        ?>
+        <div id="wp-addon-editor-switcher-wrap" class="wp-addon-editor-switcher-wrap">
+            <div class="wp-addon-builder-tabs-bar">
+                <div class="wp-addon-builder-tabs">
+                    <button type="button" class="wp-addon-builder-tab <?php echo $current_mode === 'classic' ? 'is-active' : ''; ?>" data-mode="classic">
+                        <span class="dashicons dashicons-editor-kitchensink"></span>
+                        <span class="tab-text"><?php esc_html_e('Классический редактор', 'wp-addon'); ?></span>
+                    </button>
+                    <button type="button" class="wp-addon-builder-tab <?php echo $current_mode === 'markdown' ? 'is-active' : ''; ?>" data-mode="markdown">
+                        <svg class="tab-md-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                            <path d="M14 3H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM2 2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                            <path d="M3 11V5h1.5l1.5 2.5L7.5 5H9v6H7.5V7.5L6 10l-1.5-2.5V11H3zm8.5-3.5h1.5v3h-1.5v-3zm0-1h1.5L12 5l-1 1.5z"/>
+                        </svg>
+                        <span class="tab-text"><?php esc_html_e('Markdown Редактор', 'wp-addon'); ?></span>
+                    </button>
+                </div>
+                <div class="wp-addon-builder-actions">
+                    <button type="button" class="button button-small wp-addon-convert-btn" id="wp-addon-btn-convert-to-md" title="<?php esc_attr_e('Конвертировать HTML из классического редактора в Markdown', 'wp-addon'); ?>" style="<?php echo $current_mode === 'markdown' ? '' : 'display: none;'; ?>">
+                        <span class="dashicons dashicons-update"></span>
+                        <span><?php esc_html_e('Импорт из HTML', 'wp-addon'); ?></span>
+                    </button>
+                    <button type="button" class="button button-small wp-addon-convert-btn" id="wp-addon-btn-convert-to-html" title="<?php esc_attr_e('Конвертировать Markdown в HTML для классического редактора', 'wp-addon'); ?>" style="<?php echo $current_mode === 'classic' ? '' : 'display: none;'; ?>">
+                        <span class="dashicons dashicons-update"></span>
+                        <span><?php esc_html_e('Импорт из Markdown', 'wp-addon'); ?></span>
+                    </button>
+                </div>
+            </div>
+            <input type="hidden" name="wp_addon_editor_mode" id="wp_addon_editor_mode" value="<?php echo esc_attr($current_mode); ?>">
+            <input type="hidden" name="markdown_edited" id="markdown_edited" value="0">
+            <div id="markdown-editor-container" class="wp-addon-markdown-container" style="<?php echo $current_mode === 'markdown' ? '' : 'display: none;'; ?>">
+                <textarea id="markdown-textarea" name="markdown_content" rows="20" style="width: 100%; font-family: monospace; font-size: 14px;"><?php echo esc_textarea($markdown_content); ?></textarea>
+            </div>
+        </div>
+        <?php if ($current_mode === 'markdown') { ?>
+        <style id="wp-addon-hide-tinymce">
+            #postdivrich { display: none !important; }
+        </style>
+        <?php } ?>
+        <?php
     }
 
     /**
-     * Добавляет мета-бокс для Markdown редактирования
+     * Оставлено для обратной совместимости.
      */
-    public function addMarkdownMetaBox(): void
-    {
-        $enabled_post_types = $this->getSetting('markdown_post_types', ['post', 'page']);
-
-        foreach ($enabled_post_types as $post_type) {
-            $title = $this->getSetting('markdown_replace_tinymce', false)
-                ? __('Content (Markdown)', 'wp-addon')
-                : __('Markdown Editor', 'wp-addon');
-
-            add_meta_box(
-                'markdown-editor',
-                $title,
-                [$this, 'renderMarkdownMetaBox'],
-                $post_type,
-                'normal',
-                'high'
-            );
-        }
-    }
+    public function addMarkdownMetaBox(): void {}
 
     /**
-     * Отрисовывает мета-бокс для Markdown
+     * Оставлено для обратной совместимости.
      */
     public function renderMarkdownMetaBox($post): void
     {
-        // Старый исходник MD больше не нужен: при наличии HTML удаляем meta.
-        $this->purgeStoredMarkdown((int) $post->ID, (string) $post->post_content);
+        $this->renderEditorSwitcher($post);
+    }
 
-        // Поле всегда заполняется из текущего HTML — отдельного хранилища MD нет.
-        $markdown_content = ! empty($post->post_content)
-            ? $this->htmlToMarkdown($post->post_content)
-            : '';
+    /**
+     * AJAX конвертация HTML <-> Markdown
+     */
+    public function ajaxConvertContent(): void
+    {
+        check_ajax_referer('markdown_preview', 'nonce');
 
-        wp_nonce_field('save_markdown_content', 'markdown_nonce');
-
-        // Если включена замена TinyMCE, скрываем стандартный редактор
-        if ($this->getSetting('markdown_replace_tinymce', false)) {
-            echo '<style>
-                #postdivrich { display: none !important; }
-                #wp-content-wrap { display: none !important; }
-                .wp-editor-tabs { display: none !important; }
-            </style>';
+        if (! current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => 'Unauthorized'], 403);
         }
 
-        echo '<div id="markdown-editor-container">';
-        echo '<input type="hidden" name="markdown_edited" id="markdown_edited" value="0">';
-        echo '<textarea id="markdown-textarea" name="markdown_content" rows="20" style="width: 100%; font-family: monospace; font-size: 14px;">'.esc_textarea($markdown_content).'</textarea>';
-        echo '</div>';
+        $direction = isset($_POST['direction']) ? sanitize_key($_POST['direction']) : '';
+        $content = isset($_POST['content']) ? wp_unslash($_POST['content']) : '';
 
-        echo '<p><small><em>'.__('В основном поле поста сохраняется только HTML. Markdown автоматически конвертируется в HTML при сохранении и нигде отдельно не хранится.', 'wp-addon').'</em></small></p>';
+        if ($direction === 'html_to_md') {
+            $markdown = $this->htmlToMarkdown($content);
+            wp_send_json_success($markdown);
+        } elseif ($direction === 'md_to_html') {
+            $html = $this->parseMarkdown($content);
+            wp_send_json_success($html);
+        }
+
+        wp_send_json_error(['message' => 'Invalid direction'], 400);
     }
 
     /**
@@ -178,11 +225,7 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * Сохраняет содержимое поста, используя Markdown как источник только тогда,
-     * когда сам Markdown редактор действительно менялся.
-     *
-     * При любом сохранении в основном поле остается только HTML, а исходник
-     * Markdown никуда не сохраняется.
+     * Сохраняет содержимое записи согласно активному режиму редактора (Markdown или Classic).
      *
      * @param  int  $post_id  ID поста
      * @param  WP_Post  $post_after  Пост после обновления
@@ -216,69 +259,64 @@ class MarkdownEditor implements ModuleInterface
             return;
         }
 
-        if (! isset($_POST['markdown_content'])) {
-            $this->purgeStoredMarkdown($post_id, (string) $post_after->post_content);
+        // Режим редактора: classic или markdown
+        $mode = isset($_POST['wp_addon_editor_mode'])
+            ? sanitize_text_field($_POST['wp_addon_editor_mode'])
+            : null;
 
-            return;
+        // Fallback для прямых вызовов / unit-тестов
+        if ($mode === null) {
+            $markdown_edited = isset($_POST['markdown_edited']) && (string) $_POST['markdown_edited'] === '1';
+            $new_markdown = isset($_POST['markdown_content']) ? wp_unslash($_POST['markdown_content']) : '';
+            $expected_markdown = (is_object($post_before) && ! empty($post_before->post_content))
+                ? $this->htmlToMarkdown((string) $post_before->post_content)
+                : '';
+            $html_changed = is_object($post_before)
+                && isset($post_before->post_content, $post_after->post_content)
+                && $post_before->post_content !== $post_after->post_content;
+
+            if ($markdown_edited || (! $html_changed && $new_markdown !== '' && $new_markdown !== $expected_markdown)) {
+                $mode = 'markdown';
+            } else {
+                $mode = 'classic';
+            }
         }
 
-        $new_markdown = wp_unslash($_POST['markdown_content']);
-        $markdown_edited = isset($_POST['markdown_edited']) && (string) $_POST['markdown_edited'] === '1';
-        $html_changed = is_object($post_before)
-            && isset($post_before->post_content, $post_after->post_content)
-            && $post_before->post_content !== $post_after->post_content;
+        update_post_meta($post_id, '_wp_addon_editor_mode', $mode);
 
-        // Ожидаемый MD из HTML до сохранения — только для fallback-сравнения.
-        $expected_markdown = (is_object($post_before) && ! empty($post_before->post_content))
-            ? $this->htmlToMarkdown((string) $post_before->post_content)
-            : '';
+        if ($mode === 'markdown') {
+            $new_markdown = isset($_POST['markdown_content']) ? wp_unslash($_POST['markdown_content']) : '';
 
-        // MD → HTML только если пользователь реально правил Markdown.
-        // Если правили HTML в стандартном редакторе — его не перетираем.
-        $should_apply_markdown = false;
+            // Сохраняем исходный Markdown в мета-поле, предотвращая искажения при повторном открытии
+            update_post_meta($post_id, '_markdown_content', $new_markdown);
 
-        if ($markdown_edited) {
-            // Явная правка MD (включая очистку поля).
-            $should_apply_markdown = true;
-        } elseif (! $html_changed && $new_markdown !== '' && $new_markdown !== $expected_markdown) {
-            // Fallback: HTML не менялся, а непустой MD отличается (JS-флаг мог не сработать).
-            $should_apply_markdown = true;
+            $parsed_html = $new_markdown !== '' ? $this->parseMarkdown($new_markdown) : '';
+
+            // Обновляем post_content в базе данных только если сконвертированный HTML отличается
+            if ($post_after->post_content !== $parsed_html) {
+                $this->saving = true;
+
+                wp_update_post([
+                    'ID' => $post_id,
+                    'post_content' => $parsed_html,
+                ]);
+
+                $this->saving = false;
+            }
+        } else {
+            // В режиме Classic удаляем мета Markdown: пост ведётся в HTML, и MD не должен перезаписывать или восстанавливать контент
+            $this->purgeStoredMarkdown($post_id);
+            // post_content не перезаписываем — WordPress уже сохранил актуальный HTML из классического редактора
         }
-
-        if ($should_apply_markdown) {
-            $this->saving = true;
-
-            wp_update_post([
-                'ID' => $post_id,
-                'post_content' => $new_markdown !== ''
-                    ? $this->parseMarkdown($new_markdown)
-                    : '',
-            ]);
-
-            $this->saving = false;
-        }
-
-        // Исходник Markdown никогда не храним.
-        $fresh = function_exists('get_post') ? get_post($post_id) : null;
-        $html_for_purge = (is_object($fresh) && isset($fresh->post_content))
-            ? (string) $fresh->post_content
-            : (string) $post_after->post_content;
-        $this->purgeStoredMarkdown($post_id, $html_for_purge);
     }
 
     /**
-     * Удаляет сохранённый исходник Markdown, если есть HTML или всегда по запросу.
+     * Удаляет сохранённый исходник Markdown при переходе в режим HTML или по запросу.
      */
     private function purgeStoredMarkdown(int $post_id, string $html_content = ''): void
     {
-        $has_html = trim(wp_strip_all_tags($html_content)) !== '';
-
-        // При наличии HTML исходник MD удаляем всегда.
-        // Без HTML тоже чистим скрытое meta — единственный источник контента теперь post_content.
-        if ($has_html || metadata_exists('post', $post_id, '_markdown_content') || metadata_exists('post', $post_id, 'markdown_content')) {
-            delete_post_meta($post_id, '_markdown_content');
-            delete_post_meta($post_id, 'markdown_content');
-        }
+        delete_post_meta($post_id, '_markdown_content');
+        delete_post_meta($post_id, 'markdown_content');
     }
 
     /**
@@ -445,6 +483,20 @@ class MarkdownEditor implements ModuleInterface
             return;
         }
 
+        global $post, $typenow;
+        $post_type = $typenow;
+        if (! $post_type && $post) {
+            $post_type = $post->post_type;
+        } elseif (! $post_type && isset($_GET['post_type'])) {
+            $post_type = sanitize_text_field($_GET['post_type']);
+        } elseif (! $post_type && isset($_GET['post'])) {
+            $post_type = get_post_type((int) $_GET['post']);
+        }
+        $enabled_post_types = $this->getSetting('markdown_post_types', ['post', 'page']);
+        if ($post_type && ! in_array($post_type, $enabled_post_types, true)) {
+            return;
+        }
+
         // Подключаем EasyMDE
         wp_enqueue_script(
             'easymde',
@@ -468,7 +520,7 @@ class MarkdownEditor implements ModuleInterface
             'markdown-editor',
             RW_PLUGIN_URL.'assets/js/markdown-editor.js',
             ['jquery', 'easymde'],
-            '1.2.0',
+            '1.3.0',
             true
         );
 
@@ -477,6 +529,13 @@ class MarkdownEditor implements ModuleInterface
             'nonce' => wp_create_nonce('markdown_preview'),
             'enable_shortcuts' => (bool) $this->getSetting('markdown_enable_shortcuts', true),
             'enable_preview' => (bool) $this->getSetting('markdown_enable_preview', true),
+            'i18n' => [
+                'import_html_confirm' => __('Импортировать текущий HTML контент в Markdown редактор?', 'wp-addon'),
+                'import_md_confirm' => __('Конвертировать Markdown в HTML для классического редактора?', 'wp-addon'),
+                'overwrite_md_confirm' => __('Заменить текущий Markdown контент результатом конвертации из HTML?', 'wp-addon'),
+                'overwrite_html_confirm' => __('Заменить текущий HTML в классическом редакторе результатом конвертации из Markdown?', 'wp-addon'),
+                'convert_error' => __('Ошибка при конвертации контента', 'wp-addon'),
+            ],
         ]);
 
         // Подключаем стили GitHub Markdown для предпросмотра
