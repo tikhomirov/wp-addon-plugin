@@ -7,7 +7,7 @@ use WpAddon\Core\Plugin;
  * Plugin Name:  # WP Excellence Addon
  * Plugin URL:   https://rwsite.ru
  * Description:  Performance, security, and admin enhancements for WordPress 6.6+: 48 WP Tweaker toggles, redirects, cookie banner, Markdown editor, plugin catalog, and comment spam protection.
- * Version:      1.5.1
+ * Version:      1.5.2
  * Text Domain:  wp-addon
  * Domain Path: /languages/
  * Author:       Aleksey Tikhomirov
