@@ -1348,8 +1348,8 @@ class WP_Addon_Settings
                 [
                     'id' => 'markdown_replace_tinymce',
                     'type' => 'switcher',
-                    'title' => __('Replace the standard editor', 'wp-addon'),
-                    'desc' => __('Скрывает стандартный редактор TinyMCE и оставляет только Markdown. Если выключено — оба редактора доступны, и при сохранении учитываются только те, в которых были правки.', 'wp-addon'),
+                    'title' => __('Default to Markdown editor', 'wp-addon'),
+                    'desc' => __('По умолчанию открывать Markdown-редактор для новых записей (иначе классический редактор). Переключаться между редакторами можно вкладками над областью контента.', 'wp-addon'),
                     'default' => true,
                     'dependency' => ['wp_addon_markdown_enabled', '==', 'true'],
                 ],

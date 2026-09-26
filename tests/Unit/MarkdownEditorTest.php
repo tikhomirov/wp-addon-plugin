@@ -55,6 +55,28 @@ if (! function_exists('delete_post_meta')) {
     }
 }
 
+if (! function_exists('update_post_meta')) {
+    function update_post_meta($post_id, $meta_key, $meta_value, $prev_value = '')
+    {
+        global $mock_metadata;
+        $mock_metadata['post'][$post_id][$meta_key] = $meta_value;
+
+        return true;
+    }
+}
+
+if (! function_exists('get_post_meta')) {
+    function get_post_meta($post_id, $key = '', $single = false)
+    {
+        global $mock_metadata;
+        if (! empty($key)) {
+            return $mock_metadata['post'][$post_id][$key] ?? '';
+        }
+
+        return $mock_metadata['post'][$post_id] ?? [];
+    }
+}
+
 if (! function_exists('wp_update_post')) {
     function wp_update_post($postarr)
     {
@@ -71,6 +93,27 @@ if (! function_exists('wp_update_post')) {
         }
 
         return $postarr['ID'];
+    }
+}
+
+if (! function_exists('check_ajax_referer')) {
+    function check_ajax_referer($action = -1, $query_arg = false, $die = true)
+    {
+        return true;
+    }
+}
+
+if (! function_exists('wp_send_json_success')) {
+    function wp_send_json_success($data = null, $status_code = null)
+    {
+        throw new Exception('JSON_SUCCESS: '.json_encode($data));
+    }
+}
+
+if (! function_exists('wp_send_json_error')) {
+    function wp_send_json_error($data = null, $status_code = null)
+    {
+        throw new Exception('JSON_ERROR: '.json_encode($data));
     }
 }
 
@@ -104,6 +147,7 @@ describe('MarkdownEditor Unit Tests', function () {
         $_POST['markdown_nonce'] = 'test_nonce_save_markdown_content';
         $_POST['markdown_content'] = '';
         $_POST['markdown_edited'] = '0';
+        unset($_POST['wp_addon_editor_mode']);
 
         $this->editor = new MarkdownEditor;
     });
@@ -111,7 +155,7 @@ describe('MarkdownEditor Unit Tests', function () {
     afterEach(function () {
         unset($GLOBALS['mock_functions']['get_option']);
         unset($GLOBALS['mock_metadata'], $GLOBALS['mock_updated_posts'], $GLOBALS['mock_posts']);
-        unset($_POST['markdown_nonce'], $_POST['markdown_content'], $_POST['markdown_edited']);
+        unset($_POST['markdown_nonce'], $_POST['markdown_content'], $_POST['markdown_edited'], $_POST['wp_addon_editor_mode']);
     });
 
     it('converts markdown to html with the fallback parser', function () {
@@ -194,7 +238,8 @@ describe('MarkdownEditor Unit Tests', function () {
         expect(metadata_exists('post', 1, '_markdown_content'))->toBeFalse();
     });
 
-    it('does not store a new markdown meta value on save', function () {
+    it('stores markdown meta value when saved in markdown mode', function () {
+        $_POST['wp_addon_editor_mode'] = 'markdown';
         $_POST['markdown_content'] = "# Fresh title\n\nBody";
         $_POST['markdown_edited'] = '1';
         $before = markdown_test_post('<p>Old</p>');
@@ -202,7 +247,42 @@ describe('MarkdownEditor Unit Tests', function () {
 
         $this->editor->saveMarkdownContent(1, $after, $before);
 
-        expect($GLOBALS['mock_metadata']['post'][1] ?? [])->toBe([]);
+        expect($GLOBALS['mock_metadata']['post'][1]['_markdown_content'] ?? null)->toBe("# Fresh title\n\nBody");
+        expect($GLOBALS['mock_metadata']['post'][1]['_wp_addon_editor_mode'] ?? null)->toBe('markdown');
+    });
+
+    it('clears markdown meta and preserves html when saved in classic mode', function () {
+        $GLOBALS['mock_metadata']['post'][1]['_markdown_content'] = '# Old markdown';
+        $_POST['wp_addon_editor_mode'] = 'classic';
+        $_POST['markdown_content'] = '';
+        $_POST['markdown_edited'] = '1';
+        $before = markdown_test_post('<p>Old html</p>');
+        $after = markdown_test_post('<p>New html from classic editor</p>');
+
+        $this->editor->saveMarkdownContent(1, $after, $before);
+
+        expect(metadata_exists('post', 1, '_markdown_content'))->toBeFalse();
+        expect($GLOBALS['mock_metadata']['post'][1]['_wp_addon_editor_mode'] ?? null)->toBe('classic');
+        expect($GLOBALS['mock_updated_posts'])->toBe([]);
+    });
+
+    it('returns classic mode for existing post with html content', function () {
+        $post = markdown_test_post('<p>Existing post</p>');
+        $mode = $this->editor->getPostEditorMode(1, $post);
+        expect($mode)->toBe('classic');
+    });
+
+    it('returns empty markdown content when in classic mode so it does not falsely restore', function () {
+        $post = markdown_test_post('<h2>Title</h2><p>Content</p>');
+        $content = $this->editor->getPostMarkdownContent(1, $post, 'classic');
+        expect($content)->toBe('');
+    });
+
+    it('returns stored markdown content when in markdown mode', function () {
+        $GLOBALS['mock_metadata']['post'][1]['_markdown_content'] = '# Hello markdown';
+        $post = markdown_test_post('<h1>Hello markdown</h1>');
+        $content = $this->editor->getPostMarkdownContent(1, $post, 'markdown');
+        expect($content)->toBe('# Hello markdown');
     });
 
     it('does nothing when markdown is disabled', function () {
@@ -278,5 +358,32 @@ describe('MarkdownEditor Unit Tests', function () {
         $this->editor->saveMarkdownOnFirstPublish(1, $post, true);
 
         expect($GLOBALS['mock_updated_posts'])->toBe([]);
+    });
+
+    it('converts html to markdown via ajax', function () {
+        $_POST['direction'] = 'html_to_md';
+        $_POST['content'] = '<h1>Test Title</h1><p>Test body</p>';
+
+        try {
+            $this->editor->ajaxConvertContent();
+            expect(true)->toBeFalse();
+        } catch (Exception $e) {
+            expect($e->getMessage())->toContain('JSON_SUCCESS');
+            expect($e->getMessage())->toContain('# Test Title');
+        }
+    });
+
+    it('converts markdown to html via ajax', function () {
+        $_POST['direction'] = 'md_to_html';
+        $_POST['content'] = "# Test Title\n\nTest body";
+
+        try {
+            $this->editor->ajaxConvertContent();
+            expect(true)->toBeFalse();
+        } catch (Exception $e) {
+            expect($e->getMessage())->toContain('JSON_SUCCESS');
+            expect($e->getMessage())->toContain('Test Title');
+            expect($e->getMessage())->toContain('<p>Test body');
+        }
     });
 });
