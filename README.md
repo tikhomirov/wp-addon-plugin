@@ -1,17 +1,17 @@
 # WP Excellence Addon
 
-[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](https://github.com/rwsite/wp-addon-plugin/releases)
+[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](https://github.com/rwsite/wp-addon-plugin/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-purple.svg)](https://php.net/)
-[![Tests](https://img.shields.io/badge/tests-180%20passed-green.svg)](https://github.com/rwsite/wp-addon-plugin/actions)
+[![Tests](https://img.shields.io/badge/tests-250%20passed-green.svg)](https://github.com/rwsite/wp-addon-plugin/actions)
 
-Transforms a standard WordPress site into a faster, safer, and easier-to-manage installation. The plugin bundles **WP Tweaker** (48 performance and security tweaks), **Redirects**, **Cookie Banner**, **Markdown editor**, **Plugin catalog**, and admin utilities in one place.
+Transforms a standard WordPress site into a faster, safer, and easier-to-manage installation. The plugin bundles **WP Tweaker** (48 performance and security tweaks), **Redirects**, **Cookie Banner**, **Markdown editor**, **Plugin catalog**, **Comment spam protection**, and admin utilities in one place.
 
 ## Requirements
 
 | Component | Minimum | Tested |
 |-----------|---------|--------|
-| **WordPress** | 6.6 | 6.6 – 6.8 |
+| **WordPress** | 6.6 | 6.6 – 7.2 |
 | **PHP** | 8.2 | 8.2, 8.3, 8.4 |
 
 The plugin does **not** support PHP 7.x or WordPress versions below 6.6. CI runs the test suite on PHP 8.2, 8.3, and 8.4.
@@ -45,6 +45,17 @@ Optional Markdown editing mode for posts and pages with live preview.
 
 Built-in catalog of project plugins with GitHub metadata, search, and quick links — useful on multi-plugin setups.
 
+### Comment Spam
+
+Rejects spam **before** it reaches the database, so nothing is stored, no moderation email is sent, and the page cache is never purged.
+
+- **Honeypot** — a hidden field that form-filling bots trip over
+- **Time trap** — a timestamp written by the browser, because cached pages make a server-side check useless
+- **Scoring** — additive signals (random body token, token-like author, no Cyrillic, dotted email, first visit) against a threshold
+- **Backlink verification** — for pingbacks and trackbacks, as Kama SpamBlock did
+- **Rate limits** — per IP, off by default
+- **Logging** — blocked attempts with IP, reason, score, and user agent, pruned monthly
+
 ### Other modules
 
 - Image optimization and media cleanup services
@@ -76,7 +87,7 @@ composer install
 
 ```bash
 composer install
-composer test          # 180 unit tests
+composer test          # 250 unit tests
 composer test:coverage
 composer analyse       # PHPStan level 8
 composer lint          # Pint

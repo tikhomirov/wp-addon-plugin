@@ -1,6 +1,6 @@
 {
   "name": "rwsite/wp-addon-plugin",
-    "description": "Performance, security, and admin enhancements for WordPress 6.6+ — WP Tweaker (48 toggles), redirects, cookie banner, Markdown editor, and plugin catalog.",
+  "description": "Performance, security, and admin enhancements for WordPress 6.6+ — WP Tweaker (48 toggles), redirects, cookie banner, Markdown editor, plugin catalog, and comment spam protection.",
   "license": "MIT",
   "type": "wordpress-plugin",
   "authors": [
