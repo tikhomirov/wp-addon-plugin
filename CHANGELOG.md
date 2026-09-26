@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [1.5.3] — 2026-09-26
+
+### Fixed
+
+- Fixed DOM positioning: moved editor switcher and Markdown editor below title and subtitle fields (priority 9999 and DOM insertion before `#postdivrich`).
+- Converted Markdown help reference into collapsible `<details>` element to prevent pushing post fields down.
+
 ## [1.5.2] — 2026-09-26
 
 ### Fixed

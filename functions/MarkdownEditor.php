@@ -17,7 +17,7 @@ class MarkdownEditor implements ModuleInterface
             return;
         }
 
-        $this->addHook('edit_form_after_title', [$this, 'renderEditorSwitcher']);
+        $this->addHook('edit_form_after_title', [$this, 'renderEditorSwitcher'], 9999);
         $this->addHook('post_updated', [$this, 'saveMarkdownContent'], 10, 3);
         $this->addHook('save_post', [$this, 'saveMarkdownOnFirstPublish'], 10, 3);
         $this->addHook('admin_enqueue_scripts', [$this, 'enqueueMarkdownAssets']);

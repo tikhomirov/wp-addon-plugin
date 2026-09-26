@@ -17,11 +17,19 @@ jQuery(document).ready(function($) {
             this.modeInput = $('#wp_addon_editor_mode');
             this.container = $('#markdown-editor-container');
             this.postdivrich = $('#postdivrich');
+            this.switcherWrap = $('#wp-addon-editor-switcher-wrap');
             this.btnConvertToMd = $('#wp-addon-btn-convert-to-md');
             this.btnConvertToHtml = $('#wp-addon-btn-convert-to-html');
 
             if (this.textarea.length === 0) {
                 return;
+            }
+
+            // Гарантируем правильный порядок в DOM: переключатель и MD-редактор
+            // должны находиться ровно над основным редактором #postdivrich,
+            // ПОСЛЕ подзаголовка и других полей edit_form_after_title.
+            if (this.postdivrich.length && this.switcherWrap.length) {
+                this.postdivrich.before(this.switcherWrap);
             }
 
             this.initEasyMDE();
@@ -358,9 +366,11 @@ jQuery(document).ready(function($) {
         },
 
         addMarkdownHelp: function() {
-            var helpHtml = '<div class="markdown-help">' +
-                '<h4>Markdown Справка:</h4>' +
-                '<ul>' +
+            var helpHtml = '<details class="markdown-help" style="margin: 12px 16px; padding: 8px 12px; background: #f0f6fc; border: 1px solid #d0d7de; border-radius: 6px; font-size: 12px; color: #50575e;">' +
+                '<summary style="cursor: pointer; font-weight: 600; color: #1d2327;">' +
+                'Markdown Справка (нажмите, чтобы развернуть)' +
+                '</summary>' +
+                '<ul style="margin: 8px 0 0 16px; padding: 0;">' +
                 '<li><strong># Заголовок 1</strong> — большой заголовок</li>' +
                 '<li><strong>## Заголовок 2</strong> — средний заголовок</li>' +
                 '<li><strong>**жирный**</strong> — жирный текст</li>' +
@@ -372,7 +382,7 @@ jQuery(document).ready(function($) {
                 '<li><strong>1. пункт</strong> — нумерованный список</li>' +
                 '<li><strong>Горячие клавиши:</strong> Ctrl+B (жирный), Ctrl+I (курсив), Ctrl+K (ссылка)</li>' +
                 '</ul>' +
-                '</div>';
+                '</details>';
 
             $('#markdown-editor-container').append(helpHtml);
         }
