@@ -1,11 +1,10 @@
 <?php
+
 /**
  * Импорт SQL-дампа обратно в базу данных WordPress.
  *
  * Разбор идёт построчно и потоково, без загрузки файла целиком в память.
  * Команды выполняются пачками, длинные запросы режутся по границам значений.
- *
- * @package WpAddon
  */
 
 declare(strict_types=1);
@@ -51,7 +50,6 @@ final class Restorer
         $this->db = $db ?? $wpdb;
     }
 
-
     /** @var string Префикс таблиц, записанный в дампе. */
     private string $dump_prefix = '';
 
@@ -64,7 +62,7 @@ final class Restorer
     /**
      * Открывает файл дампа на чтение.
      *
-     * @param string $path Полный путь к файлу дампа.
+     * @param  string  $path  Полный путь к файлу дампа.
      *
      * @throws \RuntimeException Если файл недоступен.
      */
@@ -96,7 +94,6 @@ final class Restorer
         $this->handle = null;
     }
 
-
     /**
      * Читает префикс таблиц из заголовка дампа.
      */
@@ -118,6 +115,7 @@ final class Restorer
 
         rewind($this->handle);
     }
+
     /**
      * Выполняет импорт дампа.
      *
@@ -132,8 +130,8 @@ final class Restorer
         }
         if ($this->dump_prefix !== '' && $this->dump_prefix !== $this->db->prefix) {
             throw new \RuntimeException(
-                'Префикс таблиц в дампе (' . $this->dump_prefix . ') не совпадает с префиксом сайта (' . $this->db->prefix . '). '
-                . 'Импорт остановлен: автоматическое переименование таблиц запрещено.'
+                'Префикс таблиц в дампе ('.$this->dump_prefix.') не совпадает с префиксом сайта ('.$this->db->prefix.'). '
+                .'Импорт остановлен: автоматическое переименование таблиц запрещено.'
             );
         }
 
@@ -182,7 +180,7 @@ final class Restorer
         }
 
         $this->execute($statement);
-        ++$this->statements;
+        $this->statements++;
 
         if ($kind === 'create' && preg_match('/CREATE\s+TABLE\s+`?([^`\s(]+)/i', $statement, $m) === 1) {
             $this->created_tables[] = $m[1];
@@ -230,14 +228,14 @@ final class Restorer
 
         if ($values_pos === false) {
             $this->execute($statement);
-            ++$this->statements;
+            $this->statements++;
             $this->rows += 1;
 
             return;
         }
 
         $this->execute($statement);
-        ++$this->statements;
+        $this->statements++;
         $this->rows += $this->count_value_tuples(substr($statement, $values_pos + 7));
     }
 
@@ -261,6 +259,7 @@ final class Restorer
             if ($in_string) {
                 if ($char === '\\' && $index + 1 < $length) {
                     $index += 2;
+
                     continue;
                 }
 
@@ -268,33 +267,36 @@ final class Restorer
                     // Двойная кавычка внутри строки экранируется как ''.
                     if ($index + 1 < $length && $values_body[$index + 1] === "'") {
                         $index += 2;
+
                         continue;
                     }
 
                     $in_string = false;
                 }
 
-                ++$index;
+                $index++;
+
                 continue;
             }
 
             if ($char === "'") {
                 $in_string = true;
-                ++$index;
+                $index++;
+
                 continue;
             }
 
             if ($char === '(') {
                 if ($depth === 0) {
-                    ++$count;
+                    $count++;
                 }
 
-                ++$depth;
+                $depth++;
             } elseif ($char === ')') {
                 $depth = max(0, $depth - 1);
             }
 
-            ++$index;
+            $index++;
         }
 
         return $count;
@@ -371,7 +373,8 @@ final class Restorer
                 }
 
                 $current .= $char;
-                ++$index;
+                $index++;
+
                 continue;
             }
 
@@ -382,10 +385,12 @@ final class Restorer
                     $current .= $next;
                     $index += 2;
                     $in_block_comment = false;
+
                     continue;
                 }
 
-                ++$index;
+                $index++;
+
                 continue;
             }
 
@@ -395,6 +400,7 @@ final class Restorer
                 if ($char === '\\' && $next !== '') {
                     $current .= $next;
                     $index += 2;
+
                     continue;
                 }
 
@@ -402,46 +408,52 @@ final class Restorer
                     if ($next === "'") {
                         $current .= $next;
                         $index += 2;
+
                         continue;
                     }
 
                     $in_string = false;
                 }
 
-                ++$index;
+                $index++;
+
                 continue;
             }
 
             if ($char === '-' && $next === '-' && ($index + 2 >= $length || $buffer[$index + 2] === ' ')) {
                 $in_line_comment = true;
                 $current .= $char;
-                ++$index;
+                $index++;
+
                 continue;
             }
 
             if ($char === '#') {
                 $in_line_comment = true;
                 $current .= $char;
-                ++$index;
+                $index++;
+
                 continue;
             }
 
             if ($char === '/' && $next === '*') {
                 $in_block_comment = true;
                 $current .= $char;
-                ++$index;
+                $index++;
+
                 continue;
             }
 
             if ($char === "'") {
                 $in_string = true;
                 $current .= $char;
-                ++$index;
+                $index++;
+
                 continue;
             }
 
             if ($char === ';') {
-                ++$index;
+                $index++;
 
                 $trimmed = $this->strip_comments(trim($current));
 
@@ -450,11 +462,12 @@ final class Restorer
                 }
 
                 $current = '';
+
                 continue;
             }
 
             $current .= $char;
-            ++$index;
+            $index++;
         }
 
         // Хвост без точки с запятой — это незавершённое утверждение, его нужно
@@ -488,7 +501,8 @@ final class Restorer
 
         if ($result === false) {
             throw new \RuntimeException(
-                'Ошибка SQL при восстановлении: ' . $this->short_error((string) $this->db->last_error)
+                'Ошибка SQL при восстановлении: '.$this->short_error((string) $this->db->last_error)
+                .' [Запрос: '.substr(trim($sql), 0, 120).']'
             );
         }
     }

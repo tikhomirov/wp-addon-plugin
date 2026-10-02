@@ -1,8 +1,7 @@
 <?php
+
 /**
  * Хранилище дампов: безопасный доступ к каталогу, поиск, удаление, приём загрузок.
- *
- * @package WpAddon
  */
 
 declare(strict_types=1);
@@ -34,14 +33,14 @@ final class Storage
     private string $root;
 
     /**
-     * @param string|null $root Каталог дампов; по умолчанию uploads/backup.
+     * @param  string|null  $root  Каталог дампов; по умолчанию uploads/backup.
      *
      * @throws \RuntimeException Если каталог не удаётся создать.
      */
     public function __construct(?string $root = null)
     {
-        $base = $root ?? (defined('WP_CONTENT_DIR') ? WP_CONTENT_DIR . '/uploads' : '');
-        $this->root = rtrim($base, '/') . '/' . self::DIRNAME;
+        $base = $root ?? (defined('WP_CONTENT_DIR') ? WP_CONTENT_DIR.'/uploads' : '');
+        $this->root = rtrim($base, '/').'/'.self::DIRNAME;
     }
 
     /**
@@ -57,7 +56,7 @@ final class Storage
      */
     public function uploaded_root(): string
     {
-        return $this->root . '/' . self::UPLOADED_DIRNAME;
+        return $this->root.'/'.self::UPLOADED_DIRNAME;
     }
 
     /**
@@ -84,18 +83,18 @@ final class Storage
      */
     private function write_protection(string $dir): void
     {
-        $htaccess = $dir . '/.htaccess';
-        $index = $dir . '/index.php';
+        $htaccess = $dir.'/.htaccess';
+        $index = $dir.'/index.php';
 
         if (! is_file($htaccess)) {
             $rules = "# Создано плагином бэкапов: запрет прямого доступа к дампам.\n"
-                . "<IfModule mod_authz_core.c>\n"
-                . "    Require all denied\n"
-                . "</IfModule>\n"
-                . "<IfModule !mod_authz_core.c>\n"
-                . "    Order deny,allow\n"
-                . "    Deny from all\n"
-                . "</IfModule>\n";
+                ."<IfModule mod_authz_core.c>\n"
+                ."    Require all denied\n"
+                ."</IfModule>\n"
+                ."<IfModule !mod_authz_core.c>\n"
+                ."    Order deny,allow\n"
+                ."    Deny from all\n"
+                ."</IfModule>\n";
 
             @file_put_contents($htaccess, $rules);
         }
@@ -130,7 +129,7 @@ final class Storage
                     continue;
                 }
 
-                $path = $dir . '/' . $entry;
+                $path = $dir.'/'.$entry;
 
                 if (! is_file($path)) {
                     continue;
@@ -160,8 +159,7 @@ final class Storage
      * реальный путь сверяется с корнем каталога. Это единственная точка,
      * где пользовательская строка превращается в путь файла.
      *
-     * @param string $name Имя файла из запроса.
-     *
+     * @param  string  $name  Имя файла из запроса.
      * @return string Абсолютный путь к файлу.
      *
      * @throws \RuntimeException Если имя недопустимо или файл вне каталога.
@@ -189,7 +187,7 @@ final class Storage
     private function find(string $name): ?string
     {
         foreach ([$this->root, $this->uploaded_root()] as $dir) {
-            $candidate = $dir . '/' . $name;
+            $candidate = $dir.'/'.$name;
 
             if (! is_file($candidate)) {
                 continue;
@@ -203,7 +201,7 @@ final class Storage
             }
 
             // Симлинк или подпапка вне каталога — отказ.
-            if (strncmp($real, $real_root . DIRECTORY_SEPARATOR, strlen($real_root) + 1) !== 0) {
+            if (strncmp($real, $real_root.DIRECTORY_SEPARATOR, strlen($real_root) + 1) !== 0) {
                 continue;
             }
 
@@ -223,7 +221,7 @@ final class Storage
     public function is_backup_name(string $name): bool
     {
         return (bool) preg_match(
-            '/^(?:backup|upload)_[A-Za-z0-9._-]+' . preg_quote(self::EXTENSION, '/') . '$/',
+            '/^(?:backup|upload)_[A-Za-z0-9._-]+'.preg_quote(self::EXTENSION, '/').'$/',
             basename($name)
         );
     }
@@ -247,7 +245,7 @@ final class Storage
      */
     public function new_dump_path(string $label): string
     {
-        return $this->root . '/' . self::PREFIX . $label . self::EXTENSION;
+        return $this->root.'/'.self::PREFIX.$label.self::EXTENSION;
     }
 
     /**
@@ -256,8 +254,7 @@ final class Storage
      * Содержимое проверяется по маркеру формата: это отсекает попытки
      * положить в каталог что-то, что потом будет исполнено как SQL.
      *
-     * @param array $file Элемент $_FILES.
-     *
+     * @param  array  $file  Элемент $_FILES.
      * @return string Имя сохранённого файла.
      *
      * @throws \RuntimeException При некорректной загрузке или содержимом.
@@ -296,8 +293,8 @@ final class Storage
 
         $this->ensure_directories();
 
-        $name = 'upload_' . gmdate('Y-m-d_H-i-s') . '_' . substr(bin2hex(random_bytes(4)), 0, 8) . self::EXTENSION;
-        $target = $this->uploaded_root() . '/' . $name;
+        $name = 'upload_'.gmdate('Y-m-d_H-i-s').'_'.substr(bin2hex(random_bytes(4)), 0, 8).self::EXTENSION;
+        $target = $this->uploaded_root().'/'.$name;
 
         $moved = @move_uploaded_file($tmp, $target);
 
@@ -340,7 +337,7 @@ final class Storage
     public static function format_size(int $bytes): string
     {
         if ($bytes < 1024) {
-            return $bytes . ' B';
+            return $bytes.' B';
         }
 
         $units = ['KB', 'MB', 'GB', 'TB'];
@@ -349,9 +346,9 @@ final class Storage
 
         while ($value >= 1024 && $index < count($units) - 1) {
             $value /= 1024;
-            ++$index;
+            $index++;
         }
 
-        return round($value, 1) . ' ' . $units[$index];
+        return round($value, 1).' '.$units[$index];
     }
 }

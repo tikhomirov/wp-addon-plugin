@@ -1,5 +1,5 @@
 /**
- * Логика страницы бэкапов.
+ * Логика секции «Backup DB» на странице настроек WP Addon.
  *
  * Долгие операции (дамп и восстановление) выполняются одним AJAX-запросом,
  * поэтому прогресс-полоса отражает факт завершения этапа, а не процент
@@ -7,6 +7,10 @@
  */
 (function ($) {
     'use strict';
+
+    if (typeof wpAddonBackup === 'undefined') {
+        return;
+    }
 
     function post(action, data) {
         return $.ajax({
@@ -19,12 +23,12 @@
 
     var statusBox = $('#wp-addon-backup-status');
     var progress = $('#wp-addon-backup-progress');
-    var bar = progress.find('.wp-backup__progress-bar');
+    var bar = progress.find('.wp-addon-backup__progress-bar');
 
     function setStatus(message, kind) {
         statusBox
-            .removeClass('wp-backup__status--error wp-backup__status--success')
-            .addClass(kind ? 'wp-backup__status--' + kind : '')
+            .removeClass('wp-addon-backup__status--error wp-addon-backup__status--success')
+            .addClass(kind ? 'wp-addon-backup__status--' + kind : '')
             .text(message);
     }
 
@@ -43,24 +47,22 @@
     }
 
     function setBusy(busy) {
-        statusBox.toggleClass('wp-backup__status--busy', busy);
-        $('.wp-backup__actions button, #wp-addon-backup-restore, #wp-addon-backup-delete, #wp-addon-backup-upload-form button')
+        statusBox.toggleClass('wp-addon-backup__status--busy', busy);
+        $('.wp-addon-backup__actions button, #wp-addon-backup-restore, #wp-addon-backup-upload-btn, .wp-addon-backup-delete')
             .prop('disabled', busy);
     }
 
-    function withBusy(button, task) {
+    function withBusy(task) {
         setBusy(true);
         setStatus(wpAddonBackup.strings.working, null);
 
         return task()
             .done(function (response) {
-                if (response && response.success && response.data) {
-                    setStatus(response.data.message, 'success');
+                if (response && response.success) {
+                    setStatus(response.data && response.data.message ? response.data.message : 'Готово.', 'success');
                 } else {
-                    var message = response && response.data && response.data.message
-                        ? response.data.message
-                        : 'Ошибка запроса.';
-                    setStatus(message, 'error');
+                    var payload = response && response.data;
+                    setStatus(payload && payload.message ? payload.message : 'Операция не выполнена.', 'error');
                 }
             })
             .fail(function (xhr) {
@@ -74,7 +76,7 @@
     }
 
     function refreshList() {
-        return post('wp_backup_list')
+        return post('wp_addon_backup_list')
             .done(function (response) {
                 if (response && response.success) {
                     $('#wp-addon-backup-list').html(response.data.html);
@@ -90,7 +92,9 @@
     function fillSelect(html) {
         var select = $('#wp-addon-backup-select');
         var current = select.val();
+
         select.empty();
+        select.append($('<option>').attr('value', '').text('Выберите файл дампа…'));
 
         $('<div>').html(html).find('[data-backup]').each(function () {
             var name = $(this).attr('data-backup');
@@ -100,15 +104,13 @@
         if (current) {
             select.val(current);
         }
-
-        select.prop('disabled', select.find('option').length === 0);
     }
 
     $('#wp-addon-backup-create').on('click', function () {
-        withBusy($(this), function () {
+        withBusy(function () {
             setProgress(10);
-            return post('wp_backup_create');
-        });
+            return post('wp_addon_backup_create');
+        }).done(refreshList);
     });
 
     $('#wp-addon-backup-restore').on('click', function () {
@@ -123,10 +125,10 @@
             return;
         }
 
-        withBusy($(this), function () {
+        withBusy(function () {
             setProgress(10);
-            return post('wp_backup_restore', { backup: backup });
-        });
+            return post('wp_addon_backup_restore', { backup: backup });
+        }).done(refreshList);
     });
 
     $('#wp-addon-backup-list').on('click', '.wp-addon-backup-delete', function () {
@@ -136,12 +138,10 @@
             return;
         }
 
-        var button = $(this);
-
         setBusy(true);
         setStatus(wpAddonBackup.strings.working, null);
 
-        post('wp_backup_delete', { backup: backup })
+        post('wp_addon_backup_delete', { backup: backup })
             .done(function (response) {
                 if (response && response.success) {
                     setStatus(response.data.message, 'success');
@@ -155,14 +155,10 @@
             })
             .always(function () {
                 setBusy(false);
-                button.prop('disabled', false);
             });
     });
 
-    $('#wp-addon-backup-upload-form').on('submit', function (event) {
-        event.preventDefault();
-
-        var form = this;
+    $('#wp-addon-backup-upload-btn').on('click', function () {
         var input = $('#wp-addon-backup-upload');
 
         if (!input.val()) {
@@ -174,7 +170,7 @@
         setStatus(wpAddonBackup.strings.working, null);
 
         var payload = new FormData();
-        payload.append('action', 'wp_backup_upload');
+        payload.append('action', 'wp_addon_backup_upload');
         payload.append('nonce', wpAddonBackup.nonce);
         payload.append('backup_file', input[0].files[0]);
 
@@ -189,13 +185,11 @@
             .done(function (response) {
                 if (response && response.success) {
                     setStatus(response.data.message, 'success');
-                    form.reset();
+                    input.val('');
                     refreshList();
                 } else {
-                    var message = response && response.data && response.data.message
-                        ? response.data.message
-                        : 'Не удалось загрузить файл.';
-                    setStatus(message, 'error');
+                    var payloadError = response && response.data;
+                    setStatus(payloadError && payloadError.message ? payloadError.message : 'Ошибка загрузки.', 'error');
                 }
             })
             .fail(function (xhr) {

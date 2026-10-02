@@ -1,61 +1,60 @@
 /**
- * Стили страницы бэкапов.
+ * Стили секции «Backup DB» на странице настроек WP Addon.
+ *
+ * Всё под префиксом .wp-addon-backup, чтобы не пересекаться
+ * со стилями самой CSF-страницы.
  */
 
-.wp-backup__lead {
+.wp-addon-backup__lead {
     max-width: 60em;
 }
 
-.wp-backup__actions {
+.wp-addon-backup__actions {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: 16px 0 8px;
+    margin: 12px 0;
 }
 
-.wp-backup__progress {
+.wp-addon-backup__progress {
     position: relative;
     display: inline-block;
     width: 240px;
     height: 12px;
+    background: #e5e5e5;
     border-radius: 6px;
-    background: #f0f0f1;
     overflow: hidden;
 }
 
-.wp-backup__progress-bar {
+.wp-addon-backup__progress-bar {
     display: block;
-    width: 0;
     height: 100%;
+    width: 0;
     background: #2271b1;
     transition: width 0.2s ease;
 }
 
-.wp-backup__status:not(:empty) {
+.wp-addon-backup__status {
     margin: 8px 0 16px;
-    padding: 10px 12px;
-    border-left: 4px solid #2271b1;
-    background: #fff;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    min-height: 1.2em;
 }
 
-.wp-backup__status.wp-backup__status--error {
-    border-left-color: #d63638;
+.wp-addon-backup__status--success {
+    color: #1a7a34;
 }
 
-.wp-backup__status.wp-backup__status--success {
-    border-left-color: #00a32a;
+.wp-addon-backup__status--error {
+    color: #b32d2e;
 }
 
-.wp-backup__status--busy {
-    opacity: 0.7;
+.wp-addon-backup__status--busy {
+    color: #2271b1;
 }
 
-.wp-backup__table code {
-    background: #f6f7f7;
+.wp-addon-backup__table {
+    max-width: 960px;
 }
 
-.wp-backup__form {
-    margin: 8px 0 24px;
-    max-width: 40em;
+.wp-addon-backup__table code {
+    word-break: break-all;
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Потоковый дамп базы данных MySQL/MariaDB в переносимый SQL-файл.
  *
@@ -6,8 +7,6 @@
  * батчевыми INSERT. Данные читаются курсором по одной строке, поэтому файл
  * не держится в памяти: дамп таблицы на сотни мегабайт проходит при обычном
  * memory_limit хостинга.
- *
- * @package WpAddon
  */
 
 declare(strict_types=1);
@@ -140,7 +139,7 @@ final class Dumper
     /**
      * Открывает файл дампа на запись.
      *
-     * @param string $path Полный путь к файлу.
+     * @param  string  $path  Полный путь к файлу.
      *
      * @throws \RuntimeException Если каталог недоступен или файл не открылся.
      */
@@ -197,18 +196,18 @@ final class Dumper
     {
         $lines = [
             '-- Woo2iiko WordPress database backup',
-            '-- Format: ' . self::FORMAT_VERSION,
-            '-- Prefix: ' . $this->prefix,
-            '-- Source: ' . $this->site_url(),
-            '-- WordPress: ' . $this->wordpress_version(),
-            '-- Charset: ' . $this->charset . ($this->collate !== '' ? ' ' . $this->collate : ''),
-            '-- Generated: ' . gmdate('Y-m-d H:i:s') . ' UTC',
+            '-- Format: '.self::FORMAT_VERSION,
+            '-- Prefix: '.$this->prefix,
+            '-- Source: '.$this->site_url(),
+            '-- WordPress: '.$this->wordpress_version(),
+            '-- Charset: '.$this->charset.($this->collate !== '' ? ' '.$this->collate : ''),
+            '-- Generated: '.gmdate('Y-m-d H:i:s').' UTC',
             '',
-            'SET NAMES ' . $this->charset . ';',
+            'SET NAMES '.$this->charset.';',
             'SET FOREIGN_KEY_CHECKS = 0;',
         ];
 
-        $this->write(implode("\n", $lines) . "\n");
+        $this->write(implode("\n", $lines)."\n");
     }
 
     /**
@@ -225,10 +224,10 @@ final class Dumper
         $lines = ['SET @OLD_SQL_MODE = @@SESSION.sql_mode;'];
 
         if ($sql_mode !== '') {
-            $lines[] = 'SET SESSION sql_mode = ' . ValueEncoder::quote($sql_mode) . ';';
+            $lines[] = 'SET SESSION sql_mode = '.ValueEncoder::quote($sql_mode).';';
         }
 
-        $this->write(implode("\n", $lines) . "\n\n");
+        $this->write(implode("\n", $lines)."\n\n");
     }
 
     /**
@@ -252,12 +251,12 @@ final class Dumper
      */
     private function dump_table(string $table): void
     {
-        ++$this->table_count;
+        $this->table_count++;
 
         $this->write(
             "\n-- --------------------------------------------------------\n"
-            . '-- Table: ' . $table . "\n"
-            . "-- --------------------------------------------------------\n\n"
+            .'-- Table: '.$table."\n"
+            ."-- --------------------------------------------------------\n\n"
         );
 
         $create_sql = $this->create_table_sql($table);
@@ -266,14 +265,14 @@ final class Dumper
             // Без схемы таблица не восстановится. Пишем явную пометку, чтобы
             // импорт не выглядел успешным, потеряв таблицу молча.
             $this->write(
-                '-- WARNING: не удалось получить CREATE TABLE для ' . $table . "; таблица пропущена.\n\n"
+                '-- WARNING: не удалось получить CREATE TABLE для '.$table."; таблица пропущена.\n\n"
             );
 
             return;
         }
 
-        $this->write('DROP TABLE IF EXISTS `' . $table . "`;\n");
-        $this->write($create_sql . ";\n\n");
+        $this->write('DROP TABLE IF EXISTS `'.$table."`;\n");
+        $this->write($create_sql.";\n\n");
 
         $this->dump_rows($table);
     }
@@ -285,7 +284,7 @@ final class Dumper
     {
         global $wpdb;
 
-        $row = $wpdb->get_row('SHOW CREATE TABLE `' . $table . '`', ARRAY_N);
+        $row = $wpdb->get_row('SHOW CREATE TABLE `'.$table.'`', ARRAY_N);
 
         if (! is_array($row) || ! isset($row[1])) {
             return null;
@@ -312,8 +311,8 @@ final class Dumper
             return;
         }
 
-        $quoted = implode(', ', array_map(static fn (string $c): string => '`' . $c . '`', $columns));
-        $prefix_sql = 'INSERT INTO `' . $table . '` (' . $quoted . ') VALUES';
+        $quoted = implode(', ', array_map(static fn (string $c): string => '`'.$c.'`', $columns));
+        $prefix_sql = 'INSERT INTO `'.$table.'` ('.$quoted.') VALUES';
 
         if ($this->stream_rows($table, $columns, $prefix_sql)) {
             $this->write("\n");
@@ -340,8 +339,8 @@ final class Dumper
             return false;
         }
 
-        $select = 'SELECT ' . implode(', ', array_map(static fn (string $c): string => '`' . $c . '`', $columns))
-            . ' FROM `' . $table . '`';
+        $select = 'SELECT '.implode(', ', array_map(static fn (string $c): string => '`'.$c.'`', $columns))
+            .' FROM `'.$table.'`';
 
         $result = @$dbh->query($select, MYSQLI_USE_RESULT);
 
@@ -357,14 +356,14 @@ final class Dumper
             $batch[] = $this->row_values($row, $columns);
 
             if (count($batch) >= self::ROWS_PER_INSERT) {
-                $this->write($prefix_sql . "\n" . implode(",\n", $batch) . ";\n");
+                $this->write($prefix_sql."\n".implode(",\n", $batch).";\n");
                 $this->row_count += count($batch);
                 $batch = [];
             }
         }
 
         if ($batch !== []) {
-            $this->write($prefix_sql . "\n" . implode(",\n", $batch) . ";\n");
+            $this->write($prefix_sql."\n".implode(",\n", $batch).";\n");
             $this->row_count += count($batch);
         }
 
@@ -379,7 +378,7 @@ final class Dumper
      * OFFSET на больших таблицах даёт O(n²), поэтому по возможности курсор
      * ведётся по первичному ключу, а не по смещению.
      *
-     * @param string[] $columns
+     * @param  string[]  $columns
      */
     private function chunk_rows(string $table, array $columns, string $prefix_sql): void
     {
@@ -390,17 +389,17 @@ final class Dumper
             $where = '';
 
             if ($keys !== [] && $last !== null) {
-                $where = ' WHERE ' . $this->key_cursor_condition($keys, $last);
+                $where = ' WHERE '.$this->key_cursor_condition($keys, $last);
             }
 
-            $select = 'SELECT ' . implode(', ', array_map(static fn (string $c): string => '`' . $c . '`', $columns))
-                . ' FROM `' . $table . '`' . $where;
+            $select = 'SELECT '.implode(', ', array_map(static fn (string $c): string => '`'.$c.'`', $columns))
+                .' FROM `'.$table.'`'.$where;
 
             if ($keys !== []) {
-                $select .= ' ORDER BY ' . implode(', ', array_map(static fn (string $k): string => '`' . $k . '`', $keys));
+                $select .= ' ORDER BY '.implode(', ', array_map(static fn (string $k): string => '`'.$k.'`', $keys));
             }
 
-            $select .= ' LIMIT ' . self::ROWS_PER_INSERT;
+            $select .= ' LIMIT '.self::ROWS_PER_INSERT;
 
             $rows = $this->select_rows($select);
 
@@ -412,10 +411,10 @@ final class Dumper
 
             foreach ($rows as $row) {
                 $batch[] = $this->row_values($row, $columns);
-                ++$this->row_count;
+                $this->row_count++;
             }
 
-            $this->write($prefix_sql . "\n" . implode(",\n", $batch) . ";\n");
+            $this->write($prefix_sql."\n".implode(",\n", $batch).";\n");
 
             // Последний неполный батч означает, что таблица прочитана до конца.
             if ($keys === [] || count($rows) < self::ROWS_PER_INSERT) {
@@ -443,8 +442,7 @@ final class Dumper
     /**
      * Условие курсора по составному первичному ключу (lexicographic).
      *
-     * @param string[] $keys
-     * @param array    $last
+     * @param  string[]  $keys
      */
     private function key_cursor_condition(array $keys, array $last): string
     {
@@ -454,12 +452,12 @@ final class Dumper
         foreach ($keys as $index => $key) {
             $equals = [];
 
-            for ($i = 0; $i < $index; ++$i) {
-                $equals[] = '`' . $keys[$i] . '` = ' . $this->value_literal($last[$i]);
+            for ($i = 0; $i < $index; $i++) {
+                $equals[] = '`'.$keys[$i].'` = '.$this->value_literal($last[$i]);
             }
 
-            $equals[] = '`' . $key . '` > ' . $this->value_literal($last[$index]);
-            $acc[] = '(' . implode(' AND ', $equals) . ')';
+            $equals[] = '`'.$key.'` > '.$this->value_literal($last[$index]);
+            $acc[] = '('.implode(' AND ', $equals).')';
         }
 
         $clauses = $acc;
@@ -479,7 +477,7 @@ final class Dumper
         $rows = $wpdb->get_results($sql, ARRAY_A);
 
         if (! is_array($rows)) {
-            throw new \RuntimeException('Ошибка чтения данных таблицы: ' . $wpdb->last_error);
+            throw new \RuntimeException('Ошибка чтения данных таблицы: '.$wpdb->last_error);
         }
 
         return $rows;
@@ -494,7 +492,7 @@ final class Dumper
     {
         global $wpdb;
 
-        $rows = $wpdb->get_results('SHOW KEYS FROM `' . $table . "` WHERE Key_name = 'PRIMARY'", ARRAY_A);
+        $rows = $wpdb->get_results('SHOW KEYS FROM `'.$table."` WHERE Key_name = 'PRIMARY'", ARRAY_A);
 
         if (! is_array($rows) || $rows === []) {
             return [];
@@ -537,7 +535,7 @@ final class Dumper
     {
         global $wpdb;
 
-        $rows = $wpdb->get_results('SHOW COLUMNS FROM `' . $table . '`', ARRAY_A);
+        $rows = $wpdb->get_results('SHOW COLUMNS FROM `'.$table.'`', ARRAY_A);
 
         if (! is_array($rows)) {
             return [];
@@ -560,8 +558,8 @@ final class Dumper
      * Правила кодирования вынесены в ValueEncoder: их важно проверять
      * тестами независимо от подключения к базе.
      *
-     * @param array<string,mixed> $row
-     * @param string[]            $columns
+     * @param  array<string,mixed>  $row
+     * @param  string[]  $columns
      */
     private function row_values(array $row, array $columns): string
     {
@@ -571,7 +569,7 @@ final class Dumper
     /**
      * SQL-литерал для одного значения ячейки.
      *
-     * @param mixed $value
+     * @param  mixed  $value
      */
     private function value_literal($value): string
     {
@@ -585,8 +583,8 @@ final class Dumper
     {
         $this->write(
             "\nSET SESSION sql_mode = @OLD_SQL_MODE;\n"
-            . "SET FOREIGN_KEY_CHECKS = 1;\n"
-            . '-- End of backup. Tables: ' . $this->table_count . ', rows: ' . $this->row_count . "\n"
+            ."SET FOREIGN_KEY_CHECKS = 1;\n"
+            .'-- End of backup. Tables: '.$this->table_count.', rows: '.$this->row_count."\n"
         );
     }
 

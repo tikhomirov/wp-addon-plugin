@@ -1402,6 +1402,19 @@ class WP_Addon_Settings
             ],
         ]);
 
+        // Backup DB
+        \CSF::createSection($prefix, [
+            'title' => __('Backup DB', 'wp-addon'),
+            'icon' => 'fa fa-database',
+            'description' => __('Полный SQL-снимок базы данных (схема + данные) с восстановлением на этом же сайте. Дамп с другим префиксом таблиц будет отклонён.', 'wp-addon'),
+            'fields' => [
+                [
+                    'type' => 'content',
+                    'content' => \Backup::render_settings_content(),
+                ],
+            ],
+        ]);
+
         // BackUp
         \CSF::createSection($prefix, [
             'title' => __('Backup Settings', 'wp-addon'),

@@ -1,8 +1,7 @@
 <?php
+
 /**
  * Кодирование значений ячеек в SQL-литералы.
- *
- * @package WpAddon
  */
 
 declare(strict_types=1);
@@ -29,7 +28,7 @@ final class ValueEncoder
      * из-за чего содержимое базы портится. Собственное кодирование даёт
      * результат, не зависящий от настроек сервера.
      *
-     * @param mixed $value Значение из базы.
+     * @param  mixed  $value  Значение из базы.
      */
     public static function literal($value): string
     {
@@ -55,7 +54,7 @@ final class ValueEncoder
         // они ломают потоковый разбор и кодировку. Такие значения
         // сохраняем как hex — это работает для любых байтов.
         if (! self::is_text_safe($value)) {
-            return '0x' . bin2hex($value);
+            return '0x'.bin2hex($value);
         }
 
         return self::quote($value);
@@ -64,8 +63,8 @@ final class ValueEncoder
     /**
      * Собирает список значений одной строки в виде "(v1,v2,...)".
      *
-     * @param array<string,mixed> $row     Строка результата запроса.
-     * @param string[]            $columns Колонки в порядке схемы.
+     * @param  array<string,mixed>  $row  Строка результата запроса.
+     * @param  string[]  $columns  Колонки в порядке схемы.
      */
     public static function row_values(array $row, array $columns): string
     {
@@ -75,7 +74,7 @@ final class ValueEncoder
             $parts[] = self::literal($row[$column] ?? null);
         }
 
-        return '(' . implode(',', $parts) . ')';
+        return '('.implode(',', $parts).')';
     }
 
     /**
@@ -87,7 +86,7 @@ final class ValueEncoder
      */
     public static function quote(string $value): string
     {
-        return "'" . addcslashes($value, "\0\n\r\t\\'\"\x1a") . "'";
+        return "'".addcslashes($value, "\0\n\r\t\\'\"\x1a")."'";
     }
 
     /**
