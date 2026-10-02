@@ -1,0 +1,61 @@
+/**
+ * Стили страницы бэкапов.
+ */
+
+.wp-backup__lead {
+    max-width: 60em;
+}
+
+.wp-backup__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0 8px;
+}
+
+.wp-backup__progress {
+    position: relative;
+    display: inline-block;
+    width: 240px;
+    height: 12px;
+    border-radius: 6px;
+    background: #f0f0f1;
+    overflow: hidden;
+}
+
+.wp-backup__progress-bar {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: #2271b1;
+    transition: width 0.2s ease;
+}
+
+.wp-backup__status:not(:empty) {
+    margin: 8px 0 16px;
+    padding: 10px 12px;
+    border-left: 4px solid #2271b1;
+    background: #fff;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.wp-backup__status.wp-backup__status--error {
+    border-left-color: #d63638;
+}
+
+.wp-backup__status.wp-backup__status--success {
+    border-left-color: #00a32a;
+}
+
+.wp-backup__status--busy {
+    opacity: 0.7;
+}
+
+.wp-backup__table code {
+    background: #f6f7f7;
+}
+
+.wp-backup__form {
+    margin: 8px 0 24px;
+    max-width: 40em;
+}

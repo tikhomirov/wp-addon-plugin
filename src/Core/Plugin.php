@@ -244,6 +244,7 @@ class Plugin
             'AssetMinification' => [$this->optionService],
             'LazyLoading' => [$this->optionService, $this->imageOptimizationService],
             'CookieBanner' => [$this->optionService],
+            'Backup' => [],
         ];
 
         $files = glob($this->dir.'functions/*.php') ?: [];
