@@ -620,6 +620,15 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         }
     }
 
+    if (! function_exists('wp_nonce_url')) {
+        function wp_nonce_url($actionurl, $action = -1, $name = '_wpnonce', $referer = true)
+        {
+            $separator = str_contains($actionurl, '?') ? '&' : '?';
+
+            return esc_url($actionurl.$separator.$name.'='.wp_create_nonce($action));
+        }
+    }
+
     if (! defined('MINUTE_IN_SECONDS')) {
         define('MINUTE_IN_SECONDS', 60);
     }
