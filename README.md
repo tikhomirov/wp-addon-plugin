@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/badge/version-1.5.3-blue.svg)](https://github.com/rwsite/wp-addon-plugin/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-purple.svg)](https://php.net/)
-[![Tests](https://img.shields.io/badge/tests-256%20passed-green.svg)](https://github.com/rwsite/wp-addon-plugin/actions)
+[![Tests](https://img.shields.io/badge/tests-265%20passed-green.svg)](https://github.com/rwsite/wp-addon-plugin/actions)
 
 Transforms a standard WordPress site into a faster, safer, and easier-to-manage installation. The plugin bundles **WP Tweaker** (48 performance and security tweaks), **Redirects**, **Cookie Banner**, **Markdown editor**, **Plugin catalog**, **Comment spam protection**, and admin utilities in one place.
 
@@ -13,6 +13,7 @@ Transforms a standard WordPress site into a faster, safer, and easier-to-manage 
 |-----------|---------|--------|
 | **WordPress** | 6.6 | 6.6 – 7.2 |
 | **PHP** | 8.2 | 8.2, 8.3, 8.4 |
+| **CodeStar Framework** | 2.3.1 | bundled copy, sibling plugin, or auto-installed |
 
 The plugin does **not** support PHP 7.x or WordPress versions below 6.6. CI runs the test suite on PHP 8.2, 8.3, and 8.4.
 
@@ -83,13 +84,24 @@ cd wp-content/plugins/wp-addon-plugin
 composer install
 ```
 
+## CodeStar Framework
+
+The admin settings screen is built on [CodeStar Framework](https://github.com/Codestar/codestar-framework) (`CSF`). The plugin resolves the framework automatically, in this order:
+
+1. **Already loaded** — e.g. the standalone `codestar-framework` plugin is active (this repository ships it as a submodule in `wp-content/plugins/codestar-framework/`).
+2. **Bundled copy** — `wp-addon-plugin/lib/codestar-framework/` (git-ignored; created by the installer).
+3. **Automatic install** — on the first wp-admin page load, and at most once an hour afterwards, the plugin downloads the pinned `2.3.1` release from GitHub into `lib/`. Requires a user with the `install_plugins` capability and write access to `wp-content/plugins/`.
+4. **Manual install** — click **Install CodeStar Framework now** in the admin notice, or download a release into `wp-content/plugins/codestar-framework/` and activate it.
+
+If every source fails, an admin notice shows the underlying download or filesystem error, and the settings screen stays hidden until `CSF` is available.
+
 ## Development
 
 ```bash
 composer install
-composer test          # 250 unit tests
+composer test          # 265 unit tests
 composer test:coverage
-composer analyse       # PHPStan level 8
+composer analyse       # PHPStan level 2
 composer lint          # Pint
 composer quality       # lint + analyse + test
 ```
@@ -148,3 +160,14 @@ PHP 7.x и WordPress ниже 6.6 **не поддерживаются**.
 - **Каталог плагинов** с данными GitHub
 
 Установка: скачать [релиз](https://github.com/rwsite/wp-addon-plugin/releases) или подключить как git submodule. После активации настройки доступны в админке WordPress.
+
+### CodeStar Framework
+
+Экран настроек построен на [CodeStar Framework](https://github.com/Codestar/codestar-framework). Фреймворк ищется и подключается автоматически, в таком порядке:
+
+1. **Уже загружен** — например, активен отдельный плагин `codestar-framework` (в этом репозитории он идёт submodule'ом в `wp-content/plugins/codestar-framework/`).
+2. **Копия в плагине** — `wp-addon-plugin/lib/codestar-framework/` (каталог создаётся установщиком, в git не входит).
+3. **Автоматическая установка** — при первой загрузке админки, и далее не чаще раза в час, плагин скачивает закреплённый релиз `2.3.1` с GitHub в `lib/`. Нужен пользователь с capability `install_plugins` и права записи в `wp-content/plugins/`.
+4. **Установка вручную** — кнопка **Install CodeStar Framework now** в админском уведомлении либо отдельный плагин `codestar-framework`.
+
+Если ни один источник не сработал, в админке показывается уведомление с текстом ошибки загрузки или записи файлов, а экран настроек скрыт до тех пор, пока `CSF` не станет доступен.

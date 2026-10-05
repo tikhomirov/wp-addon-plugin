@@ -63,6 +63,11 @@ class Plugin
     private ImageOptimizationService $imageOptimizationService;
 
     /**
+     * CodeStar Framework resolver and installer
+     */
+    private CodeStarInstaller $codeStar;
+
+    /**
      * Constructor
      *
      * @param  string  $file  Plugin file path
@@ -72,6 +77,9 @@ class Plugin
         $this->file = $file;
         $this->dir = plugin_dir_path($file);
         $this->url = plugin_dir_url($file);
+
+        $pluginsDir = defined('WP_PLUGIN_DIR') ? WP_PLUGIN_DIR : dirname($this->dir);
+        $this->codeStar = new CodeStarInstaller($this->dir, $pluginsDir.'/codestar-framework/codestar-framework.php');
     }
 
     /**
@@ -97,10 +105,6 @@ class Plugin
      */
     public function activate(): void
     {
-        if (! class_exists('CSF')) {
-            add_action('admin_notices', [$this, 'renderMissingCodeStarNotice']);
-        }
-
         $optionService = new OptionService(defined('RW_LANG') ? RW_LANG : 'wp-addon');
         require_once plugin_dir_path($this->file).'src/Config/cookie-banner-defaults.php';
         $optionService->mergeDefaults(
@@ -111,17 +115,6 @@ class Plugin
                 'cookie_banner_analytics_code',
             ]
         );
-    }
-
-    public function renderMissingCodeStarNotice(): void
-    {
-        if (! current_user_can('activate_plugins')) {
-            return;
-        }
-
-        echo '<div class="notice notice-warning"><p>'
-            .esc_html__('WP Addon requires the bundled CodeStar Framework. Reinstall the plugin from a complete release package.', 'wp-addon')
-            .'</p></div>';
     }
 
     private function loadLocales(): void
@@ -164,11 +157,8 @@ class Plugin
      */
     private function loadDependencies(): void
     {
-        // Load CodeStar Framework if available
-        $csf_file = $this->dir.'lib/codestar-framework/codestar-framework.php';
-        if (file_exists($csf_file)) {
-            require_once $csf_file;
-        }
+        // Load CodeStar Framework from lib/, the sibling plugin, or install it
+        $this->codeStar->bootstrap();
 
         // Load settings
         require_once $this->dir.'src/Config/wp-addon-settings.php';
@@ -279,6 +269,9 @@ class Plugin
     {
         add_action('plugins_loaded', [$this, 'onPluginsLoaded']);
         add_action('init', [$this, 'loadSeoFunctions'], 1);
+        add_action('admin_notices', [$this->codeStar, 'renderNotice']);
+        add_action('admin_init', [$this->codeStar, 'maybeAutoInstall']);
+        add_action('admin_post_'.CodeStarInstaller::ACTION, [$this->codeStar, 'handleInstallRequest']);
     }
 
     /**

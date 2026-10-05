@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Automatic CodeStar Framework provisioning (`src/Core/CodeStarInstaller.php`): the settings UI now resolves `CSF` from a standalone `codestar-framework` sibling plugin or from `lib/codestar-framework/`, and downloads the pinned 2.3.1 release from GitHub into `lib/` when neither exists (throttled to once per hour, requires the `install_plugins` capability).
+- One-click **Install CodeStar Framework now** button and an admin notice that reports the real download/filesystem error when provisioning fails.
+- Documentation of the CodeStar Framework requirement and resolution order in `README.md` (EN and RU).
+
+### Fixed
+
+- Restored the missing-framework admin notice that was lost with the `admin_notices` hook registered from the activation redirect; the notice is now registered on every admin request.
+
 ## [1.5.3] — 2026-09-26
 
 ### Fixed

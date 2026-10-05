@@ -5,6 +5,7 @@ parameters:
     level: 2
     paths:
         - src/Core/Plugin.php
+        - src/Core/CodeStarInstaller.php
         - src/Services/CacheService.php
         - src/Services/ImageOptimizationService.php
         - src/Services/CommentAntispamScoringService.php
