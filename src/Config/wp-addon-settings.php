@@ -21,9 +21,9 @@ class WP_Addon_Settings
 
     public $ver;
 
-    public $wp_plugin_name;
+    public $wp_plugin_name = 'Wordpress Addon';
 
-    public $wp_plugin_slug;
+    public $wp_plugin_slug = 'wp-addon';
 
     private function __construct()
     {
@@ -39,6 +39,9 @@ class WP_Addon_Settings
         if (defined('WP_DEBUG') && WP_DEBUG) {
             $this->ver = time();
         }
+
+        $this->wp_plugin_name = __('Wordpress Addon', 'wp-addon');
+        $this->wp_plugin_slug = 'wp-addon';
     }
 
     public static function getInstance(): WP_Addon_Settings
@@ -899,7 +902,7 @@ class WP_Addon_Settings
      */
     public function admin_assets($page)
     {
-        if (strpos($page, $this->wp_plugin_slug) === false) {
+        if (empty($page) || empty($this->wp_plugin_slug) || strpos((string) $page, (string) $this->wp_plugin_slug) === false) {
             return;
         }
 
