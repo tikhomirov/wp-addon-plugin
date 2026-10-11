@@ -40,7 +40,7 @@ class WP_Addon_Settings
             $this->ver = time();
         }
 
-        $this->wp_plugin_name = __('Wordpress Addon', 'wp-addon');
+        $this->wp_plugin_name = 'Wordpress Addon';
         $this->wp_plugin_slug = 'wp-addon';
     }
 
