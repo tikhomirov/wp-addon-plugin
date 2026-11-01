@@ -110,6 +110,18 @@ database, no notification email is sent, and the page cache is not purged.
 - **Default**: `3`
 - **Description**: Minimum total score that blocks a comment. Higher means fewer false positives, more spam gets through.
 
+#### Moderation Hold Score
+- **Setting**: `antispam_hold_score`
+- **Type**: Number
+- **Default**: `2`
+- **Description**: Comments that score this value or more but stay below the threshold are held for moderation (stored unapproved) instead of being published. Catches borderline spam that no single rule proves. `0` disables holding.
+
+#### Hold First Comments
+- **Setting**: `antispam_hold_first_time`
+- **Type**: Switcher
+- **Default**: Disabled
+- **Description**: Sends every comment without `comment_author_*` cookies to the moderation queue regardless of the score. The strongest protection against novel spam at the cost of a manual approval per new reader.
+
 #### Honeypot Field
 - **Setting**: `antispam_honeypot`
 - **Type**: Switcher
@@ -161,10 +173,16 @@ database, no notification email is sent, and the page cache is not purged.
 | No Cyrillic and no whitespace in the body | 1 |
 | Three or more dots in the email local part | 1 |
 | First visit (no `comment_author_*` cookies) | 1 |
+| Every link beyond the first (body, `href`, markdown, bare domains, website field), capped at 3 | 1 per link |
+| Linked domain repeats the author name or the email local part (`RusFiner` ↔ `rus-finer.ru`) | 2 |
+| Loan, casino, adult, or pharmacy vocabulary (distinct stems: 1 → 1, 2+ → 2) | 1–2 |
+| Email or linked domain sits on a bulk-registered TLD like `.fun`, `.xyz`, `.top` | 1 |
 
-The weights are additive, and the body token alone already reaches the default
-threshold. Device names, Git hashes and plain English words are not treated as
-random tokens.
+The weights are additive. Coherent promo spam that the weak rules alone let
+through — a Cyrillic advert with two links to its own domain, a brand-like
+author name and an email on a suspicious TLD — scores 7. Device names, Git
+hashes and plain English words are not treated as random tokens. A first-time
+reader who drops one link still scores 1 and publishes normally.
 
 #### Blocked Attempts Statistics
 

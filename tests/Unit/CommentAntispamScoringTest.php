@@ -54,6 +54,100 @@ describe('CommentAntispamScoringService', function () {
         expect(CommentAntispamScoringService::isRandomToken('IjtRwXHmcvybfzgmAiMm'))->toBeTrue();
     });
 
+    /**
+     * Second real spam sample from rwsite.ru: a coherent Russian promo text
+     * by "RusFiner" that the old scoring passed because every weak rule
+     * individually stayed silent.
+     */
+    it('scores the coherent promo spam above the default threshold', function () {
+        $content = 'Онлайн-сервис РУС-ФИНЕР помогает подобрать займ с дистанционным оформлением.'
+            .' Через https://rus-finer.ru/zaimy-pensioneram-na-kartu/ легко сравнить условия МФО.'
+            .' Используя https://rus-finer.ru/zaim-45000-rubley-na-kartu/ можно подать заявку.';
+
+        $verdict = CommentAntispamScoringService::score($content, 'RusFiner', 'rusfiner2@pil-casi.fun', true);
+
+        expect($verdict['score'])->toBeGreaterThanOrEqual(3);
+        expect($verdict['reasons'])->toContain(CommentAntispamScoringService::REASON_LINKS);
+        expect($verdict['reasons'])->toContain(CommentAntispamScoringService::REASON_BRAND);
+        expect($verdict['reasons'])->toContain(CommentAntispamScoringService::REASON_KEYWORDS);
+        expect($verdict['reasons'])->toContain(CommentAntispamScoringService::REASON_TLD);
+        expect($verdict['reasons'])->toContain(CommentAntispamScoringService::REASON_FIRST_TIME);
+    });
+
+    it('gives the first link in a comment no weight at all', function () {
+        expect(CommentAntispamScoringService::linkWeight(0))->toBe(0);
+        expect(CommentAntispamScoringService::linkWeight(1))->toBe(0);
+
+        $verdict = CommentAntispamScoringService::score(
+            'Сообщение без ссылок и промо-акций никак не оценивается.',
+            'Игорь',
+            'igor@example.org',
+            false
+        );
+
+        expect($verdict['score'])->toBe(0);
+    });
+
+    it('detects links in html attributes, markdown and bare domains', function () {
+        $urls = CommentAntispamScoringService::extractUrls(
+            '<a href="https://a.ru/">А</a> www.b.com/x [текст](https://d.fun/y) и сайт e.io, ещё wp-kama.ru'
+        );
+
+        expect($urls)->toContain('https://a.ru/');
+        expect($urls)->toContain('www.b.com/x');
+        expect($urls)->toContain('https://d.fun/y');
+        expect($urls)->toContain('e.io');
+        expect(CommentAntispamScoringService::hostOf($urls[0]))->toBe('a.ru');
+
+        expect(CommentAntispamScoringService::extractUrls('Без ссылок вообще'))->toBe([]);
+    });
+
+    it('flags an author whose name repeats the linked domain', function () {
+        expect(CommentAntispamScoringService::isBrandMatch('RusFiner', '', ['rus-finer.ru']))->toBeTrue();
+        expect(CommentAntispamScoringService::isBrandMatch('', 'rusfiner2@pil-casi.fun', ['rus-finer.ru']))->toBeTrue();
+        expect(CommentAntispamScoringService::isBrandMatch('Иван', '', ['rus-finer.ru']))->toBeFalse();
+        expect(CommentAntispamScoringService::isBrandMatch('', '', ['example.com']))->toBeFalse();
+
+        $verdict = CommentAntispamScoringService::score(
+            'Отличная статья, обязательно посмотрите.',
+            'RusFiner',
+            'test@mail.ru',
+            false,
+            'https://rus-finer.ru/'
+        );
+
+        expect($verdict['reasons'])->toContain(CommentAntispamScoringService::REASON_BRAND);
+    });
+
+    it('weights loan, casino and pharmacy vocabulary', function () {
+        $comment = CommentAntispamScoringService::score(
+            'Обзор казино и лучшие слоты, как выиграть.',
+            'Иван',
+            'ivan@mail.ru',
+            false
+        );
+
+        expect($comment['reasons'])->toContain(CommentAntispamScoringService::REASON_KEYWORDS);
+        expect($comment['score'])->toBeLessThan(3, 'keywords alone stay a weak signal');
+
+        expect(CommentAntispamScoringService::matchedSpamKeywords('Спасибо за статью про Docker'))->toBe(0);
+        expect(CommentAntispamScoringService::matchedSpamKeywords('Банк не даёт кредит'))->toBe(1);
+    });
+
+    it('treats bulk registered tlds as a weak spam signal', function () {
+        expect(CommentAntispamScoringService::isSuspiciousTld('fun'))->toBeTrue();
+        expect(CommentAntispamScoringService::isSuspiciousTld('ru'))->toBeFalse();
+
+        $verdict = CommentAntispamScoringService::score(
+            'Спасибо за разбор!',
+            'Олег',
+            'oleg@abc123.fun',
+            false
+        );
+
+        expect($verdict['reasons'])->toContain(CommentAntispamScoringService::REASON_TLD);
+    });
+
     it('keeps a single English word below the threshold', function () {
         $verdict = CommentAntispamScoringService::score('Congrats', 'John', 'john@example.com', false);
 
@@ -105,5 +199,45 @@ describe('CommentAntispamScoringService', function () {
         expect(CommentAntispamScoringService::looksMachineWritten('Thanks'))->toBeTrue();
         expect(CommentAntispamScoringService::looksMachineWritten('Thanks for this'))->toBeFalse();
         expect(CommentAntispamScoringService::looksMachineWritten(''))->toBeFalse();
+    });
+
+    it('blocks English spam with links and html anchors', function () {
+        $spam = 'This treatment of risk management across modular dependencies avoids reducing the subject to a feature list. <a href="http://www2u.biglobe.ne.jp/~Dolls/houkoku/jawanote.cgi?page=0" rel="nofollow ugc">risk management</a>';
+        $verdict = CommentAntispamScoringService::score(
+            $spam,
+            'Sue',
+            'suemassey689@hotmail.com',
+            true
+        );
+
+        // 1 (first_time) + 2 (html_anchor) + 3 (latin_link) = 6 >= threshold 3
+        expect($verdict['score'])->toBeGreaterThanOrEqual(3);
+        expect($verdict['reasons'])->toContain(CommentAntispamScoringService::REASON_HTML_ANCHOR);
+        expect($verdict['reasons'])->toContain(CommentAntispamScoringService::REASON_LATIN_LINK);
+    });
+
+    it('allows transliterated Russian comments without blocking them', function () {
+        $translit = 'Spasibo bolshoe za statyu, ochen pomoglo! Vse rabotaet klassno.';
+        $verdict = CommentAntispamScoringService::score(
+            $translit,
+            'Alex',
+            'alex@gmail.com',
+            false
+        );
+
+        expect($verdict['score'])->toBe(0);
+        expect(CommentAntispamScoringService::looksLikeRussianTranslit($translit))->toBeTrue();
+    });
+
+    it('does not penalize transliterated comments with legitimate single link', function () {
+        $translit = 'Privet, vot tut tozhe horosho napisano: https://example.com/info';
+        $verdict = CommentAntispamScoringService::score(
+            $translit,
+            'Dmitriy',
+            'dmitriy@gmail.com',
+            false
+        );
+
+        expect($verdict['reasons'])->not->toContain(CommentAntispamScoringService::REASON_LATIN_LINK);
     });
 });

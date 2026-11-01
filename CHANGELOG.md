@@ -6,6 +6,8 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Heavier comment spam scoring: every link beyond the first (costs 1, capped at 3), an author name or email local part repeating a linked domain (`RusFiner` ↔ `rus-finer.ru`, costs 2), loan/casino/adult/pharmacy vocabulary (costs 1–2), and bulk-registered TLDs like `.fun` or `.xyz` (costs 1). Coherent promo spam that previously passed with a score of 1 now scores 7.
+- Moderation hold (`antispam_hold_score`, default 2): comments scoring between the hold score and the threshold are stored unapproved instead of being published, so borderline spam can never auto-publish. Optional `antispam_hold_first_time` switcher holds every comment without author cookies.
 - Automatic CodeStar Framework provisioning (`src/Core/CodeStarInstaller.php`): the settings UI now resolves `CSF` from a standalone `codestar-framework` sibling plugin or from `lib/codestar-framework/`, and downloads the pinned 2.3.1 release from GitHub into `lib/` when neither exists (throttled to once per hour, requires the `install_plugins` capability).
 - One-click **Install CodeStar Framework now** button and an admin notice that reports the real download/filesystem error when provisioning fails.
 - Documentation of the CodeStar Framework requirement and resolution order in `README.md` (EN and RU).

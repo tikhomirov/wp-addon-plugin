@@ -52,7 +52,8 @@ Rejects spam **before** it reaches the database, so nothing is stored, no modera
 
 - **Honeypot** — a hidden field that form-filling bots trip over
 - **Time trap** — a timestamp written by the browser, because cached pages make a server-side check useless
-- **Scoring** — additive signals (random body token, token-like author, no Cyrillic, dotted email, first visit) against a threshold
+- **Scoring** — additive signals (random body token, token-like author, no Cyrillic, dotted email, first visit, extra links and domains repeating the author name, spam niche vocabulary, bulk-registered TLDs) against a threshold
+- **Moderation hold** — comments that score below the threshold but above the hold score go to the moderation queue instead of publishing; option to hold every first comment
 - **Backlink verification** — for pingbacks and trackbacks, as Kama SpamBlock did
 - **Rate limits** — per IP, off by default
 - **Logging** — blocked attempts with IP, reason, score, and user agent, pruned monthly

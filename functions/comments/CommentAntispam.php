@@ -28,6 +28,8 @@ class CommentAntispam implements ModuleInterface
 
     public const REASON_HONEYPOT = 'honeypot';
 
+    public const REASON_NO_JS = 'no_js';
+
     public const REASON_TOO_FAST = 'too_fast';
 
     public const REASON_RATE_LIMIT = 'rate_limit';
@@ -35,6 +37,15 @@ class CommentAntispam implements ModuleInterface
     public const REASON_NO_BACKLINK = 'no_backlink';
 
     public const REASON_SCORE = 'score';
+
+    public const REASON_HOLD = 'hold';
+
+    /**
+     * Comments that score this much but stay below the threshold are held for
+     * moderation instead of being approved: a borderline verdict must not
+     * publish itself.
+     */
+    public const HOLD_SCORE = 2;
 
     private const KAMA_PLUGIN = 'kama-spamblock/kama-spamblock.php';
 
@@ -69,6 +80,8 @@ class CommentAntispam implements ModuleInterface
         add_action(CommentAntispamLogService::CRON_HOOK, [$this, 'rotateLog']);
         add_action('wp_enqueue_scripts', [$this, 'enqueueAssets']);
         add_action('comment_form_after_fields', [$this, 'renderHoneypot']);
+        add_action('comment_form_logged_in_after', [$this, 'renderHoneypot']);
+        add_action('comment_form', [$this, 'renderTimestampField']);
         add_action('admin_notices', [$this, 'renderKamaNotice']);
     }
 
@@ -108,9 +121,15 @@ class CommentAntispam implements ModuleInterface
             return $preparedComment;
         }
 
-        $error = $this->screen($preparedComment);
+        $verdict = $this->screen($preparedComment);
 
-        if ($error === null) {
+        if ($verdict === 0) {
+            $preparedComment['comment_approved'] = 0;
+
+            return $preparedComment;
+        }
+
+        if ($verdict === null) {
             return $preparedComment;
         }
 
@@ -118,16 +137,18 @@ class CommentAntispam implements ModuleInterface
         // status, while REST only reads a ['status' => int] array. Rebuild the
         // error so both entry points answer 403.
         return new WP_Error(
-            $error->get_error_code(),
-            $error->get_error_message(),
-            ['status' => (int) $error->get_error_data()]
+            $verdict->get_error_code(),
+            $verdict->get_error_message(),
+            ['status' => (int) $verdict->get_error_data()]
         );
     }
 
     /**
      * @param  array<string, mixed>  $commentdata
+     * @return WP_Error|int|null WP_Error rejects the comment, 0 holds it for
+     *                           moderation, null approves it unchanged
      */
-    private function screen(array $commentdata): ?WP_Error
+    private function screen(array $commentdata): WP_Error|int|null
     {
         $type = (string) ($commentdata['comment_type'] ?? 'comment');
 
@@ -151,11 +172,16 @@ class CommentAntispam implements ModuleInterface
         }
 
         // The page comes from the page cache, so the timestamp is written by
-        // the browser. A missing field means no JavaScript, not a bot.
+        // the browser. A missing or invalid timestamp means direct bot POST without JS.
         $minSeconds = $this->getNumberSetting('antispam_min_seconds', 3);
         $timestamp = (int) $this->getPostedValue(self::TIMESTAMP_FIELD);
-        if ($minSeconds > 0 && $timestamp > 0 && (time() - $timestamp) < $minSeconds) {
-            return $this->reject(self::REASON_TOO_FAST, 0, $commentdata);
+        if ($minSeconds > 0) {
+            if ($timestamp <= 0) {
+                return $this->reject(self::REASON_NO_JS, 0, $commentdata);
+            }
+            if ((time() - $timestamp) < $minSeconds) {
+                return $this->reject(self::REASON_TOO_FAST, 0, $commentdata);
+            }
         }
 
         $ip = (string) ($commentdata['comment_author_IP'] ?? '');
@@ -168,10 +194,23 @@ class CommentAntispam implements ModuleInterface
             (string) ($commentdata['comment_content'] ?? ''),
             (string) ($commentdata['comment_author'] ?? ''),
             (string) ($commentdata['comment_author_email'] ?? ''),
-            $this->isFirstVisit()
+            $this->isFirstVisit(),
+            (string) ($commentdata['comment_author_url'] ?? '')
         );
 
         if ($verdict['score'] < $this->threshold) {
+            $holdScore = $this->getNumberSetting('antispam_hold_score', self::HOLD_SCORE);
+            $shouldHold = ($holdScore > 0 && $verdict['score'] >= $holdScore)
+                || ($this->getSwitcher('antispam_hold_first_time', false) && $this->isFirstVisit());
+
+            if ($shouldHold) {
+                return $this->hold(
+                    self::REASON_HOLD.':'.implode(',', $verdict['reasons']),
+                    $verdict['score'],
+                    $commentdata
+                );
+            }
+
             $this->rateLimiter()->register($ip);
 
             return null;
@@ -183,19 +222,18 @@ class CommentAntispam implements ModuleInterface
     }
 
     /**
+     * A rejected comment is never stored, so this table row is the only
+     * trace the attempt happened.
+     *
      * @param  array<string, mixed>  $commentdata
      */
-    private function reject(string $reason, int $score, array $commentdata): WP_Error
+    private function logAttempt(string $reason, int $score, array $commentdata): void
     {
-        $ip = (string) ($commentdata['comment_author_IP'] ?? '');
-
-        $this->rateLimiter()->register($ip);
-
         CommentAntispamLogService::log([
             'reason' => $reason,
             'score' => $score,
             'threshold' => $this->threshold,
-            'ip' => $ip,
+            'ip' => (string) ($commentdata['comment_author_IP'] ?? ''),
             'author' => (string) ($commentdata['comment_author'] ?? ''),
             'email' => (string) ($commentdata['comment_author_email'] ?? ''),
             'content' => (string) ($commentdata['comment_content'] ?? ''),
@@ -203,6 +241,31 @@ class CommentAntispam implements ModuleInterface
             'post_id' => (int) ($commentdata['comment_post_ID'] ?? 0),
             'comment_type' => (string) ($commentdata['comment_type'] ?? ''),
         ]);
+    }
+
+    /**
+     * Borderline comments go to the moderation queue instead of the public
+     * comment list. Zero means "unapproved" in pre_comment_approved.
+     *
+     * @param  array<string, mixed>  $commentdata
+     */
+    private function hold(string $reason, int $score, array $commentdata): int
+    {
+        $this->rateLimiter()->register((string) ($commentdata['comment_author_IP'] ?? ''));
+
+        $this->logAttempt($reason, $score, $commentdata);
+
+        return 0;
+    }
+
+    /**
+     * @param  array<string, mixed>  $commentdata
+     */
+    private function reject(string $reason, int $score, array $commentdata): WP_Error
+    {
+        $this->rateLimiter()->register((string) ($commentdata['comment_author_IP'] ?? ''));
+
+        $this->logAttempt($reason, $score, $commentdata);
 
         return new WP_Error(
             'comment_antispam_rejected',
@@ -246,6 +309,18 @@ class CommentAntispam implements ModuleInterface
             .'</p>',
             esc_attr(self::HONEYPOT_FIELD),
             esc_html__('Leave this field empty', 'wp-addon')
+        );
+    }
+
+    public function renderTimestampField(): void
+    {
+        if ($this->getNumberSetting('antispam_min_seconds', 3) <= 0) {
+            return;
+        }
+
+        printf(
+            '<input type="hidden" name="%s" value="" />',
+            esc_attr(self::TIMESTAMP_FIELD)
         );
     }
 

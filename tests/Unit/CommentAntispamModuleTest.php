@@ -87,7 +87,9 @@ beforeEach(function () {
     $mock_functions = [];
     $mock_http_bodies = [];
     $db->exec('DELETE FROM wp_options');
-    $_POST = [];
+    $_POST = [
+        CommentAntispam::TIMESTAMP_FIELD => (string) (time() - 30),
+    ];
     $_COOKIE = [];
 });
 
@@ -111,6 +113,58 @@ describe('CommentAntispam gate', function () {
         expect($result->get_error_code())->toBe('comment_antispam_rejected');
         expect((int) $result->get_error_data())->toBe(403);
         expect($result->get_error_message())->not->toBeEmpty();
+    });
+
+    /**
+     * Second real sample: coherent Russian loan promo by "RusFiner" that the
+     * old scoring approved because no single weak rule spoke up.
+     */
+    function antispam_promo_sample(array $overrides = []): array
+    {
+        return array_merge([
+            'comment_post_ID' => 7700,
+            'comment_author' => 'RusFiner',
+            'comment_author_email' => 'rusfiner2@pil-casi.fun',
+            'comment_author_url' => '',
+            'comment_author_IP' => '65.21.233.184',
+            'comment_content' => 'Онлайн-сервис помогает подобрать займ.'
+                .' https://rus-finer.ru/zaimy-pensioneram-na-kartu/ и https://rus-finer.ru/zaim-45000-rubley-na-kartu/',
+            'comment_type' => 'comment',
+            'comment_agent' => 'Mozilla/5.0',
+        ], $overrides);
+    }
+
+    it('blocks the coherent promo spam sample as well', function () {
+        global $wpdb;
+
+        $result = (new CommentAntispam)->filterPreCommentApproved(1, antispam_promo_sample());
+
+        expect($result)->toBeInstanceOf(WP_Error::class);
+        expect($wpdb->inserts[0]['reason'])->toStartWith('score:');
+        expect($wpdb->inserts[0]['reason'])->toContain(CommentAntispamScoringService::REASON_LINKS);
+        expect($wpdb->inserts[0]['reason'])->toContain(CommentAntispamScoringService::REASON_BRAND);
+    });
+
+    it('holds a borderline comment for moderation instead of approving it', function () {
+        global $wpdb;
+
+        $borderline = antispam_spam_sample([
+            'comment_author' => 'John',
+            'comment_author_email' => 'john@example.com',
+            'comment_content' => 'Congrats',
+        ]);
+
+        expect((new CommentAntispam)->filterPreCommentApproved(1, $borderline))->toBe(0);
+        expect($wpdb->inserts[0]['reason'])->toStartWith(CommentAntispam::REASON_HOLD.':');
+    });
+
+    it('holds every first comment when the switcher is on', function () {
+        antispam_set_settings([
+            'antispam_hold_first_time' => true,
+            'antispam_hold_score' => 0,
+        ]);
+
+        expect((new CommentAntispam)->filterPreCommentApproved(1, antispam_real_comment()))->toBe(0);
     });
 
     it('logs the blocked attempt with the ip, score and reason', function () {
@@ -185,14 +239,24 @@ describe('CommentAntispam gate', function () {
         expect((new CommentAntispam)->filterPreCommentApproved(1, antispam_real_comment()))->toBe(1);
     });
 
-    it('treats a missing timestamp as no javascript, not as a bot', function () {
-        expect((new CommentAntispam)->filterPreCommentApproved(1, antispam_real_comment()))->toBe(1);
+    it('blocks a missing timestamp as a bot without javascript', function () {
+        global $wpdb;
+        unset($_POST[CommentAntispam::TIMESTAMP_FIELD]);
+
+        $result = (new CommentAntispam)->filterPreCommentApproved(1, antispam_real_comment());
+
+        expect($result)->toBeInstanceOf(WP_Error::class);
+        expect($wpdb->inserts[0]['reason'])->toBe(CommentAntispam::REASON_NO_JS);
     });
 
-    it('ignores a timestamp that is not a number', function () {
+    it('blocks a timestamp that is not a number as no javascript', function () {
+        global $wpdb;
         $_POST[CommentAntispam::TIMESTAMP_FIELD] = 'not-a-number';
 
-        expect((new CommentAntispam)->filterPreCommentApproved(1, antispam_real_comment()))->toBe(1);
+        $result = (new CommentAntispam)->filterPreCommentApproved(1, antispam_real_comment());
+
+        expect($result)->toBeInstanceOf(WP_Error::class);
+        expect($wpdb->inserts[0]['reason'])->toBe(CommentAntispam::REASON_NO_JS);
     });
 
     it('lets users who can moderate comments through', function () {
@@ -304,6 +368,18 @@ describe('CommentAntispam rest gate', function () {
         $comment = antispam_real_comment();
 
         expect((new CommentAntispam)->filterRestPreInsertComment($comment))->toBe($comment);
+    });
+
+    it('marks a borderline comment unapproved instead of rejecting it', function () {
+        $comment = antispam_real_comment([
+            'comment_author' => 'John',
+            'comment_author_email' => 'john@example.com',
+            'comment_content' => 'Congrats',
+        ]);
+
+        $result = (new CommentAntispam)->filterRestPreInsertComment($comment);
+
+        expect($result['comment_approved'])->toBe(0);
     });
 
     it('passes an error from another filter through unchanged', function () {

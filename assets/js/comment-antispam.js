@@ -7,10 +7,15 @@
 
     function setTimestamp(form) {
         var field = form.querySelector('input[name="' + TIMESTAMP + '"]');
-        if (!field || field.value) {
-            return;
+        if (!field) {
+            field = document.createElement('input');
+            field.type = 'hidden';
+            field.name = TIMESTAMP;
+            form.appendChild(field);
         }
-        field.value = String(Math.floor(Date.now() / 1000));
+        if (!field.value) {
+            field.value = String(Math.floor(Date.now() / 1000));
+        }
     }
 
     function removeHoneypot(form) {

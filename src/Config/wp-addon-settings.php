@@ -1189,7 +1189,7 @@ class WP_Addon_Settings
         \CSF::createSection($prefix, [
             'title' => __('Comment Spam', 'wp-addon'),
             'icon' => 'fa fa-shield',
-            'description' => __('Comment spam protection. A rejected comment never reaches the database, so nothing is stored, no notification email is sent, and the page cache stays intact.<br><br><strong>How it works:</strong> a hidden honeypot field, a time trap that only a real browser can pass, pingback and trackback backlink verification, and content scoring. When the score reaches the threshold the submission is rejected. Every blocked attempt is logged with its IP and reason and rotated out monthly.<br><br>This module replaces the <strong>Kama SpamBlock</strong> plugin, which can be deactivated afterwards.', 'wp-addon'),
+            'description' => __('Comment spam protection. A rejected comment never reaches the database, so nothing is stored, no notification email is sent, and the page cache stays intact.<br><br><strong>How it works:</strong> a hidden honeypot field, a time trap that only a real browser can pass, pingback and trackback backlink verification, and content scoring. The weight count includes links in the body, an author name repeating a linked domain, spam niche vocabulary and bulk-registered domains; when the score reaches the threshold the submission is rejected, and between the moderation hold score and the threshold the comment goes to the moderation queue instead. Every blocked or held attempt is logged with its IP and reason and rotated out monthly.<br><br>This module replaces the <strong>Kama SpamBlock</strong> plugin, which can be deactivated afterwards.', 'wp-addon'),
             'fields' => require __DIR__.'/comment-antispam.php',
         ]);
 
