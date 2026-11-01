@@ -11,10 +11,10 @@ describe('Backup module', function () {
         expect(is_subclass_of('Backup', ModuleInterface::class))->toBeTrue();
     });
 
-    it('declares five AJAX actions backed by existing handlers', function () {
+    it('declares six AJAX actions backed by existing handlers', function () {
         $actions = Backup::ajax_actions();
 
-        expect($actions)->toHaveCount(5);
+        expect($actions)->toHaveCount(6);
 
         foreach ($actions as $action => $handler) {
             expect($action)->toStartWith('wp_addon_backup_');
@@ -35,7 +35,7 @@ describe('Backup module', function () {
         expect($jsActions)->toBe($phpActions);
     });
 
-    it('renders settings content with every element ID used by JS', function () {
+    it('renders settings content without select and latest-download', function () {
         global $mock_user_capabilities, $wpdb;
 
         $mock_user_capabilities = ['manage_options'];
@@ -56,17 +56,22 @@ describe('Backup module', function () {
                 'wp-addon-backup-progress',
                 'wp-addon-backup-status',
                 'wp-addon-backup-list',
-                'wp-addon-backup-select',
-                'wp-addon-backup-restore',
                 'wp-addon-backup-upload',
                 'wp-addon-backup-upload-btn',
             ] as $id) {
                 expect($html)->toContain('id="'.$id.'"');
             }
 
+            // Убрано: select больше нет, restore-кнопка в таблице.
+            expect($html)->not->toContain('wp-addon-backup-select');
+            expect($html)->not->toContain('wp-addon-backup-latest-download');
+
             expect($html)->toContain('backup_test.sql');
             expect($html)->toContain('wp-addon-backup-delete');
+            expect($html)->toContain('wp-addon-backup-download');
+            expect($html)->toContain('wp-addon-backup-restore');
             expect($html)->toContain('wp_');
+            expect($html)->toContain('Восстановление');
         } finally {
             unlink($dir.'/backup/backup_test.sql');
             rmdir($dir.'/backup');

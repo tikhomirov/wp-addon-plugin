@@ -58,3 +58,12 @@
 .wp-addon-backup__table code {
     word-break: break-all;
 }
+
+.wp-addon-backup__table td {
+    vertical-align: middle;
+}
+
+.wp-addon-backup__table .wp-addon-backup-restore {
+    color: #b32d2e;
+    border-color: #b32d2e;
+}

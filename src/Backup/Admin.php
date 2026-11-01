@@ -50,6 +50,14 @@ final class Admin
                     <td><?php echo esc_html(Storage::format_size($backup['size'])); ?></td>
                     <td><?php echo esc_html(gmdate('Y-m-d H:i', $backup['modified'])); ?></td>
                     <td>
+                        <button type="button" class="button button-small wp-addon-backup-restore"
+                                data-backup="<?php echo esc_attr($backup['name']); ?>">
+                            <?php echo esc_html__('Восстановить', 'wp-addon'); ?>
+                        </button>
+                        <button type="button" class="button button-small wp-addon-backup-download"
+                                data-backup="<?php echo esc_attr($backup['name']); ?>">
+                            <?php echo esc_html__('Скачать', 'wp-addon'); ?>
+                        </button>
                         <button type="button" class="button button-small wp-addon-backup-delete"
                                 data-backup="<?php echo esc_attr($backup['name']); ?>">
                             <?php echo esc_html__('Удалить', 'wp-addon'); ?>

@@ -48,6 +48,7 @@ final class Backup implements ModuleInterface
             'wp_addon_backup_restore' => 'ajax_restore',
             'wp_addon_backup_delete' => 'ajax_delete',
             'wp_addon_backup_upload' => 'ajax_upload',
+            'wp_addon_backup_download' => 'ajax_download',
             'wp_addon_backup_list' => 'ajax_list',
         ];
     }
@@ -81,11 +82,14 @@ final class Backup implements ModuleInterface
         wp_localize_script('wp-addon-backup', 'wpAddonBackup', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce(self::NONCE_ACTION),
+            'adminUrl' => admin_url(),
             'strings' => [
                 'working' => __('Выполняется…', 'wp-addon'),
                 'confirmRestore' => __('Восстановление полностью заменит содержимое базы данных. Продолжить?', 'wp-addon'),
                 'confirmDelete' => __('Удалить файл дампа?', 'wp-addon'),
+                'download' => __('Скачать дамп', 'wp-addon'),
             ],
+            'canRestore' => BackupAdmin::can_restore(),
         ]);
     }
 
@@ -135,29 +139,9 @@ final class Backup implements ModuleInterface
             </div>
 
             <h3><?php echo esc_html__('Восстановление', 'wp-addon'); ?></h3>
-
-            <?php if (! BackupAdmin::can_restore()) { ?>
-                <div class="notice notice-warning inline">
-                    <p><?php echo esc_html__('Восстановление недоступно: нет прав или соединения с базой.', 'wp-addon'); ?></p>
-                </div>
-            <?php } else { ?>
-                <p>
-                    <select id="wp-addon-backup-select" class="regular-text">
-                        <option value=""><?php echo esc_html__('Выберите файл дампа…', 'wp-addon'); ?></option>
-                        <?php foreach ($storage->list_backups() as $backup) { ?>
-                            <option value="<?php echo esc_attr($backup['name']); ?>">
-                                <?php echo esc_html($backup['name']); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                    <button type="button" class="button" id="wp-addon-backup-restore">
-                        <?php echo esc_html__('Восстановить базу', 'wp-addon'); ?>
-                    </button>
-                </p>
-                <p class="description">
-                    <?php echo esc_html__('Восстановление полностью заменит содержимое базы данных текущего сайта. Дамп с другим префиксом таблиц будет отклонён.', 'wp-addon'); ?>
-                </p>
-            <?php } ?>
+            <p class="description">
+                <?php echo esc_html__('Восстановление полностью заменит содержимое базы данных текущего сайта. Дамп с другим префиксом таблиц будет отклонён.', 'wp-addon'); ?>
+            </p>
 
             <h3><?php echo esc_html__('Загрузка дампа', 'wp-addon'); ?></h3>
             <p class="description">
@@ -316,6 +300,37 @@ final class Backup implements ModuleInterface
                 'message' => __('Дамп загружен.', 'wp-addon'),
                 'file' => $name,
             ]);
+        } catch (Throwable $error) {
+            self::fail($error);
+        }
+    }
+
+    public function ajax_download(): void
+    {
+        self::authorize();
+
+        try {
+            $storage = new Storage;
+            $name = isset($_REQUEST['backup']) ? sanitize_text_field(wp_unslash((string) $_REQUEST['backup'])) : '';
+            $path = $storage->resolve($name);
+
+            if (! is_file($path)) {
+                throw new RuntimeException(__('Файл дампа не найден.', 'wp-addon'));
+            }
+
+            // Отключаем буферизацию вывода WordPress — дамп должен уйти «как есть».
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+
+            header('Content-Type: application/sql');
+            header('Content-Disposition: attachment; filename="'.basename($path).'"');
+            header('Content-Length: '.(string) filesize($path));
+            header('Cache-Control: no-store, no-cache, must-revalidate');
+            header('Pragma: no-cache');
+
+            readfile($path);
+            exit;
         } catch (Throwable $error) {
             self::fail($error);
         }

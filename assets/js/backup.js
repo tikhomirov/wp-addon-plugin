@@ -48,7 +48,7 @@
 
     function setBusy(busy) {
         statusBox.toggleClass('wp-addon-backup__status--busy', busy);
-        $('.wp-addon-backup__actions button, #wp-addon-backup-restore, #wp-addon-backup-upload-btn, .wp-addon-backup-delete')
+        $('.wp-addon-backup__actions button, #wp-addon-backup-upload-btn, .wp-addon-backup-delete, .wp-addon-backup-download, .wp-addon-backup-restore')
             .prop('disabled', busy);
     }
 
@@ -80,30 +80,8 @@
             .done(function (response) {
                 if (response && response.success) {
                     $('#wp-addon-backup-list').html(response.data.html);
-                    fillSelect(response.data.html);
                 }
             });
-    }
-
-    /**
-     * Наполняет select файлами из таблицы: имена берём из data-backup,
-     * чтобы не дублировать разметку и не сломать экранирование.
-     */
-    function fillSelect(html) {
-        var select = $('#wp-addon-backup-select');
-        var current = select.val();
-
-        select.empty();
-        select.append($('<option>').attr('value', '').text('Выберите файл дампа…'));
-
-        $('<div>').html(html).find('[data-backup]').each(function () {
-            var name = $(this).attr('data-backup');
-            select.append($('<option>').attr('value', name).text(name));
-        });
-
-        if (current) {
-            select.val(current);
-        }
     }
 
     $('#wp-addon-backup-create').on('click', function () {
@@ -113,11 +91,11 @@
         }).done(refreshList);
     });
 
-    $('#wp-addon-backup-restore').on('click', function () {
-        var backup = $('#wp-addon-backup-select').val();
+    $('#wp-addon-backup-list').on('click', '.wp-addon-backup-restore', function () {
+        var backup = $(this).attr('data-backup');
 
         if (!backup) {
-            setStatus('Сначала создайте или загрузите дамп.', 'error');
+            setStatus('Файл не указан.', 'error');
             return;
         }
 
@@ -129,6 +107,13 @@
             setProgress(10);
             return post('wp_addon_backup_restore', { backup: backup });
         }).done(refreshList);
+    });
+
+    $('#wp-addon-backup-list').on('click', '.wp-addon-backup-download', function () {
+        var backup = $(this).attr('data-backup');
+        if (!backup) return;
+
+        window.location.href = wpAddonBackup.adminUrl + '?action=wp_addon_backup_download&backup=' + encodeURIComponent(backup) + '&nonce=' + encodeURIComponent(wpAddonBackup.nonce);
     });
 
     $('#wp-addon-backup-list').on('click', '.wp-addon-backup-delete', function () {
@@ -202,6 +187,6 @@
     });
 
     $(function () {
-        fillSelect($('#wp-addon-backup-list').html());
+        // Инициализация: ничего не требуется, таблица уже отрисована PHP.
     });
 })(jQuery);
