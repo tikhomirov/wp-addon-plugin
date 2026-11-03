@@ -217,6 +217,11 @@ class WP_Addon_Settings
             return $this->sanitize_cached_catalog($cached_plugins);
         }
 
+        if (get_transient('wp_addon_plugins_catalog_retry')) {
+            return [];
+        }
+        set_transient('wp_addon_plugins_catalog_retry', 1, 60);
+
         $body = $this->fetch_plugins_catalog_payload();
         if (! is_array($body) || empty($body['plugins']) || ! is_array($body['plugins'])) {
             if ($body !== null) {
@@ -258,6 +263,11 @@ class WP_Addon_Settings
         if (is_array($cached_plugins) && ! empty($cached_plugins)) {
             return $this->sanitize_cached_catalog($cached_plugins);
         }
+
+        if (get_transient('wp_addon_github_plugins_retry')) {
+            return [];
+        }
+        set_transient('wp_addon_github_plugins_retry', 1, 60);
 
         $owner = $this->get_github_owner();
         $headers = $this->get_github_request_headers();
@@ -926,6 +936,9 @@ class WP_Addon_Settings
      */
     public function after_setup_theme()
     {
+        if (! is_admin()) {
+            return;
+        }
 
         // Check core class for avoid errors
         if (! class_exists('CSF')) {
@@ -1438,9 +1451,19 @@ class WP_Addon_Settings
             'fields' => [
                 [
                     'type' => 'content',
-                    'content' => $this->get_plugins_html(),
+                    'content' => $this->get_plugins_tab_content(),
                 ],
             ],
         ]);
+    }
+
+    private function get_plugins_tab_content(): string
+    {
+        $page = $_GET['page'] ?? '';
+        if (! is_string($page) || $page !== $this->wp_plugin_slug || ! current_user_can('manage_options')) {
+            return '';
+        }
+
+        return $this->get_plugins_html();
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'enabled' => true,
+    'enabled' => false,
     'minify_css' => true,
     'minify_js' => true,
     'combine_css' => true,

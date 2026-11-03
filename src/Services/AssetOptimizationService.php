@@ -134,6 +134,12 @@ class AssetOptimizationService
             return '';
         }
 
+        $key = $this->combinedCacheKey($files, 'css');
+        $cached = $this->getFromCache($key);
+        if ($cached !== null) {
+            return $cached;
+        }
+
         $combined = '';
         foreach ($files as $file) {
             if (file_exists($file)) {
@@ -141,7 +147,10 @@ class AssetOptimizationService
             }
         }
 
-        return $this->minifyCss($combined);
+        $result = $this->minifyCss($combined);
+        $this->saveToCache($key, $result);
+
+        return $result;
     }
 
     /**
@@ -153,6 +162,12 @@ class AssetOptimizationService
             return '';
         }
 
+        $key = $this->combinedCacheKey($files, 'js');
+        $cached = $this->getFromCache($key);
+        if ($cached !== null) {
+            return $cached;
+        }
+
         $combined = '';
         foreach ($files as $file) {
             if (file_exists($file)) {
@@ -160,7 +175,20 @@ class AssetOptimizationService
             }
         }
 
-        return $this->minifyJs($combined);
+        $result = $this->minifyJs($combined);
+        $this->saveToCache($key, $result);
+
+        return $result;
+    }
+
+    private function combinedCacheKey(array $files, string $type): string
+    {
+        $sources = [];
+        foreach ($files as $file) {
+            $sources[] = [$file, is_file($file) ? filemtime($file) : null, is_file($file) ? filesize($file) : null];
+        }
+
+        return 'combined-'.$type.'-'.hash('sha256', serialize([$sources, $this->config, 1]));
     }
 
     /**
@@ -177,6 +205,9 @@ class AssetOptimizationService
     public function saveToCache(string $key, string $content): string
     {
         $file = $this->cacheDir.$key.'.gz';
+        if (is_file($file)) {
+            return $key;
+        }
         file_put_contents($file, gzcompress($content, 6));
 
         return $key;
@@ -189,6 +220,9 @@ class AssetOptimizationService
         }
 
         $file = $this->cacheDir.$key.'.'.$extension;
+        if (is_file($file)) {
+            return $key;
+        }
         if (file_put_contents($file, $content, LOCK_EX) === false) {
             throw new \RuntimeException("Unable to write asset cache file: {$file}");
         }
