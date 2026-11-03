@@ -205,10 +205,14 @@ class AssetOptimizationService
     public function saveToCache(string $key, string $content): string
     {
         $file = $this->cacheDir.$key.'.gz';
-        if (is_file($file)) {
+        if ($this->getFromCache($key) === $content) {
             return $key;
         }
-        file_put_contents($file, gzcompress($content, 6));
+        $compressed = gzcompress($content, 6);
+        if ($compressed === false) {
+            throw new \RuntimeException('Unable to compress asset cache content.');
+        }
+        $this->writeAtomically($file, $compressed);
 
         return $key;
     }
@@ -220,14 +224,32 @@ class AssetOptimizationService
         }
 
         $file = $this->cacheDir.$key.'.'.$extension;
-        if (is_file($file)) {
+        if (is_file($file) && file_get_contents($file) === $content) {
             return $key;
         }
-        if (file_put_contents($file, $content, LOCK_EX) === false) {
-            throw new \RuntimeException("Unable to write asset cache file: {$file}");
-        }
+        $this->writeAtomically($file, $content);
 
         return $key;
+    }
+
+    private function writeAtomically(string $file, string $content): void
+    {
+        $temporary = tempnam($this->cacheDir, '.asset-');
+        if ($temporary === false) {
+            throw new \RuntimeException("Unable to create temporary asset file: {$file}");
+        }
+
+        try {
+            if (file_put_contents($temporary, $content, LOCK_EX) !== strlen($content)
+                || ! chmod($temporary, 0644)
+                || ! rename($temporary, $file)) {
+                throw new \RuntimeException("Unable to write asset cache file: {$file}");
+            }
+        } finally {
+            if (is_file($temporary)) {
+                unlink($temporary);
+            }
+        }
     }
 
     /**
@@ -243,8 +265,6 @@ class AssetOptimizationService
         $compressed = file_get_contents($file);
         $content = $compressed === false ? false : @gzuncompress($compressed);
         if ($content === false) {
-            unlink($file);
-
             return null;
         }
 

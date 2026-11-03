@@ -4,6 +4,41 @@ use WpAddon\Services\AssetOptimizationService;
 
 describe('AssetOptimizationService', function () {
 
+    it('repairs a corrupt compressed cache entry when saving', function () {
+        file_put_contents($this->cacheDir.'/broken.gz', 'broken');
+        // zlib warns for malformed input; the service treats it as a cache miss.
+        set_error_handler(static function (int $severity, string $message): bool {
+            return str_contains($message, 'gzuncompress()');
+        });
+        try {
+            $this->service->saveToCache('broken', 'recovered');
+        } finally {
+            restore_error_handler();
+        }
+        expect($this->service->getFromCache('broken'))->toBe('recovered');
+    });
+
+    it('repairs an incomplete public asset', function () {
+        file_put_contents($this->cacheDir.'/asset.css', '');
+        $this->service->saveAssetToCache('asset', 'body{color:red}', 'css');
+        expect(file_get_contents($this->cacheDir.'/asset.css'))->toBe('body{color:red}');
+    });
+
+    it('reuses combined cache and invalidates it after a source change', function () {
+        $source = $this->cacheDir.'/source.js';
+        file_put_contents($source, 'const value = 1;');
+        $first = $this->service->combineJs([$source]);
+        $files = glob($this->cacheDir.'/combined-js-*.gz');
+        expect($files)->toHaveCount(1);
+        touch($files[0], 1000);
+        expect($this->service->combineJs([$source]))->toBe($first);
+        clearstatcache();
+        expect(filemtime($files[0]))->toBe(1000);
+        file_put_contents($source, 'const value = 200;');
+        clearstatcache();
+        expect($this->service->combineJs([$source]))->not->toBe($first);
+    });
+
     beforeEach(function () {
         $this->cacheDir = sys_get_temp_dir().'/wp_addon_test_cache_'.uniqid();
         mkdir($this->cacheDir, 0755, true);
