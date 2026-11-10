@@ -161,6 +161,15 @@ $fields['comments'] = [
             true,
             __('Hides the Website field in the comment form. Reduces spam and avoids asking readers for extra data.', 'wp-addon')
         ),
+        wpmain_switcher(
+            'preserve_comment_code_in_comments',
+            __('Preserve code and quotes in comments', 'wp-addon'),
+            true,
+            __(
+                'Shows straight quotes and angle brackets in comments as readers typed them: disables typographic quotes on output and stores disallowed HTML tags as escaped text instead of stripping them. Core formatting tags (code, strong, links, and similar) still work. XSS protection is unchanged.',
+                'wp-addon'
+            )
+        ),
     ],
 ];
 
