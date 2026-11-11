@@ -94,6 +94,11 @@ describe('update tweak guards', function () {
 });
 
 describe('wptweaker_block_wordpress_org_requests', function () {
+    it('does not block unrelated hosts containing a blocked hostname', function () {
+        expect(wptweaker_block_wordpress_org_requests(false, [], 'https://api.wordpress.org.example.com/'))->toBeFalse();
+        expect(wptweaker_block_wordpress_org_requests(false, [], 'https://example.com/?next=downloads.wordpress.org'))->toBeFalse();
+    });
+
     it('blocks api.wordpress.org requests', function () {
         $result = wptweaker_block_wordpress_org_requests(
             false,
@@ -123,6 +128,31 @@ describe('wptweaker_block_wordpress_org_requests', function () {
         );
 
         expect($result)->toBeFalse();
+    });
+});
+
+describe('tracking URL boundaries', function () {
+    it('matches only tracking hosts and the events path', function ($url, $blocked) {
+        expect(wptweaker_is_wp_tracking_url($url))->toBe($blocked);
+    })->with([
+        ['https://pixel.wp.com/g.gif', true],
+        ['https://STATS.WP.COM/g.gif', true],
+        ['https://api.wordpress.org/events/1.0/', true],
+        ['https://api.wordpress.org/events', true],
+        ['https://api.wordpress.org/events-other', false],
+        ['https://pixel.wp.com.example.com/g.gif', false],
+        ['https://example.com/?url=stats.wp.com', false],
+        ['https://api.wordpress.org/core/version-check/1.7/', false],
+    ]);
+});
+
+describe('Jetpack stats removal', function () {
+    it('removes stats from a module list', function () {
+        expect(array_values(wptweaker_disable_jetpack_stats_module(['stats', 'sharing'])))->toBe(['sharing']);
+    });
+
+    it('removes stats from a module map', function () {
+        expect(wptweaker_disable_jetpack_stats_module(['stats' => true, 'sharing' => true]))->toBe(['sharing' => true]);
     });
 });
 

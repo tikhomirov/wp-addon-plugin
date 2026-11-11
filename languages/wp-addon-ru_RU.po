@@ -1168,10 +1168,8 @@ msgid "Add search filter for taxonomy checklists in post editor"
 msgstr ""
 
 #: src/Config/tweaks.php:174
-msgid ""
-"Adds a search field above category and tag lists in the post editor. Very "
-"helpful when you have many terms."
-msgstr "Добавляет поле поиска над списком рубрик и меток при редактировании записи.Очень удобно, если категорий и тегов много."
+msgid "Adds a search field to hierarchical taxonomy checklists in the classic post editor. Does not affect Gutenberg panels or non-hierarchical tag inputs."
+msgstr "Добавляет поиск по спискам иерархических таксономий в классическом редакторе. Не влияет на панели Gutenberg и поля ввода обычных меток."
 
 #: src/Config/tweaks.php:178
 msgid "Keep selected taxonomy terms in place (disable checked on top)"
@@ -1236,21 +1234,16 @@ msgid "⚠️ Disable shortcode_unautop (keep paragraph tags around shortcodes)"
 msgstr ""
 
 #: src/Config/tweaks.php:216
-msgid ""
-"Disables automatic <p> wrapping around shortcodes. Needed only if layout "
-"around shortcodes breaks. Not required on most sites."
-msgstr "Отключает автоматическую расстановку <p> вокруг шорткодов. Нужно только есливерстка вокруг шорткодов «ломается». На большинстве сайтов не требуется."
+msgid "Keeps paragraph tags around shortcodes by disabling shortcode_unautop. Does not disable wpautop. Enable only if your layout requires these wrappers."
+msgstr "Сохраняет теги абзацев вокруг шорткодов, отключая shortcode_unautop. Не отключает wpautop. Включайте только если такие обёртки нужны для вёрстки."
 
 #: src/Config/tweaks.php:220
 msgid "Allow WEBP support for media"
 msgstr "Разрешить поддержку WEBP для мультимедиа"
 
 #: src/Config/tweaks.php:222
-msgid ""
-"Allows uploading and previewing WebP images in the media library. WebP is "
-"also allowed by setting 19 above; this option adds preview support in the "
-"library."
-msgstr "Разрешает загрузку и просмотр изображений WebP в медиабиблиотеке. WebP такжеразрешает настройка 19 выше; эта опция добавляет поддержку предпросмотра."
+msgid "Adds legacy WebP MIME and preview compatibility filters. Modern WordPress supports WebP natively; disabling this option does not disable WebP support."
+msgstr "Добавляет устаревшие фильтры совместимости MIME и предпросмотра WebP. Современный WordPress поддерживает WebP без них; отключение настройки не отключает WebP."
 
 #: src/Config/tweaks.php:226
 msgid "Allow SVG support for media"
