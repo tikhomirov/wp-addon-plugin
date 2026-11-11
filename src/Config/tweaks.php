@@ -63,7 +63,7 @@ return [
         'wptweaker_setting_8',
         __('Set limit post revisions to 5', 'wp-addon'),
         true,
-        __('Limits the number of saved post revisions to 5. This reduces database size without hurting day-to-day editing.', 'wp-addon'),
+        __('Keeps the latest 5 post revisions. Older revisions are removed when a new revision is saved. Autosaves are handled separately.', 'wp-addon'),
     ),
     wptweaker_field(
         'wptweaker_setting_9',

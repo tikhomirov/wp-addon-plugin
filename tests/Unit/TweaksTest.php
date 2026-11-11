@@ -71,6 +71,12 @@ describe('Tweaks config', function () {
     });
 });
 
+describe('post revision limit', function () {
+    it('limits revisions regardless of the configured value', function ($configuredLimit) {
+        expect(wptweaker_limit_post_revisions($configuredLimit))->toBe(5);
+    })->with([-1, 0, 3, 10]);
+});
+
 describe('update tweak guards', function () {
     beforeEach(function () {
         global $mock_functions;

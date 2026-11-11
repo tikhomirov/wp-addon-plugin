@@ -120,9 +120,12 @@ function wptweaker_setting_7()
 
 function wptweaker_setting_8()
 {
-    if (! defined('WP_POST_REVISIONS')) {
-        define('WP_POST_REVISIONS', 5);
-    }
+    add_filter('wp_revisions_to_keep', 'wptweaker_limit_post_revisions');
+}
+
+function wptweaker_limit_post_revisions($revisions_to_keep)
+{
+    return 5;
 }
 
 function wptweaker_setting_9()

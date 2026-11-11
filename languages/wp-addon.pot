@@ -861,7 +861,7 @@ msgid "Set limit post revisions to 5"
 msgstr ""
 
 #: src/Config/tweaks.php:66
-msgid "Limits the number of saved post revisions to 5. This reduces database size without hurting day-to-day editing."
+msgid "Keeps the latest 5 post revisions. Older revisions are removed when a new revision is saved. Autosaves are handled separately."
 msgstr ""
 
 #: src/Config/tweaks.php:70

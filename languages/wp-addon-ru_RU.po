@@ -974,9 +974,8 @@ msgstr "Установить ограничение на ревизий пост
 
 #: src/Config/tweaks.php:66
 msgid ""
-"Limits the number of saved post revisions to 5. This reduces database size "
-"without hurting day-to-day editing."
-msgstr "Ограничивает число автосохранённых ревизий записи до 5. Это уменьшает размербазы данных без потери рабочего комфорта."
+"Keeps the latest 5 post revisions. Older revisions are removed when a new revision is saved. Autosaves are handled separately."
+msgstr "Сохраняет последние 5 ревизий записи. Старые ревизии удаляются при сохранении новой ревизии. Автосохранения обрабатываются отдельно."
 
 #: src/Config/tweaks.php:70
 msgid "⚠️ Block WordPress.org update HTTP requests"
