@@ -63,7 +63,7 @@ return [
         'wptweaker_setting_8',
         __('Set limit post revisions to 5', 'wp-addon'),
         true,
-        __('Limits the number of saved post revisions to 5. This reduces database size without hurting day-to-day editing.', 'wp-addon'),
+        __('Keeps the latest 5 post revisions. Older revisions are removed when a new revision is saved. Autosaves are handled separately.', 'wp-addon'),
     ),
     wptweaker_field(
         'wptweaker_setting_9',
@@ -171,7 +171,7 @@ return [
         'wptweaker_setting_26',
         __('Add search filter for taxonomy checklists in post editor', 'wp-addon'),
         true,
-        __('Adds a search field above category and tag lists in the post editor. Very helpful when you have many terms.', 'wp-addon'),
+        __('Adds a search field to hierarchical taxonomy checklists in the classic post editor. Does not affect Gutenberg panels or non-hierarchical tag inputs.', 'wp-addon'),
     ),
     wptweaker_field(
         'wptweaker_setting_27',
@@ -213,13 +213,13 @@ return [
         'wptweaker_setting_33',
         __('⚠️ Disable shortcode_unautop (keep paragraph tags around shortcodes)', 'wp-addon'),
         false,
-        __('Disables automatic <p> wrapping around shortcodes. Needed only if layout around shortcodes breaks. Not required on most sites.', 'wp-addon'),
+        __('Keeps paragraph tags around shortcodes by disabling shortcode_unautop. Does not disable wpautop. Enable only if your layout requires these wrappers.', 'wp-addon'),
     ),
     wptweaker_field(
         'wptweaker_setting_34',
         __('Allow WEBP support for media', 'wp-addon'),
         true,
-        __('Allows uploading and previewing WebP images in the media library. WebP is also allowed by setting 19 above; this option adds preview support in the library.', 'wp-addon'),
+        __('Adds legacy WebP MIME and preview compatibility filters. Modern WordPress supports WebP natively; disabling this option does not disable WebP support.', 'wp-addon'),
     ),
     wptweaker_field(
         'wptweaker_setting_35',
