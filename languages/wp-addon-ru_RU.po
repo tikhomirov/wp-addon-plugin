@@ -113,7 +113,6 @@ msgstr "Белый список ролей для режима техработ"
 msgid "Selected roles can browse the site while maintenance mode is active. Administrators always have access."
 msgstr "Выбранные роли могут просматривать сайт во время техработ. Администраторы всегда имеют доступ."
 
-
 #: functions/SiteStatusNotice.php:44 functions/SiteStatusNotice.php:65 src/Config/main.php
 msgid "The site is in recovery mode."
 msgstr "Сайт находится в режиме восстановления."
@@ -1422,8 +1421,6 @@ msgid ""
 msgstr "Блокирует отправку статистики на pixel.wp.com, stats.wp.com и запросыWordPress Events в админке. Также отключает трекинг WooCommerce/Jetpack,если эти плагины установлены. Не мешает обновлениям ядра."
 
 #: src/Config/wp-addon-settings.php:519
-msgid "Как работают перенаправления"
-msgstr "Как работают перенаправления"
 
 #: src/Config/wp-addon-settings.php:521
 #, php-format
@@ -1987,16 +1984,15 @@ msgstr "Обработка..."
 
 #: src/Config/wp-addon-settings.php:1163
 msgid "Redirects"
-msgstr "Перенаправления"
+msgstr "Редиректы"
 
 #: src/Config/wp-addon-settings.php:1165
 msgid ""
 "301 redirect management for old URLs, moved pages and bulk migrations. Read "
 "the guide below for slash rules, wildcard examples and CSV import format."
 msgstr ""
-"Управление перенаправлениями 301 для старых URL, перенесённых страниц и "
-"массовых миграций. Ниже — подробная инструкция: слеши, примеры с * и формат "
-"CSV."
+"Управление редиректами 301 для старых URL, перенесённых страниц и массовых "
+"миграций. Ниже — инструкция: слеши, примеры с * и формат CSV."
 
 #: src/Config/wp-addon-settings.php:1174
 #, fuzzy
@@ -2009,7 +2005,7 @@ msgstr "Если выключено — правила сохраняются, �
 
 #: src/Config/wp-addon-settings.php:1181
 msgid "Use wildcard redirects"
-msgstr "Используйте подстановочные знаки перенаправления"
+msgstr "Подстановочные знаки (*) в редиректах"
 
 #: src/Config/wp-addon-settings.php:1182
 msgid ""
@@ -2021,54 +2017,81 @@ msgstr ""
 
 #: src/Config/wp-addon-settings.php:1188
 msgid "Bulk CSV import"
-msgstr "Массовый импорт из CSV"
+msgstr "Массовый импорт (CSV)"
 
 #: src/Config/wp-addon-settings.php:1189
 msgid ""
-"Paste rules here and save settings. Format: source,destination — one rule "
-"per line. Duplicate source URLs are overwritten. The field is cleared after "
-"a successful import."
+"Format: source,destination — one rule per line. Lines starting with #, // or "
+"; are comments. Duplicate source URLs are overwritten."
 msgstr ""
-"Вставьте правила и сохраните настройки. Формат: исходный-url,целевой-url — "
-"одно правило на строку. Дубликаты по исходному URL перезаписываются. После "
-"успешного импорта поле очищается."
+"Формат: исходный-url,целевой-url — одно правило на строку. Строки с #, // "
+"или ; — комментарии. Дубликаты по исходному URL перезаписываются. Импорт — "
+"кнопками ниже."
 
 #: src/Config/wp-addon-settings.php:1206
 msgid "Redirect rules"
-msgstr "Правила перенаправления"
+msgstr "Правила редиректов"
 
 #: src/Config/wp-addon-settings.php:1207
 msgid ""
-"Manual rule list. «Request URL» is the old address visitors open. "
-"«Destination URL» is where they should land. Trailing slashes are optional."
+"Manual rule list. Source — old URL path; destination — where to send "
+"visitors. Trailing slashes are optional. Wildcards need the option above "
+"enabled."
 msgstr ""
-"Список правил вручную. «Исходный URL» — старый адрес, который открывает "
-"посетитель. «Целевой URL» — куда его перенаправить. Завершающий слеш не "
-"обязателен."
+"Список правил вручную. Исходный URL — старый путь; целевой — куда "
+"перенаправить. Завершающий слеш не обязателен. Для * включите опцию выше."
 
 #: src/Config/wp-addon-settings.php:1212
-msgid "Request URL"
-msgstr "URL-адрес запроса"
-
-#: src/Config/wp-addon-settings.php:1213
-msgid ""
-"Old URL path relative to site root. Examples: /old-page/, /old-page (same), /"
-"old-folder/* with wildcards enabled."
-msgstr ""
-"Путь старого URL относительно корня сайта. Примеры: /old-page/, /old-page "
-"(то же самое), /old-folder/* при включённых подстановочных знаках."
+msgid "Source URL"
+msgstr "Исходный URL"
 
 #: src/Config/wp-addon-settings.php:1221
 msgid "Destination URL"
-msgstr "URL-адрес назначения"
+msgstr "Целевой URL"
 
-#: src/Config/wp-addon-settings.php:1222
+#: functions/Redirects.php
+msgid "You do not have permission to import redirect rules."
+msgstr "Недостаточно прав для импорта редиректов."
+
+#: functions/Redirects.php
+msgid "Paste rules into the field or choose a file."
+msgstr "Вставьте правила в поле или выберите файл."
+
+#: functions/Redirects.php
 msgid ""
-"New address: site path (/new-page/) or full URL (https://example.com/page/). "
-"For wildcards use * in the same position as in the source."
+"No valid rules found. Check the format: source,destination — one rule per "
+"line."
 msgstr ""
-"Новый адрес: путь на сайте (/new-page/) или полный URL (https://example.com/"
-"page/). Для * указывайте звёздочку в той же позиции, что и в исходном URL."
+"Не найдено ни одного правила. Формат: исходный-url,целевой-url — одна "
+"строка = одно правило."
+
+#: functions/Redirects.php
+msgid "Imported %1$d rule(s). Total in list: %2$d."
+msgstr "Импортировано правил: %1$d. Всего в списке: %2$d."
+
+#: src/Config/wp-addon-settings.php
+msgid "How redirects work"
+msgstr "Как работают редиректы"
+
+#: src/Config/wp-addon-settings.php
+msgid "Import from text field"
+msgstr "Импорт из поля"
+
+#: src/Config/wp-addon-settings.php
+msgid "Choose file"
+msgstr "Выбрать файл"
+
+#: src/Config/wp-addon-settings.php
+msgid "Import from file"
+msgstr "Импорт из файла"
+
+#: src/Config/wp-addon-settings.php
+msgid "Importing…"
+msgstr "Импорт…"
+
+#: src/Config/wp-addon-settings.php
+msgid "Import failed. Try again."
+msgstr "Ошибка импорта. Попробуйте ещё раз."
 
 #: src/Config/wp-addon-settings.php:1235
 msgid "Shortcodes and Widgets"

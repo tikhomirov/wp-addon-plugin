@@ -58,11 +58,11 @@ class RedirectRulesService
         $rules = [];
 
         foreach (preg_split('/\R/', $csv) ?: [] as $line) {
-            $line = trim($line);
-
-            if ($line === '' || str_starts_with($line, '#')) {
+            if (self::isCommentOrEmptyLine($line)) {
                 continue;
             }
+
+            $line = trim($line);
 
             if (preg_match('/^(request|source|from)\s*[,;\t]/i', $line)) {
                 continue;
@@ -108,6 +108,22 @@ class RedirectRulesService
         }
 
         return array_values($map);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function isCommentOrEmptyLine(string $line): bool
+    {
+        $trimmed = ltrim($line);
+
+        if ($trimmed === '') {
+            return true;
+        }
+
+        return str_starts_with($trimmed, '#')
+            || str_starts_with($trimmed, '//')
+            || str_starts_with($trimmed, ';');
     }
 
     /**

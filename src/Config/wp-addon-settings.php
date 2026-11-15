@@ -553,7 +553,7 @@ class WP_Addon_Settings
         $homeExample = esc_html('/old-page/');
 
         return '<div style="background:#f0f6fc;border:1px solid #d0d7de;border-radius:6px;padding:16px;margin:0 0 16px;line-height:1.55;color:#1d2327;">'
-            .'<h4 style="margin:0 0 12px;">'.esc_html__('Как работают перенаправления', 'wp-addon').'</h4>'
+            .'<h4 style="margin:0 0 12px;">'.esc_html__('How redirects work', 'wp-addon').'</h4>'
             .'<p style="margin:0 0 12px;">'.sprintf(
                 esc_html__('Плагин отдаёт ответ %1$s и перенаправляет посетителя с одного адреса на другой. Указывайте пути без домена — от корня WordPress, например %2$s (не /wp/old-page/, если сайт в подпапке). Абсолютные URL (https://...) — только в поле «Куда». Запросы к %3$s и %4$s никогда не перенаправляются.', 'wp-addon'),
                 '<code>301 Moved Permanently</code>',
@@ -570,7 +570,7 @@ class WP_Addon_Settings
             .'<code>/archive/2020/ → /archive/</code><br>'
             .'<code>/contact → https://t.me/username</code>'
             .'<br><br><strong>'.esc_html__('Массовый импорт CSV', 'wp-addon').'</strong><br>'
-            .esc_html__('Одна строка = одно правило. Разделители: запятая, ; или табуляция. Строки с # — комментарии. После сохранения правила попадут в список ниже.', 'wp-addon')
+            .esc_html__('One line = one rule. Delimiters: comma, semicolon, or tab. Lines starting with #, // or ; are comments. Use the import buttons below.', 'wp-addon')
             .'</div>'
             .'<div>'
             .'<strong>'.esc_html__('Подстановочный знак * (не regex)', 'wp-addon').'</strong><br>'
@@ -585,6 +585,75 @@ class WP_Addon_Settings
             .'</div>'
             .'</div>'
             .'</div>';
+    }
+
+    private function getRedirectsImportControlsHtml(): string
+    {
+        $nonce = wp_create_nonce('wp_addon_redirects_import');
+        $importing = esc_js(__('Importing…', 'wp-addon'));
+        $errorGeneric = esc_js(__('Import failed. Try again.', 'wp-addon'));
+
+        return '<div class="wp-addon-redirects-import" style="margin:8px 0 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">'
+            .'<button type="button" class="button button-primary" id="wp-addon-redirects-import-text">'.esc_html__('Import from text field', 'wp-addon').'</button>'
+            .'<label class="button" for="wp-addon-redirects-import-file" style="margin:0;">'.esc_html__('Choose file', 'wp-addon').'</label>'
+            .'<input type="file" id="wp-addon-redirects-import-file" accept=".csv,.txt,text/plain,text/csv" style="position:absolute;width:1px;height:1px;opacity:0;" />'
+            .'<button type="button" class="button" id="wp-addon-redirects-import-file-btn" disabled>'.esc_html__('Import from file', 'wp-addon').'</button>'
+            .'<span id="wp-addon-redirects-import-status" class="csf-desc-text" style="margin:0;flex:1 1 100%;"></span>'
+            .'</div>'
+            .'<script>'
+            .'jQuery(function($){'
+            .'var nonce='.wp_json_encode($nonce).';'
+            .'function findCsvTextarea(){'
+            .'return $("textarea[name*=\"[redirects_csv_import]\"]").first();}'
+            .'function getCsvValue(){'
+            .'var $ta=findCsvTextarea();'
+            .'if(!$ta.length){return "";}'
+            .'var $wrap=$ta.closest(".csf-field-code_editor");'
+            .'var cmEl=$wrap.find(".CodeMirror").get(0);'
+            .'if(cmEl&&cmEl.CodeMirror){return cmEl.CodeMirror.getValue();}'
+            .'return $ta.val()||"";}'
+            .'function clearCsvField(){'
+            .'var $ta=findCsvTextarea();'
+            .'var $wrap=$ta.closest(".csf-field-code_editor");'
+            .'var cmEl=$wrap.find(".CodeMirror").get(0);'
+            .'if(cmEl&&cmEl.CodeMirror){cmEl.CodeMirror.setValue("");}'
+            .'$ta.val("");}'
+            .'function collectRules(){'
+            .'var rules=[];'
+            .'$(".csf-field-repeater.wp-addon-redirects-rules .csf-repeater-wrapper > .csf-repeater-item").each(function(){'
+            .'var $item=$(this);'
+            .'var request=$.trim($item.find("input[name$=\"[request]\"]").val()||"");'
+            .'var destination=$.trim($item.find("input[name$=\"[destination]\"]").val()||"");'
+            .'if(request!==""&&destination!==""){rules.push({request:request,destination:destination});}'
+            .'});'
+            .'return rules;}'
+            .'function runImport(csv){'
+            .'if(!csv||!$.trim(csv)){'
+            .'$("#wp-addon-redirects-import-status").text('.wp_json_encode(__('Paste rules into the field or choose a file.', 'wp-addon')).');'
+            .'return;}'
+            .'var $status=$("#wp-addon-redirects-import-status");'
+            .'$status.text('.$importing.');'
+            .'$.post(ajaxurl,{action:"wp_addon_redirects_import",nonce:nonce,csv:csv,rules:JSON.stringify(collectRules())})'
+            .'.done(function(res){'
+            .'if(res&&res.success){$status.text(res.data.message);clearCsvField();$("#wp-addon-redirects-import-file").val("");$("#wp-addon-redirects-import-file-btn").prop("disabled",true);window.location.reload();}'
+            .'else{$status.text((res&&res.data&&res.data.message)?res.data.message:'.$errorGeneric.');}'
+            .'})'
+            .'.fail(function(){$status.text('.$errorGeneric.');});}'
+            .'$("#wp-addon-redirects-import-text").on("click",function(e){e.preventDefault();runImport(getCsvValue());});'
+            .'$("#wp-addon-redirects-import-file").on("change",function(){'
+            .'$("#wp-addon-redirects-import-file-btn").prop("disabled",!this.files||!this.files.length);'
+            .'$("#wp-addon-redirects-import-status").text("");'
+            .'});'
+            .'$("#wp-addon-redirects-import-file-btn").on("click",function(e){'
+            .'e.preventDefault();'
+            .'var input=document.getElementById("wp-addon-redirects-import-file");'
+            .'if(!input.files||!input.files[0]){return;}'
+            .'var reader=new FileReader();'
+            .'reader.onload=function(ev){runImport(ev.target.result||"");};'
+            .'reader.readAsText(input.files[0]);'
+            .'});'
+            .'});'
+            .'</script>';
     }
 
     public function get_plugins_html()
@@ -1234,7 +1303,7 @@ class WP_Addon_Settings
                     'id' => 'redirects_csv_import',
                     'type' => 'code_editor',
                     'title' => __('Bulk CSV import', 'wp-addon'),
-                    'desc' => __('Paste rules here and save settings. Format: source,destination — one rule per line. Duplicate source URLs are overwritten. The field is cleared after a successful import.', 'wp-addon'),
+                    'desc' => __('Format: source,destination — one rule per line. Lines starting with #, // or ; are comments. Duplicate source URLs are overwritten.', 'wp-addon'),
                     'settings' => [
                         'theme' => 'mbo',
                         'mode' => 'shell',
@@ -1249,16 +1318,20 @@ class WP_Addon_Settings
                     'sanitize' => false,
                 ],
                 [
+                    'type' => 'content',
+                    'content' => $this->getRedirectsImportControlsHtml(),
+                ],
+                [
                     'id' => 'redirects_rules',
                     'type' => 'repeater',
+                    'class' => 'wp-addon-redirects-rules',
                     'title' => __('Redirect rules', 'wp-addon'),
-                    'desc' => __('Manual rule list. «Request URL» is the old address visitors open. «Destination URL» is where they should land. Trailing slashes are optional.', 'wp-addon'),
+                    'desc' => __('Manual rule list. Source — old URL path; destination — where to send visitors. Trailing slashes are optional. Wildcards need the option above enabled.', 'wp-addon'),
                     'fields' => [
                         [
                             'id' => 'request',
                             'type' => 'text',
-                            'title' => __('Request URL', 'wp-addon'),
-                            'desc' => __('Old URL path relative to site root. Examples: /old-page/, /old-page (same), /old-folder/* with wildcards enabled.', 'wp-addon'),
+                            'title' => __('Source URL', 'wp-addon'),
                             'attributes' => [
                                 'placeholder' => '/old-page/',
                             ],
@@ -1267,7 +1340,6 @@ class WP_Addon_Settings
                             'id' => 'destination',
                             'type' => 'text',
                             'title' => __('Destination URL', 'wp-addon'),
-                            'desc' => __('New address: site path (/new-page/) or full URL (https://example.com/page/). For wildcards use * in the same position as in the source.', 'wp-addon'),
                             'attributes' => [
                                 'placeholder' => '/new-page/',
                             ],

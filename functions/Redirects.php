@@ -10,7 +10,8 @@ class Redirects implements ModuleInterface
 
     public function init(): void
     {
-        $this->addHook('csf_wp-addon_save', [$this, 'importCsvOnSave'], 10, 2);
+        $this->addHook('csf_wp-addon_save', [$this, 'sanitizeRulesOnSave'], 10, 2);
+        $this->addHook('wp_ajax_wp_addon_redirects_import', [$this, 'importRulesAjax']);
 
         if (! $this->isEnabled()) {
             return;
@@ -23,18 +24,70 @@ class Redirects implements ModuleInterface
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    public function importCsvOnSave(array $data, mixed $instance): array
+    public function sanitizeRulesOnSave(array $data, mixed $instance): array
     {
         $data['redirects_rules'] = RedirectRulesService::normalizeRules($data['redirects_rules'] ?? null);
 
-        $csv = trim((string) ($data['redirects_csv_import'] ?? ''));
-        if ($csv !== '') {
-            $imported = RedirectRulesService::parseCsv($csv);
-            $data['redirects_rules'] = RedirectRulesService::mergeRules($data['redirects_rules'], $imported);
-            $data['redirects_csv_import'] = '';
+        return $data;
+    }
+
+    public function importRulesAjax(): void
+    {
+        check_ajax_referer('wp_addon_redirects_import');
+
+        if (! current_user_can('manage_options')) {
+            wp_send_json_error([
+                'message' => __('You do not have permission to import redirect rules.', 'wp-addon'),
+            ], 403);
         }
 
-        return $data;
+        $csv = isset($_POST['csv']) ? trim(wp_unslash((string) $_POST['csv'])) : '';
+
+        if ($csv === '') {
+            wp_send_json_error([
+                'message' => __('Paste rules into the field or choose a file.', 'wp-addon'),
+            ]);
+        }
+
+        $existingJson = isset($_POST['rules']) ? wp_unslash((string) $_POST['rules']) : '';
+        $existing = [];
+
+        if ($existingJson !== '') {
+            $decoded = json_decode($existingJson, true);
+            if (is_array($decoded)) {
+                $existing = $decoded;
+            }
+        }
+
+        $imported = RedirectRulesService::parseCsv($csv);
+
+        if ($imported === []) {
+            wp_send_json_error([
+                'message' => __('No valid rules found. Check the format: source,destination — one rule per line.', 'wp-addon'),
+            ]);
+        }
+
+        $merged = RedirectRulesService::mergeRules($existing, $imported);
+
+        $options = get_option('wp-addon', []);
+        if (! is_array($options)) {
+            $options = [];
+        }
+
+        $options['redirects_rules'] = $merged;
+        $options['redirects_csv_import'] = '';
+        update_option('wp-addon', $options);
+
+        wp_send_json_success([
+            'message' => sprintf(
+                /* translators: 1: imported count, 2: total count */
+                __('Imported %1$d rule(s). Total in list: %2$d.', 'wp-addon'),
+                count($imported),
+                count($merged)
+            ),
+            'imported' => count($imported),
+            'total' => count($merged),
+        ]);
     }
 
     public function processRedirects(): void

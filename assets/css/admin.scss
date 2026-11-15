@@ -17,3 +17,48 @@ i.mce-i-ot {
   display: inline-block;
   background-color: #b0b0b0;
 }
+
+.csf-field-repeater.wp-addon-redirects-rules {
+  .csf-repeater-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .csf-repeater-content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    gap: 12px;
+    min-width: 0;
+
+    > .csf-field {
+      flex: 1 1 0;
+      min-width: 0;
+      margin-bottom: 0;
+
+      .csf-title {
+        margin-bottom: 4px;
+
+        h4 {
+          font-size: 12px;
+          font-weight: 600;
+          margin: 0;
+        }
+      }
+
+      .csf-fieldset {
+        margin: 0;
+      }
+
+      .csf-desc-text {
+        display: none;
+      }
+    }
+  }
+
+  .csf-repeater-helper {
+    flex-shrink: 0;
+    margin-top: 22px;
+  }
+}
