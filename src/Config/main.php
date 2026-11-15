@@ -51,6 +51,20 @@ $fields = [
         'dependency' => ['enable_maintenance', '==', 'true'],
     ],
     wpmain_switcher(
+        'site_status_notice_enabled',
+        __('Site status notice', 'wp-addon'),
+        false,
+        __('Shows a full-width banner at the top of public pages. Useful during recovery, migration, or other temporary status.', 'wp-addon')
+    ),
+    [
+        'id' => 'site_status_notice_text',
+        'type' => 'text',
+        'title' => __('Notice text', 'wp-addon'),
+        'default' => __('The site is in recovery mode.', 'wp-addon'),
+        'desc' => __('Text shown in the top banner. Leave empty to use the default message.', 'wp-addon'),
+        'dependency' => ['site_status_notice_enabled', '==', 'true'],
+    ],
+    wpmain_switcher(
         'show_all_custom_fields',
         __('Show custom fields for categories and posts', 'wp-addon'),
         false,

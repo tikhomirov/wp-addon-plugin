@@ -113,6 +113,31 @@ msgstr "Белый список ролей для режима техработ"
 msgid "Selected roles can browse the site while maintenance mode is active. Administrators always have access."
 msgstr "Выбранные роли могут просматривать сайт во время техработ. Администраторы всегда имеют доступ."
 
+
+#: functions/SiteStatusNotice.php:44 functions/SiteStatusNotice.php:65 src/Config/main.php
+msgid "The site is in recovery mode."
+msgstr "Сайт находится в режиме восстановления."
+
+#: src/Config/main.php
+msgid "Site status notice"
+msgstr "Плашка статуса сайта"
+
+#: src/Config/main.php
+msgid "Shows a full-width banner at the top of public pages. Useful during recovery, migration, or other temporary status."
+msgstr "Показывает плашку на всю ширину вверху публичных страниц. Удобно при восстановлении, миграции или другом временном статусе."
+
+#: src/Config/main.php
+msgid "Notice text"
+msgstr "Текст плашки"
+
+#: src/Config/main.php
+msgid "Text shown in the top banner. Leave empty to use the default message."
+msgstr "Текст верхней плашки. Оставьте пустым, чтобы использовать сообщение по умолчанию."
+
+#: functions/SiteStatusNotice.php:49
+msgid "Site status"
+msgstr "Статус сайта"
+
 #: functions/MaintenanceMode.php:79
 msgid "Maintenance"
 msgstr "Технические работы"
