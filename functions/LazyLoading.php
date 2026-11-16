@@ -82,10 +82,10 @@ class LazyLoading implements ModuleInterface
     private function parseAttributes(string $attrString): array
     {
         $attrs = [];
-        preg_match_all('/([^\s=\/>]+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'=<>`]+)))?/', $attrString, $matches, PREG_SET_ORDER);
+        preg_match_all('/([^\s=\/>]+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'=<>`]+)))?/', $attrString, $matches, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL);
         foreach ($matches as $match) {
             $name = strtolower($match[1]);
-            $value = $match[2] !== '' ? $match[2] : ($match[3] !== '' ? $match[3] : ($match[4] !== '' ? $match[4] : $name));
+            $value = $match[2] ?? $match[3] ?? $match[4] ?? $name;
             $attrs[$name] = $value;
         }
 

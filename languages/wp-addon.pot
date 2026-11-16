@@ -861,7 +861,7 @@ msgid "Set limit post revisions to 5"
 msgstr ""
 
 #: src/Config/tweaks.php:66
-msgid "Limits the number of saved post revisions to 5. This reduces database size without hurting day-to-day editing."
+msgid "Keeps the latest 5 post revisions. Older revisions are removed when a new revision is saved. Autosaves are handled separately."
 msgstr ""
 
 #: src/Config/tweaks.php:70
@@ -1005,7 +1005,7 @@ msgid "Add search filter for taxonomy checklists in post editor"
 msgstr ""
 
 #: src/Config/tweaks.php:174
-msgid "Adds a search field above category and tag lists in the post editor. Very helpful when you have many terms."
+msgid "Adds a search field to hierarchical taxonomy checklists in the classic post editor. Does not affect Gutenberg panels or non-hierarchical tag inputs."
 msgstr ""
 
 #: src/Config/tweaks.php:178
@@ -1061,7 +1061,7 @@ msgid "⚠️ Disable shortcode_unautop (keep paragraph tags around shortcodes)"
 msgstr ""
 
 #: src/Config/tweaks.php:216
-msgid "Disables automatic <p> wrapping around shortcodes. Needed only if layout around shortcodes breaks. Not required on most sites."
+msgid "Keeps paragraph tags around shortcodes by disabling shortcode_unautop. Does not disable wpautop. Enable only if your layout requires these wrappers."
 msgstr ""
 
 #: src/Config/tweaks.php:220
@@ -1069,7 +1069,7 @@ msgid "Allow WEBP support for media"
 msgstr ""
 
 #: src/Config/tweaks.php:222
-msgid "Allows uploading and previewing WebP images in the media library. WebP is also allowed by setting 19 above; this option adds preview support in the library."
+msgid "Adds legacy WebP MIME and preview compatibility filters. Modern WordPress supports WebP natively; disabling this option does not disable WebP support."
 msgstr ""
 
 #: src/Config/tweaks.php:226

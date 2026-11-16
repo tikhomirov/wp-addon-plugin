@@ -64,6 +64,10 @@ function wptweaker_setting_2()
     remove_action('admin_print_scripts', 'print_emoji_detection_script');
     remove_action('wp_print_styles', 'print_emoji_styles');
     remove_action('admin_print_styles', 'print_emoji_styles');
+    remove_action('wp_enqueue_scripts', 'wp_enqueue_emoji_styles');
+    remove_action('admin_enqueue_scripts', 'wp_enqueue_emoji_styles');
+    remove_action('enqueue_embed_scripts', 'wp_enqueue_emoji_styles');
+    remove_action('embed_head', 'print_emoji_detection_script');
     remove_filter('the_content_feed', 'wp_staticize_emoji');
     remove_filter('comment_text_rss', 'wp_staticize_emoji');
     remove_filter('wp_mail', 'wp_staticize_emoji_for_email');
@@ -120,9 +124,12 @@ function wptweaker_setting_7()
 
 function wptweaker_setting_8()
 {
-    if (! defined('WP_POST_REVISIONS')) {
-        define('WP_POST_REVISIONS', 5);
-    }
+    add_filter('wp_revisions_to_keep', 'wptweaker_limit_post_revisions');
+}
+
+function wptweaker_limit_post_revisions($revisions_to_keep)
+{
+    return 5;
 }
 
 function wptweaker_setting_9()
@@ -139,7 +146,7 @@ function wptweaker_block_wordpress_org_requests($preempt, $parsed_args, $url)
     $blocked_hosts = ['api.wordpress.org', 'downloads.wordpress.org'];
 
     foreach ($blocked_hosts as $host) {
-        if (str_contains($url, $host)) {
+        if (strtolower((string) wp_parse_url($url, PHP_URL_HOST)) === $host) {
             return new WP_Error(
                 'wptweaker_http_blocked',
                 __('WordPress.org update request blocked by wp-addon tweak.', 'wp-addon')
@@ -200,6 +207,7 @@ function wptweaker_setting_12()
 function wptweaker_setting_13()
 {
     add_filter('xmlrpc_enabled', '__return_false');
+    add_filter('xmlrpc_methods', '__return_empty_array', PHP_INT_MAX);
 }
 
 function wptweaker_setting_14()
@@ -232,7 +240,7 @@ function wptweaker_setting_17()
 {
     function wpt_login_shake()
     {
-        remove_action('login_head', 'wp_shake_js', 12);
+        remove_action('login_footer', 'wp_shake_js', 12);
     }
     add_action('login_head', 'wpt_login_shake');
 }
@@ -267,21 +275,23 @@ function wptweaker_setting_19()
 
 function wptweaker_setting_20()
 {
-    add_action('pre_ping', function (&$links) {
-        $host = wp_parse_url(home_url(), PHP_URL_HOST);
+    add_action('pre_ping', 'wptweaker_remove_self_pingbacks');
+}
 
-        if (! is_string($host) || $host === '') {
-            return;
+function wptweaker_remove_self_pingbacks(&$links)
+{
+    $host = preg_replace('/^www\./', '', strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST)));
+
+    if ($host === '') {
+        return;
+    }
+
+    foreach ($links as $key => $url) {
+        $targetHost = preg_replace('/^www\./', '', strtolower((string) wp_parse_url($url, PHP_URL_HOST)));
+        if ($targetHost === $host) {
+            unset($links[$key]);
         }
-
-        $host = str_replace('www.', '', $host);
-
-        foreach ($links as $k => $val) {
-            if (str_contains($val, $host)) {
-                unset($links[$k]);
-            }
-        }
-    });
+    }
 }
 
 function wptweaker_setting_21()
@@ -448,9 +458,7 @@ function wptweaker_setting_27()
     function set_checked_ontop_default($args)
     {
         // изменим параметр по умолчанию на false
-        if (! isset($args['checked_ontop'])) {
-            $args['checked_ontop'] = false;
-        }
+        $args['checked_ontop'] = false;
 
         return $args;
     }
@@ -580,7 +588,7 @@ function wptweaker_setting_36()
     if ($user_agent === '') {
         return;
     }
-    add_filter('pre_site_transient_browser_'.md5($user_agent), '__return_null');
+    add_filter('pre_site_transient_browser_'.md5($user_agent), '__return_empty_array');
 }
 
 function wptweaker_setting_37()
@@ -752,19 +760,11 @@ function wptweaker_setting_48()
 
 function wptweaker_is_wp_tracking_url($url)
 {
-    $blocked_fragments = [
-        'pixel.wp.com',
-        'stats.wp.com',
-        'api.wordpress.org/events',
-    ];
+    $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+    $path = (string) wp_parse_url($url, PHP_URL_PATH);
 
-    foreach ($blocked_fragments as $fragment) {
-        if (str_contains($url, $fragment)) {
-            return true;
-        }
-    }
-
-    return false;
+    return in_array($host, ['pixel.wp.com', 'stats.wp.com'], true)
+        || ($host === 'api.wordpress.org' && ($path === '/events' || str_starts_with($path, '/events/')));
 }
 
 function wptweaker_block_wp_tracking_requests($preempt, $parsed_args, $url)
@@ -800,6 +800,7 @@ function wptweaker_disable_jetpack_stats_module($modules)
     }
 
     unset($modules['stats']);
+    $modules = array_filter($modules, static fn ($module) => $module !== 'stats');
 
     return $modules;
 }

@@ -54,7 +54,13 @@ final class ControllerWP
     {
         $function = str_replace('-', '_', $function);
         if (function_exists($function)) {
-            add_action('init', $function, 1);
+            if ($function === 'wptweaker_setting_18') {
+                $function();
+
+                return;
+            }
+
+            add_action('init', $function, $function === 'wptweaker_setting_24' ? 0 : 1);
         }
     }
 }
