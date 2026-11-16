@@ -4,17 +4,27 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [1.6.0] — 2026-11-16
+
 ### Added
 
+- Redirects admin: compact one-field rules, dedicated CSV import (file and textarea), comment-aware parsing, improved repeater layout.
+- Database backup section in plugin settings (create, download, upload, restore) with English admin copy and localized JS.
+- Configurable site status notice banner for the active theme.
 - Heavier comment spam scoring: every link beyond the first (costs 1, capped at 3), an author name or email local part repeating a linked domain (`RusFiner` ↔ `rus-finer.ru`, costs 2), loan/casino/adult/pharmacy vocabulary (costs 1–2), and bulk-registered TLDs like `.fun` or `.xyz` (costs 1). Coherent promo spam that previously passed with a score of 1 now scores 7.
 - Moderation hold (`antispam_hold_score`, default 2): comments scoring between the hold score and the threshold are stored unapproved instead of being published, so borderline spam can never auto-publish. Optional `antispam_hold_first_time` switcher holds every comment without author cookies.
 - Automatic CodeStar Framework provisioning (`src/Core/CodeStarInstaller.php`): the settings UI now resolves `CSF` from a standalone `codestar-framework` sibling plugin or from `lib/codestar-framework/`, and downloads the pinned 2.3.1 release from GitHub into `lib/` when neither exists (throttled to once per hour, requires the `install_plugins` capability).
 - One-click **Install CodeStar Framework now** button and an admin notice that reports the real download/filesystem error when provisioning fails.
 - Documentation of the CodeStar Framework requirement and resolution order in `README.md` (EN and RU).
 
+### Changed
+
+- Admin-facing strings use English msgids in source; Russian UI comes from `languages/` (`.po`, `.mo`, `.l10n.php`).
+
 ### Fixed
 
 - Restored the missing-framework admin notice that was lost with the `admin_notices` hook registered from the activation redirect; the notice is now registered on every admin request.
+- Backup download URLs and upload error handling in settings.
 
 ## [1.5.3] — 2026-09-26
 
