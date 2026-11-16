@@ -41,11 +41,11 @@ class MediaCleanup implements ModuleInterface
         $sizeMb = round($totalSize / 1024 / 1024, 2);
 
         $fileListHtml = ! empty($files)
-            ? '<ul>'.implode('', array_map(fn ($f) => '<li>'.esc_html(basename($f)).'</li>', $files)).'</ul>'
-            : '<p>'.__('No files to delete.', 'wp-addon').'</p>';
-        $totalSizeHtml = '<p><strong>'.sprintf(__('Total size: %s MB', 'wp-addon'), $sizeMb).'</strong></p>';
+            ? '<ul>' . implode('', array_map(fn ($f) => '<li>' . esc_html(basename($f)) . '</li>', $files)) . '</ul>'
+            : '<p>' . __('No files to delete.', 'wp-addon') . '</p>';
+        $totalSizeHtml = '<p><strong>' . sprintf(__('Total size: %s MB', 'wp-addon'), $sizeMb) . '</strong></p>';
 
-        $output = '<div class="notice notice-info"><p><strong>'.__('Files to delete:', 'wp-addon').'</strong></p>'.$fileListHtml.$totalSizeHtml.'</div>';
+        $output = '<div class="notice notice-info"><p><strong>' . __('Files to delete:', 'wp-addon') . '</strong></p>' . $fileListHtml . $totalSizeHtml . '</div>';
 
         wp_die($output);
     }
@@ -70,7 +70,7 @@ class MediaCleanup implements ModuleInterface
         }
 
         $class = $deleteResult['errors'] > 0 ? 'notice-warning' : 'notice-success';
-        $output = '<div class="notice '.$class.'"><p>'.$message.'</p></div>';
+        $output = '<div class="notice ' . $class . '"><p>' . $message . '</p></div>';
 
         wp_die($output);
     }

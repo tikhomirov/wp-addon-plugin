@@ -22,11 +22,11 @@ describe('LazyLoading Integration', function () {
             ->andReturnUsing(function ($key, $default = null) {
                 $config = [
                     'enable_lazy_loading' => true,
-                    'lazy_types' => ['img'],
-                    'blur_intensity' => 5,
-                    'root_margin' => '50px',
-                    'threshold' => 0.1,
-                    'enable_fallback' => true,
+                    'lazy_types'          => ['img'],
+                    'blur_intensity'      => 5,
+                    'root_margin'         => '50px',
+                    'threshold'           => 0.1,
+                    'enable_fallback'     => true,
                 ];
 
                 return $config[$key] ?? $default;
@@ -106,7 +106,7 @@ describe('LazyLoading Integration', function () {
         // Measure execution time
         $startTime = microtime(true);
 
-        $content = str_repeat('<img src="test'.rand().'.jpg" alt="Test">', 5);
+        $content = str_repeat('<img src="test' . rand() . '.jpg" alt="Test">', 5);
 
         $lazyLoading = new LazyLoading($this->mockOptionService);
         $lazyLoading->init();

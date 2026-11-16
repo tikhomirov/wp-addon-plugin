@@ -2,10 +2,6 @@
 
 namespace WpAddon\Services;
 
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RegexIterator;
-
 /**
  * Service for cleaning up unused image sizes
  */
@@ -43,7 +39,7 @@ class MediaCleanupService
                     }
                     break;
             }
-            $registeredSizes[] = $width.'x'.$height;
+            $registeredSizes[] = $width . 'x' . $height;
         }
 
         return $registeredSizes;
@@ -55,10 +51,10 @@ class MediaCleanupService
     public function isFileToDelete(string $basename): bool
     {
         if (preg_match('/-(\d+)x(\d+)\.(jpg|jpeg|png|gif)$/i', $basename, $matches)) {
-            $sizeKey = $matches[1].'x'.$matches[2];
+            $sizeKey = $matches[1] . 'x' . $matches[2];
 
             // Exclude scaled and other special files
-            if (strpos($basename, '-scaled') !== false) {
+            if (mb_strpos($basename, '-scaled') !== false) {
                 return false;
             }
 
@@ -76,8 +72,8 @@ class MediaCleanupService
     public function getAllImageFiles(string $directory): array
     {
         $files = [];
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
-        $regex = new RegexIterator($iterator, '/\.(jpg|jpeg|png|gif)$/i');
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($directory));
+        $regex = new \RegexIterator($iterator, '/\.(jpg|jpeg|png|gif)$/i');
 
         foreach ($regex as $file) {
             if ($file->isFile()) {
@@ -109,7 +105,7 @@ class MediaCleanupService
         }
 
         return [
-            'files' => $toDelete,
+            'files'     => $toDelete,
             'totalSize' => $totalSize,
         ];
     }
@@ -134,7 +130,7 @@ class MediaCleanupService
 
         return [
             'deleted' => $deleted,
-            'errors' => $errors,
+            'errors'  => $errors,
         ];
     }
 }

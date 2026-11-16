@@ -6,7 +6,7 @@ class PageCacheNginxService
 {
     public function sync(string $cacheDirectory, string $cacheUrlPath, int $ttl): bool
     {
-        $directory = rtrim($cacheDirectory, '/\\').'/';
+        $directory = mb_rtrim($cacheDirectory, '/\\') . '/';
         if (! is_dir($directory) && ! wp_mkdir_p($directory)) {
             return false;
         }
@@ -16,20 +16,20 @@ class PageCacheNginxService
             return false;
         }
 
-        if (! rename($temporaryFile, $directory.'nginx.conf')) {
+        if (! rename($temporaryFile, $directory . 'nginx.conf')) {
             @unlink($temporaryFile);
 
             return false;
         }
 
-        @chmod($directory.'nginx.conf', 0644);
+        @chmod($directory . 'nginx.conf', 0644);
 
         return true;
     }
 
     public function buildConfig(string $cacheUrlPath, int $ttl): string
     {
-        $cacheUrlPath = '/'.trim($cacheUrlPath, '/');
+        $cacheUrlPath = '/' . mb_trim($cacheUrlPath, '/');
         $maxAge = max(1, $ttl);
 
         return <<<NGINX

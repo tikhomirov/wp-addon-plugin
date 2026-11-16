@@ -190,10 +190,10 @@ class DisableAutoUpdate
     public function add_adminbar_items($admin_bar)
     {
         $admin_bar->add_menu([
-            'id' => 'dwuos-notice',
+            'id'    => 'dwuos-notice',
             'title' => '<span class="dashicons dashicons-info" aria-hidden="true"></span>',
-            'href' => network_admin_url('plugins.php'),
-            'meta' => [
+            'href'  => network_admin_url('plugins.php'),
+            'meta'  => [
                 'class' => 'wp-admin-bar-dwuos-notice',
                 'title' => 'Auto update is disabled',
             ],
@@ -209,7 +209,7 @@ class DisableAutoUpdate
     {
         wp_add_inline_style(
             'admin-bar',
-            '.wp-admin-bar-dwuos-notice { background-color: rgba(190, 0, 0, 0.4) !important; } .wp-admin-bar-dwuos-notice .dashicons { font-family: dashicons !important; }'
+            '.wp-admin-bar-dwuos-notice { background-color: rgba(190, 0, 0, 0.4) !important; } .wp-admin-bar-dwuos-notice .dashicons { font-family: dashicons !important; }',
         );
     }
 
@@ -233,12 +233,12 @@ class DisableAutoUpdate
         $url_data = parse_url($url);
 
         /* block request */
-        if (stripos($host, 'api.wordpress.org') !== false &&
+        if (mb_stripos($host, 'api.wordpress.org') !== false &&
             isset($url_data['path']) &&
-            (stripos($url_data['path'], 'update-check') !== false ||
-                stripos($url_data['path'], 'version-check') !== false ||
-                stripos($url_data['path'], 'browse-happy') !== false ||
-                stripos($url_data['path'], 'serve-happy') !== false)) {
+            (mb_stripos($url_data['path'], 'update-check') !== false ||
+                mb_stripos($url_data['path'], 'version-check') !== false ||
+                mb_stripos($url_data['path'], 'browse-happy') !== false ||
+                mb_stripos($url_data['path'], 'serve-happy') !== false)) {
             return true;
         }
 
@@ -271,7 +271,7 @@ class DisableAutoUpdate
      */
     public function last_checked_atm($t)
     {
-        include ABSPATH.WPINC.'/version.php';
+        include ABSPATH . WPINC . '/version.php';
         global $wp_version;
 
         $current = new stdClass;

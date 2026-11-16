@@ -14,7 +14,7 @@ class AssetOptimizationService
     public function __construct(array $config)
     {
         $this->config = $config;
-        $this->cacheDir = rtrim($config['cache_dir'], '/').'/';
+        $this->cacheDir = mb_rtrim($config['cache_dir'], '/') . '/';
         $this->ensureCacheDir();
     }
 
@@ -42,7 +42,7 @@ class AssetOptimizationService
         $css = preg_replace('/\s*([{}:;,>+~])\s*/', '$1', $css);
         $css = preg_replace('/;}/', '}', $css);
 
-        return trim($css);
+        return mb_trim($css);
     }
 
     /**
@@ -58,7 +58,7 @@ class AssetOptimizationService
         $state = 'code';
         $quote = '';
         $pendingSpace = false;
-        $length = strlen($js);
+        $length = mb_strlen($js);
         for ($index = 0; $index < $length; $index++) {
             $char = $js[$index];
             $next = $index + 1 < $length ? $js[$index + 1] : '';
@@ -122,7 +122,7 @@ class AssetOptimizationService
             $result .= $char;
         }
 
-        return trim($result);
+        return mb_trim($result);
     }
 
     /**
@@ -143,7 +143,7 @@ class AssetOptimizationService
         $combined = '';
         foreach ($files as $file) {
             if (file_exists($file)) {
-                $combined .= file_get_contents($file)."\n";
+                $combined .= file_get_contents($file) . "\n";
             }
         }
 
@@ -171,7 +171,7 @@ class AssetOptimizationService
         $combined = '';
         foreach ($files as $file) {
             if (file_exists($file)) {
-                $combined .= file_get_contents($file).";\n";
+                $combined .= file_get_contents($file) . ";\n";
             }
         }
 
@@ -188,7 +188,7 @@ class AssetOptimizationService
             $sources[] = [$file, is_file($file) ? filemtime($file) : null, is_file($file) ? filesize($file) : null];
         }
 
-        return 'combined-'.$type.'-'.hash('sha256', serialize([$sources, $this->config, 1]));
+        return 'combined-' . $type . '-' . hash('sha256', serialize([$sources, $this->config, 1]));
     }
 
     /**
@@ -196,7 +196,7 @@ class AssetOptimizationService
      */
     public function generateVersion(string $content): string
     {
-        return substr(md5($content.$this->config['version_salt']), 0, 8);
+        return mb_substr(md5($content . $this->config['version_salt']), 0, 8);
     }
 
     /**
@@ -204,7 +204,7 @@ class AssetOptimizationService
      */
     public function saveToCache(string $key, string $content): string
     {
-        $file = $this->cacheDir.$key.'.gz';
+        $file = $this->cacheDir . $key . '.gz';
         if ($this->getFromCache($key) === $content) {
             return $key;
         }
@@ -223,7 +223,7 @@ class AssetOptimizationService
             throw new \InvalidArgumentException('Unsupported asset extension.');
         }
 
-        $file = $this->cacheDir.$key.'.'.$extension;
+        $file = $this->cacheDir . $key . '.' . $extension;
         if (is_file($file) && file_get_contents($file) === $content) {
             return $key;
         }
@@ -240,7 +240,7 @@ class AssetOptimizationService
         }
 
         try {
-            if (file_put_contents($temporary, $content, LOCK_EX) !== strlen($content)
+            if (file_put_contents($temporary, $content, LOCK_EX) !== mb_strlen($content)
                 || ! chmod($temporary, 0644)
                 || ! rename($temporary, $file)) {
                 throw new \RuntimeException("Unable to write asset cache file: {$file}");
@@ -257,7 +257,7 @@ class AssetOptimizationService
      */
     public function getFromCache(string $key): ?string
     {
-        $file = $this->cacheDir.$key.'.gz';
+        $file = $this->cacheDir . $key . '.gz';
         if (! is_file($file)) {
             return null;
         }
@@ -273,7 +273,7 @@ class AssetOptimizationService
 
     public function cleanupCache(int $maxAge = 604800, int $maxFiles = 500): void
     {
-        $files = glob($this->cacheDir.'*.gz') ?: [];
+        $files = glob($this->cacheDir . '*.gz') ?: [];
         $now = time();
 
         foreach ($files as $file) {
@@ -283,7 +283,7 @@ class AssetOptimizationService
             }
         }
 
-        $files = glob($this->cacheDir.'*.gz') ?: [];
+        $files = glob($this->cacheDir . '*.gz') ?: [];
         if (count($files) <= $maxFiles) {
             return;
         }
@@ -308,8 +308,8 @@ class AssetOptimizationService
 
         foreach ($lines as $line) {
             // Simple check for common critical selectors
-            if (preg_match('/^(body|html|\.site|\.header|\.nav|\.main|\.footer)/i', trim($line))) {
-                $critical .= $line."\n";
+            if (preg_match('/^(body|html|\.site|\.header|\.nav|\.main|\.footer)/i', mb_trim($line))) {
+                $critical .= $line . "\n";
             }
         }
 

@@ -16,8 +16,8 @@ if (! function_exists('change_excerpt')) {
             if (mb_strlen($excerpt, 'UTF-8') > 181) {
                 $excerpt = preg_replace('( [.*?])', '', $excerpt);
                 $excerpt = mb_substr($excerpt, 0, 180, 'UTF-8');
-                $excerpt = mb_substr($excerpt, 0, strripos($excerpt, ' '), 'UTF-8');
-                $excerpt = trim(preg_replace('/\s+/', ' ', $excerpt));
+                $excerpt = mb_substr($excerpt, 0, mb_strripos($excerpt, ' '), 'UTF-8');
+                $excerpt = mb_trim(preg_replace('/\s+/', ' ', $excerpt));
                 $excerpt .= '...';
             }
 

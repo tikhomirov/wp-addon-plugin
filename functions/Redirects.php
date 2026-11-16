@@ -22,7 +22,7 @@ class Redirects implements ModuleInterface
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array<string, mixed> $data
      * @return array<string, mixed>
      */
     public function sanitizeRulesOnSave(array $data, mixed $instance): array
@@ -31,14 +31,14 @@ class Redirects implements ModuleInterface
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array<string, mixed> $data
      * @return array<string, mixed>
      */
     public function importCsvOnSave(array $data, mixed $instance): array
     {
         $data['redirects_rules'] = RedirectRulesService::normalizeRules($data['redirects_rules'] ?? null);
 
-        $csv = trim((string) ($data['redirects_csv_import'] ?? ''));
+        $csv = mb_trim((string) ($data['redirects_csv_import'] ?? ''));
         if ($csv !== '') {
             $imported = RedirectRulesService::parseCsv($csv);
             $data['redirects_rules'] = RedirectRulesService::mergeRules($data['redirects_rules'], $imported);
@@ -49,7 +49,7 @@ class Redirects implements ModuleInterface
     }
 
     /**
-     * @param  mixed  $value
+     * @param  mixed $value
      * @return mixed
      */
     public function prepareRulesForAdminForm($value)
@@ -75,7 +75,7 @@ class Redirects implements ModuleInterface
             ], 403);
         }
 
-        $csv = isset($_POST['csv']) ? trim(wp_unslash((string) $_POST['csv'])) : '';
+        $csv = isset($_POST['csv']) ? mb_trim(wp_unslash((string) $_POST['csv'])) : '';
 
         if ($csv === '') {
             wp_send_json_error([
@@ -117,10 +117,10 @@ class Redirects implements ModuleInterface
                 /* translators: 1: imported count, 2: total count */
                 __('Imported %1$d rule(s). Total in list: %2$d.', 'wp-addon'),
                 count($imported),
-                count($merged)
+                count($merged),
             ),
             'imported' => count($imported),
-            'total' => count($merged),
+            'total'    => count($merged),
         ]);
     }
 
@@ -147,13 +147,13 @@ class Redirects implements ModuleInterface
                 continue;
             }
 
-            if (trim($matched, '/') === trim($userrequest, '/')) {
+            if (mb_trim($matched, '/') === mb_trim($userrequest, '/')) {
                 continue;
             }
 
             $location = $this->buildRedirectLocation($matched);
             header('HTTP/1.1 301 Moved Permanently');
-            header('Location: '.$location);
+            header('Location: ' . $location);
             exit;
         }
     }
@@ -166,7 +166,7 @@ class Redirects implements ModuleInterface
             }
 
             $patternRequest = str_replace('*', '(.*)', $storedrequest);
-            $pattern = '/^'.str_replace('/', '\/', rtrim($patternRequest, '/')).'/';
+            $pattern = '/^' . str_replace('/', '\/', mb_rtrim($patternRequest, '/')) . '/';
             $target = str_replace('*', '$1', $destination);
             $output = preg_replace($pattern, $target, $userrequest);
 
@@ -177,8 +177,8 @@ class Redirects implements ModuleInterface
             return null;
         }
 
-        $normalizedRequest = rtrim(urldecode($userrequest), '/') ?: '/';
-        $normalizedStored = rtrim($storedrequest, '/') ?: '/';
+        $normalizedRequest = mb_rtrim(urldecode($userrequest), '/') ?: '/';
+        $normalizedStored = mb_rtrim($storedrequest, '/') ?: '/';
 
         if ($normalizedRequest === $normalizedStored) {
             return $destination;
@@ -197,7 +197,7 @@ class Redirects implements ModuleInterface
             return home_url($destination);
         }
 
-        return home_url('/'.ltrim($destination, '/'));
+        return home_url('/' . mb_ltrim($destination, '/'));
     }
 
     private function getRequestPath(): string
@@ -206,15 +206,15 @@ class Redirects implements ModuleInterface
         $path = wp_parse_url($requestUri, PHP_URL_PATH) ?? '/';
 
         $homePath = wp_parse_url(home_url(), PHP_URL_PATH) ?? '';
-        $homePath = rtrim((string) $homePath, '/');
+        $homePath = mb_rtrim((string) $homePath, '/');
 
         if ($homePath !== '' && str_starts_with($path, $homePath)) {
-            $path = substr($path, strlen($homePath));
+            $path = mb_substr($path, mb_strlen($homePath));
         }
 
-        $path = '/'.ltrim((string) $path, '/');
+        $path = '/' . mb_ltrim((string) $path, '/');
 
-        return rtrim($path, '/') ?: '/';
+        return mb_rtrim($path, '/') ?: '/';
     }
 
     private function isEnabled(): bool

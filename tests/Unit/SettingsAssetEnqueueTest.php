@@ -11,14 +11,14 @@ if (! defined('RW_PLUGIN_URL')) {
 }
 
 if (! defined('RW_PLUGIN_DIR')) {
-    define('RW_PLUGIN_DIR', dirname(__DIR__, 2).'/');
+    define('RW_PLUGIN_DIR', dirname(__DIR__, 2) . '/');
 }
 
 if (! defined('RW_FILE')) {
-    define('RW_FILE', dirname(__DIR__, 2).'/wp-addon-plugin.php');
+    define('RW_FILE', dirname(__DIR__, 2) . '/wp-addon-plugin.php');
 }
 
-require_once dirname(__DIR__, 2).'/src/Config/wp-addon-settings.php';
+require_once dirname(__DIR__, 2) . '/src/Config/wp-addon-settings.php';
 
 describe('WP_Addon_Settings assets enqueue', function () {
     it('initializes slug and name correctly', function () {

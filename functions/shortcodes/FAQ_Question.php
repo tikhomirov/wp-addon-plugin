@@ -40,8 +40,8 @@ class FAQ_Question implements ShortcodeInterface
         $this->title = __('Question', 'wp-addon');
         $this->description = __('Question', 'wp-addon');
 
-        $this->icon = file_exists(get_stylesheet_directory().'/img/black_color.svg') ?
-            get_stylesheet_directory_uri().'/img/black_color.svg' :
+        $this->icon = file_exists(get_stylesheet_directory() . '/img/black_color.svg') ?
+            get_stylesheet_directory_uri() . '/img/black_color.svg' :
             'https://cdn1.iconfinder.com/data/icons/sugar-glyph/64/174_sugar-white-cubes-512.png';
 
         add_shortcode($this->tag, [$this, 'html']);
@@ -65,7 +65,7 @@ class FAQ_Question implements ShortcodeInterface
 
         $this->parent_params = FAQ::$params;
         $this->last_group = FAQ::$instance;
-        $this->id = $this->last_group.'acc'.static::$instance;
+        $this->id = $this->last_group . 'acc' . static::$instance;
 
         if (isset($this->parent_params->type) && $this->parent_params->type === 'show_first') {
 
@@ -113,25 +113,25 @@ class FAQ_Question implements ShortcodeInterface
         }
 
         vc_map([
-            'category' => __('Elements', 'wp-addon'),
-            'name' => __('Question', 'gillion'),
-            'base' => $this->single_tag,
-            'as_child' => ['only' => $this->parent_tag],
-            'as_parent' => [''],
+            'category'                  => __('Elements', 'wp-addon'),
+            'name'                      => __('Question', 'gillion'),
+            'base'                      => $this->single_tag,
+            'as_child'                  => ['only' => $this->parent_tag],
+            'as_parent'                 => [''],
             'allowed_container_element' => 'vc_row',
-            'js_view' => 'VcColumnView',
-            'icon' => get_stylesheet_directory_uri().'/img/elements/tab.svg',
-            'params' => array_merge(
+            'js_view'                   => 'VcColumnView',
+            'icon'                      => get_stylesheet_directory_uri() . '/img/elements/tab.svg',
+            'params'                    => array_merge(
                 [
                     [
-                        'type' => 'textfield',
-                        'holder' => 'div',
+                        'type'        => 'textfield',
+                        'holder'      => 'div',
                         'admin_label' => true,
-                        'heading' => esc_html__('Question', 'wp-addon'),
-                        'param_name' => 'tab_title',
+                        'heading'     => esc_html__('Question', 'wp-addon'),
+                        'param_name'  => 'tab_title',
                         'description' => __('Question for answer', 'wp-addon'),
                     ],
-                ]
+                ],
             ),
         ]);
     }

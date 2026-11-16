@@ -79,15 +79,15 @@ final class FrontWP
     public function add_header_js()
     {
         if (! empty($this->options['rw_header_js'])) {
-            echo '<script>'.$this->options['rw_header_js'].'</script>';
+            echo '<script>' . $this->options['rw_header_js'] . '</script>';
         }
     }
 
     public function add_header_css()
     {
         if (! empty($this->options['rw_header_css'])) {
-            echo '<style type="text/css">'.
-                $this->options['rw_header_css'].
+            echo '<style type="text/css">' .
+                $this->options['rw_header_css'] .
                 '</style>';
         }
     }

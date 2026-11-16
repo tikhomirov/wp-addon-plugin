@@ -17,8 +17,11 @@ add_action('wpcf7_init', 'wpcf7_add_form_tag_datetime');
 
 function wpcf7_add_form_tag_datetime()
 {
-    wpcf7_add_form_tag(['datetimepicker', 'datetimepicker*'],
-        'wpcf7_datetime_form_tag_handler', ['name-attr' => true]);
+    wpcf7_add_form_tag(
+        ['datetimepicker', 'datetimepicker*'],
+        'wpcf7_datetime_form_tag_handler',
+        ['name-attr' => true],
+    );
 }
 
 function wpcf7_datetime_form_tag_handler($tag)
@@ -89,7 +92,10 @@ function wpcf7_datetime_form_tag_handler($tag)
     $html = sprintf(
         /* <input id="datetimepicker" type="text" value="Date"> */
         '<span class="wpcf7-form-control-wrap %1$s"><input %2$s />%3$s</span>',
-        sanitize_html_class($tag->name), $atts, $validation_error);
+        sanitize_html_class($tag->name),
+        $atts,
+        $validation_error,
+    );
 
     return $html;
 }
@@ -107,7 +113,7 @@ function wpcf7_datetime_validation_filter($result, $tag)
     $max = $tag->get_date_option( 'max' ); */
 
     $value = isset($_POST[$name])
-        ? trim(strtr((string) $_POST[$name], "\n", ' '))
+        ? mb_trim(strtr((string) $_POST[$name], "\n", ' '))
         : '';
 
     if ($tag->is_required() && $value == '') {
@@ -133,17 +139,17 @@ function wpcf7_datetime_messages($messages)
     return array_merge($messages, [
         'invalid_date' => [
             'description' => __('Date format that the sender entered is invalid', 'contact-form-7'),
-            'default' => __('The date format is incorrect.', 'contact-form-7'),
+            'default'     => __('The date format is incorrect.', 'contact-form-7'),
         ],
 
         'date_too_early' => [
             'description' => __('Date is earlier than minimum limit', 'contact-form-7'),
-            'default' => __('The date is before the earliest one allowed.', 'contact-form-7'),
+            'default'     => __('The date is before the earliest one allowed.', 'contact-form-7'),
         ],
 
         'date_too_late' => [
             'description' => __('Date is later than maximum limit', 'contact-form-7'),
-            'default' => __('The date is after the latest one allowed.', 'contact-form-7'),
+            'default'     => __('The date is after the latest one allowed.', 'contact-form-7'),
         ],
     ]);
 }
@@ -185,26 +191,26 @@ function wpcf7_tag_generator_datetime($contact_form, $args = '')
 	</tr>
 
 	<tr>
-	<th scope="row"><label for="<?php echo esc_attr($args['content'].'-name'); ?>"><?php echo esc_html(__('Name', 'contact-form-7')); ?></label></th>
-	<td><input type="text" name="name" class="tg-name oneline" id="<?php echo esc_attr($args['content'].'-name'); ?>" /></td>
+	<th scope="row"><label for="<?php echo esc_attr($args['content'] . '-name'); ?>"><?php echo esc_html(__('Name', 'contact-form-7')); ?></label></th>
+	<td><input type="text" name="name" class="tg-name oneline" id="<?php echo esc_attr($args['content'] . '-name'); ?>" /></td>
 	</tr>
 
 	<tr>
-	<th scope="row"><label for="<?php echo esc_attr($args['content'].'-values'); ?>"><?php echo esc_html(__('Default value', 'contact-form-7')); ?></label></th>
-	<td><input type="text" name="values" class="oneline" id="<?php echo esc_attr($args['content'].'-values'); ?>" /><br />
+	<th scope="row"><label for="<?php echo esc_attr($args['content'] . '-values'); ?>"><?php echo esc_html(__('Default value', 'contact-form-7')); ?></label></th>
+	<td><input type="text" name="values" class="oneline" id="<?php echo esc_attr($args['content'] . '-values'); ?>" /><br />
 	<label><input type="checkbox" name="placeholder" class="option" /> <?php echo esc_html(__('Use this text as the placeholder of the field', 'contact-form-7')); ?></label></td>
 	</tr>
 
 
 	
 	<tr>
-	<th scope="row"><label for="<?php echo esc_attr($args['content'].'-id'); ?>"><?php echo esc_html(__('Id attribute', 'contact-form-7')); ?></label></th>
-	<td><input type="text" name="id" class="idvalue oneline option disabled" id="<?php echo esc_attr($args['content'].'-id'); ?>" value="datetimepicker" disabled="disabled" /></td>
+	<th scope="row"><label for="<?php echo esc_attr($args['content'] . '-id'); ?>"><?php echo esc_html(__('Id attribute', 'contact-form-7')); ?></label></th>
+	<td><input type="text" name="id" class="idvalue oneline option disabled" id="<?php echo esc_attr($args['content'] . '-id'); ?>" value="datetimepicker" disabled="disabled" /></td>
 	</tr>
 
 	<tr>
-	<th scope="row"><label for="<?php echo esc_attr($args['content'].'-class'); ?>"><?php echo esc_html(__('Class attribute', 'contact-form-7')); ?></label></th>
-	<td><input type="text" name="class" class="classvalue oneline option" id="<?php echo esc_attr($args['content'].'-class'); ?>" /></td>
+	<th scope="row"><label for="<?php echo esc_attr($args['content'] . '-class'); ?>"><?php echo esc_html(__('Class attribute', 'contact-form-7')); ?></label></th>
+	<td><input type="text" name="class" class="classvalue oneline option" id="<?php echo esc_attr($args['content'] . '-class'); ?>" /></td>
 	</tr>
 </tbody>
 </table>
@@ -220,7 +226,7 @@ function wpcf7_tag_generator_datetime($contact_form, $args = '')
 
 	<br class="clear" />
 
-	<p class="description mail-tag"><label for="<?php echo esc_attr($args['content'].'-mailtag'); ?>"><?php echo sprintf(esc_html(__('To use the value input through this field in a mail field, you need to insert the corresponding mail-tag (%s) into the field on the Mail tab.', 'contact-form-7')), '<strong><span class="mail-tag"></span></strong>'); ?><input type="text" class="mail-tag code hidden" readonly="readonly" id="<?php echo esc_attr($args['content'].'-mailtag'); ?>" /></label></p>
+	<p class="description mail-tag"><label for="<?php echo esc_attr($args['content'] . '-mailtag'); ?>"><?php echo sprintf(esc_html(__('To use the value input through this field in a mail field, you need to insert the corresponding mail-tag (%s) into the field on the Mail tab.', 'contact-form-7')), '<strong><span class="mail-tag"></span></strong>'); ?><input type="text" class="mail-tag code hidden" readonly="readonly" id="<?php echo esc_attr($args['content'] . '-mailtag'); ?>" /></label></p>
 </div>
 <?php
 }
@@ -229,8 +235,8 @@ function wpcf7_tag_generator_datetime($contact_form, $args = '')
 function add_datetimepicker()
 {
 
-    $dir_js = (RW_PLUGIN_URL.'assets/js/jquery.datetimepicker.full.min.js');
-    $dir_css = (RW_PLUGIN_URL.'assets/css/min/jquery.datetimepicker.min.css');
+    $dir_js = (RW_PLUGIN_URL . 'assets/js/jquery.datetimepicker.full.min.js');
+    $dir_css = (RW_PLUGIN_URL . 'assets/css/min/jquery.datetimepicker.min.css');
     $dir_validate_js = '//cdnjs.cloudflare.com/ajax/libs/jquery-form-validator/2.3.26/jquery.form-validator.min.js';
     $dir_validate_css = '//cdnjs.cloudflare.com/ajax/libs/jquery-form-validator/2.3.26/theme-default.min.css';
 
@@ -243,7 +249,8 @@ function add_datetimepicker()
     */
 
     // jQuery datetimepicker settings
-    wp_add_inline_script('jquery.datetimepicker',
+    wp_add_inline_script(
+        'jquery.datetimepicker',
         "
         jQuery.datetimepicker.setLocale('ru');
         jQuery('#datetimepicker').datetimepicker({
@@ -266,7 +273,8 @@ function add_datetimepicker()
           '22:00'
           ]
         });
-        ");
+        ",
+    );
     // Documentation: https://xdsoft.net/jqplugins/datetimepicker/
 
     // jQuery validate settings
@@ -289,7 +297,7 @@ function wpcf7_datetimepicker_validation_filter($result, $tag)
 {
     $name = $tag->name;
     $value = isset($_POST[$name])
-        ? trim(strtr((string) $_POST[$name], "\n", ' '))
+        ? mb_trim(strtr((string) $_POST[$name], "\n", ' '))
         : '';
     if ($tag->is_required() && $value == '') {
         $result->invalidate($tag, wpcf7_get_message('invalid_required'));
@@ -314,10 +322,11 @@ function rw_validate_phone($value)
     if ($result === 1) {
         // echo 'Success!';
         return true;
-    } else {
-        // echo 'Failure!';
-        return false;
     }
+
+    // echo 'Failure!';
+    return false;
+
 }
 
 function rw_validate_datetime($value)
@@ -327,7 +336,8 @@ function rw_validate_datetime($value)
     $result = preg_match($pattern, $value);
     if ($result === 1) {
         return true;
-    } else {
-        return false;
     }
+
+    return false;
+
 }

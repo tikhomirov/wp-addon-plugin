@@ -92,15 +92,15 @@ function wp_addon_normalize_category_exclude_ids(mixed $raw): array
         return array_values(array_unique($ids));
     }
 
-    if (! is_string($raw) || trim($raw) === '') {
+    if (! is_string($raw) || mb_trim($raw) === '') {
         return [];
     }
 
-    $parts = preg_split('/\s*,\s*/', trim($raw)) ?: [];
+    $parts = preg_split('/\s*,\s*/', mb_trim($raw)) ?: [];
     $ids = [];
 
     foreach ($parts as $part) {
-        $id = absint(ltrim(trim((string) $part), '-+'));
+        $id = absint(mb_ltrim(mb_trim((string) $part), '-+'));
 
         if ($id > 0) {
             $ids[] = $id;
@@ -154,8 +154,8 @@ function wp_addon_get_category_checkbox_options(): array
 
     $categories = get_categories([
         'hide_empty' => false,
-        'orderby' => 'name',
-        'order' => 'ASC',
+        'orderby'    => 'name',
+        'order'      => 'ASC',
     ]);
 
     $options = [];
@@ -188,15 +188,15 @@ function wp_addon_get_role_checkbox_options(): array
  */
 function wp_addon_parse_ip_whitelist(?string $raw): array
 {
-    if ($raw === null || trim($raw) === '') {
+    if ($raw === null || mb_trim($raw) === '') {
         return [];
     }
 
-    $lines = preg_split('/\R/u', trim($raw)) ?: [];
+    $lines = preg_split('/\R/u', mb_trim($raw)) ?: [];
     $ips = [];
 
     foreach ($lines as $line) {
-        $line = trim((string) $line);
+        $line = mb_trim((string) $line);
 
         if ($line === '') {
             continue;
@@ -225,7 +225,7 @@ function wp_addon_get_visitor_ip(): string
     ];
 
     foreach ($candidates as $candidate) {
-        if (! is_string($candidate) || trim($candidate) === '') {
+        if (! is_string($candidate) || mb_trim($candidate) === '') {
             continue;
         }
 
@@ -251,7 +251,7 @@ function wp_addon_is_ip_whitelisted(string $ip, array $whitelist): bool
 }
 
 /**
- * @param  array<int, string>  $allowedRoles
+ * @param array<int, string> $allowedRoles
  */
 function wp_addon_user_has_allowed_role(array $allowedRoles): bool
 {
@@ -291,8 +291,8 @@ function wp_addon_should_bypass_maintenance(array $settings): bool
 }
 
 /**
- * @param  array<string, mixed>  $newSettings
- * @param  array<string, mixed>  $oldSettings
+ * @param array<string, mixed> $newSettings
+ * @param array<string, mixed> $oldSettings
  */
 function wp_addon_should_flush_rewrite_rules_on_settings_change(array $newSettings, array $oldSettings): bool
 {
@@ -366,7 +366,7 @@ function wp_addon_get_tinymce_framework_stylesheet(string $framework): ?string
     switch ($framework) {
         case 'bootstrap3':
             if (defined('RW_PLUGIN_URL')) {
-                return RW_PLUGIN_URL.'assets/css/min/bootstrap.min.css';
+                return RW_PLUGIN_URL . 'assets/css/min/bootstrap.min.css';
             }
 
             return null;

@@ -2,7 +2,7 @@
 
 use WpAddon\WP_Addon_Settings;
 
-require_once dirname(__DIR__, 2).'/src/Config/wp-addon-settings.php';
+require_once dirname(__DIR__, 2) . '/src/Config/wp-addon-settings.php';
 
 it('does not build admin settings on frontend requests', function () {
     $GLOBALS['mock_is_admin'] = false;

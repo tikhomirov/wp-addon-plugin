@@ -33,14 +33,14 @@ final class Storage
     private string $root;
 
     /**
-     * @param  string|null  $root  Backup directory; default uploads/backup.
+     * @param string|null $root Backup directory; default uploads/backup.
      *
      * @throws \RuntimeException If the directory cannot be created.
      */
     public function __construct(?string $root = null)
     {
-        $base = $root ?? (defined('WP_CONTENT_DIR') ? WP_CONTENT_DIR.'/uploads' : '');
-        $this->root = rtrim($base, '/').'/'.self::DIRNAME;
+        $base = $root ?? (defined('WP_CONTENT_DIR') ? WP_CONTENT_DIR . '/uploads' : '');
+        $this->root = mb_rtrim($base, '/') . '/' . self::DIRNAME;
     }
 
     /**
@@ -56,7 +56,7 @@ final class Storage
      */
     public function uploaded_root(): string
     {
-        return $this->root.'/'.self::UPLOADED_DIRNAME;
+        return $this->root . '/' . self::UPLOADED_DIRNAME;
     }
 
     /**
@@ -83,18 +83,18 @@ final class Storage
      */
     private function write_protection(string $dir): void
     {
-        $htaccess = $dir.'/.htaccess';
-        $index = $dir.'/index.php';
+        $htaccess = $dir . '/.htaccess';
+        $index = $dir . '/index.php';
 
         if (! is_file($htaccess)) {
             $rules = "# Created by backup module: deny direct HTTP access to dumps.\n"
-                ."<IfModule mod_authz_core.c>\n"
-                ."    Require all denied\n"
-                ."</IfModule>\n"
-                ."<IfModule !mod_authz_core.c>\n"
-                ."    Order deny,allow\n"
-                ."    Deny from all\n"
-                ."</IfModule>\n";
+                . "<IfModule mod_authz_core.c>\n"
+                . "    Require all denied\n"
+                . "</IfModule>\n"
+                . "<IfModule !mod_authz_core.c>\n"
+                . "    Order deny,allow\n"
+                . "    Deny from all\n"
+                . "</IfModule>\n";
 
             @file_put_contents($htaccess, $rules);
         }
@@ -129,15 +129,15 @@ final class Storage
                     continue;
                 }
 
-                $path = $dir.'/'.$entry;
+                $path = $dir . '/' . $entry;
 
                 if (! is_file($path)) {
                     continue;
                 }
 
                 $backups[] = [
-                    'name' => $entry,
-                    'size' => (int) @filesize($path),
+                    'name'     => $entry,
+                    'size'     => (int) @filesize($path),
                     'modified' => (int) @filemtime($path),
                 ];
             }
@@ -159,14 +159,14 @@ final class Storage
      * compare realpath to the directory root. User input
      * becomes a file path only here.
      *
-     * @param  string  $name  File name from the request.
+     * @param  string $name File name from the request.
      * @return string Absolute file path.
      *
      * @throws \RuntimeException If the name is invalid or the file is outside the directory.
      */
     public function resolve(string $name): string
     {
-        $safe = basename(trim($name));
+        $safe = basename(mb_trim($name));
 
         if ($safe === '' || $safe === '.' || $safe === '..' || ! $this->is_backup_name($safe)) {
             throw new \RuntimeException(__('Invalid backup file name.', 'wp-addon'));
@@ -187,7 +187,7 @@ final class Storage
     private function find(string $name): ?string
     {
         foreach ([$this->root, $this->uploaded_root()] as $dir) {
-            $candidate = $dir.'/'.$name;
+            $candidate = $dir . '/' . $name;
 
             if (! is_file($candidate)) {
                 continue;
@@ -201,7 +201,7 @@ final class Storage
             }
 
             // Reject symlink or path outside the directory.
-            if (strncmp($real, $real_root.DIRECTORY_SEPARATOR, strlen($real_root) + 1) !== 0) {
+            if (strncmp($real, $real_root . DIRECTORY_SEPARATOR, mb_strlen($real_root) + 1) !== 0) {
                 continue;
             }
 
@@ -221,8 +221,8 @@ final class Storage
     public function is_backup_name(string $name): bool
     {
         return (bool) preg_match(
-            '/^(?:backup|upload)_[A-Za-z0-9._-]+'.preg_quote(self::EXTENSION, '/').'$/',
-            basename($name)
+            '/^(?:backup|upload)_[A-Za-z0-9._-]+' . preg_quote(self::EXTENSION, '/') . '$/',
+            basename($name),
         );
     }
 
@@ -245,7 +245,7 @@ final class Storage
      */
     public function new_dump_path(string $label): string
     {
-        return $this->root.'/'.self::PREFIX.$label.self::EXTENSION;
+        return $this->root . '/' . self::PREFIX . $label . self::EXTENSION;
     }
 
     /**
@@ -254,7 +254,7 @@ final class Storage
      * Content is validated by format markers to block
      * uploading non-SQL payloads.
      *
-     * @param  array  $file  $_FILES entry.
+     * @param  array  $file $_FILES entry.
      * @return string Saved file name.
      *
      * @throws \RuntimeException On invalid upload or content.
@@ -268,8 +268,8 @@ final class Storage
                 sprintf(
                     /* translators: %d: upload error code */
                     __('File not uploaded (error code: %d).', 'wp-addon'),
-                    $error
-                )
+                    $error,
+                ),
             );
         }
 
@@ -293,8 +293,8 @@ final class Storage
 
         $this->ensure_directories();
 
-        $name = 'upload_'.gmdate('Y-m-d_H-i-s').'_'.substr(bin2hex(random_bytes(4)), 0, 8).self::EXTENSION;
-        $target = $this->uploaded_root().'/'.$name;
+        $name = 'upload_' . gmdate('Y-m-d_H-i-s') . '_' . mb_substr(bin2hex(random_bytes(4)), 0, 8) . self::EXTENSION;
+        $target = $this->uploaded_root() . '/' . $name;
 
         $moved = @move_uploaded_file($tmp, $target);
 
@@ -337,7 +337,7 @@ final class Storage
     public static function format_size(int $bytes): string
     {
         if ($bytes < 1024) {
-            return $bytes.' B';
+            return $bytes . ' B';
         }
 
         $units = ['KB', 'MB', 'GB', 'TB'];
@@ -349,6 +349,6 @@ final class Storage
             $index++;
         }
 
-        return round($value, 1).' '.$units[$index];
+        return round($value, 1) . ' ' . $units[$index];
     }
 }

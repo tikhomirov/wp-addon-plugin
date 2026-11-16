@@ -21,14 +21,14 @@ final class Admin
      *
      * Each row carries data-backup so JS does not duplicate markup.
      *
-     * @param  Storage  $storage  Backup storage.
+     * @param Storage $storage Backup storage.
      */
     public static function render_backup_table(Storage $storage): void
     {
         $backups = $storage->list_backups();
 
         if ($backups === []) {
-            echo '<p>'.esc_html__('No backup files yet.', 'wp-addon').'</p>';
+            echo '<p>' . esc_html__('No backup files yet.', 'wp-addon') . '</p>';
 
             return;
         }

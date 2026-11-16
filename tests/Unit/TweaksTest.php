@@ -1,16 +1,16 @@
 <?php
 
-require_once dirname(__DIR__, 2).'/functions/wp-functions.php';
+require_once dirname(__DIR__, 2) . '/functions/wp-functions.php';
 
 describe('Tweaks config', function () {
     it('registers 48 tweak options', function () {
-        $tweaks = require dirname(__DIR__, 2).'/src/Config/tweaks.php';
+        $tweaks = require dirname(__DIR__, 2) . '/src/Config/tweaks.php';
 
         expect($tweaks)->toHaveCount(48);
     });
 
     it('provides beginner description for every tweak', function () {
-        $tweaks = require dirname(__DIR__, 2).'/src/Config/tweaks.php';
+        $tweaks = require dirname(__DIR__, 2) . '/src/Config/tweaks.php';
 
         foreach ($tweaks as $tweak) {
             expect($tweak['desc'] ?? '')->not->toBe('');
@@ -18,7 +18,7 @@ describe('Tweaks config', function () {
     });
 
     it('uses optimized defaults for this project', function () {
-        $tweaks = require dirname(__DIR__, 2).'/src/Config/tweaks.php';
+        $tweaks = require dirname(__DIR__, 2) . '/src/Config/tweaks.php';
         $defaults = [];
 
         foreach ($tweaks as $tweak) {
@@ -35,7 +35,7 @@ describe('Tweaks config', function () {
     });
 
     it('marks cautious tweaks with warning emoji', function () {
-        $tweaks = require dirname(__DIR__, 2).'/src/Config/tweaks.php';
+        $tweaks = require dirname(__DIR__, 2) . '/src/Config/tweaks.php';
         $cautiousIds = [
             'wptweaker_setting_5',
             'wptweaker_setting_9',
@@ -63,7 +63,7 @@ describe('Tweaks config', function () {
     });
 
     it('has callback function for every tweak option', function () {
-        $tweaks = require dirname(__DIR__, 2).'/src/Config/tweaks.php';
+        $tweaks = require dirname(__DIR__, 2) . '/src/Config/tweaks.php';
 
         foreach ($tweaks as $tweak) {
             expect(function_exists($tweak['id']))->toBeTrue("Missing function {$tweak['id']}");
@@ -81,7 +81,7 @@ describe('update tweak guards', function () {
     beforeEach(function () {
         global $mock_functions;
         $mock_functions['get_option'] = fn ($key, $default = []) => $default;
-        require_once dirname(__DIR__, 2).'/functions/main-settings-helpers.php';
+        require_once dirname(__DIR__, 2) . '/functions/main-settings-helpers.php';
     });
 
     it('detects disable all updates at root level for tweak guards', function () {
@@ -103,7 +103,7 @@ describe('wptweaker_block_wordpress_org_requests', function () {
         $result = wptweaker_block_wordpress_org_requests(
             false,
             [],
-            'https://api.wordpress.org/core/version-check/1.7/'
+            'https://api.wordpress.org/core/version-check/1.7/',
         );
 
         expect(is_wp_error($result))->toBeTrue();
@@ -114,7 +114,7 @@ describe('wptweaker_block_wordpress_org_requests', function () {
         $result = wptweaker_block_wordpress_org_requests(
             false,
             [],
-            'https://downloads.wordpress.org/plugin/hello-dolly.zip'
+            'https://downloads.wordpress.org/plugin/hello-dolly.zip',
         );
 
         expect(is_wp_error($result))->toBeTrue();
@@ -124,7 +124,7 @@ describe('wptweaker_block_wordpress_org_requests', function () {
         $result = wptweaker_block_wordpress_org_requests(
             false,
             [],
-            'https://example.com/webhook'
+            'https://example.com/webhook',
         );
 
         expect($result)->toBeFalse();
@@ -244,8 +244,8 @@ describe('wptweaker_add_noindex_robots', function () {
 
         expect($robots)->toMatchArray([
             'max-image-preview' => 'large',
-            'noindex' => true,
-            'follow' => true,
+            'noindex'           => true,
+            'follow'            => true,
         ]);
     });
 
@@ -268,7 +268,7 @@ describe('wptweaker_generic_login_error_message', function () {
 describe('wptweaker_remove_pingback_header', function () {
     it('removes X-Pingback response header', function () {
         $headers = wptweaker_remove_pingback_header([
-            'X-Pingback' => 'https://example.com/xmlrpc.php',
+            'X-Pingback'   => 'https://example.com/xmlrpc.php',
             'Content-Type' => 'text/html; charset=UTF-8',
         ]);
 
@@ -291,7 +291,7 @@ describe('wptweaker_block_wp_tracking_requests', function () {
         $blocked = wptweaker_block_wp_tracking_requests(
             false,
             [],
-            'https://pixel.wp.com/g.gif'
+            'https://pixel.wp.com/g.gif',
         );
 
         expect(is_wp_error($blocked))->toBeTrue();
@@ -304,7 +304,7 @@ describe('wptweaker_block_wp_tracking_requests', function () {
 describe('wptweaker_disable_jetpack_stats_module', function () {
     it('removes stats module from jetpack module list', function () {
         $modules = wptweaker_disable_jetpack_stats_module([
-            'stats' => 'Stats',
+            'stats'        => 'Stats',
             'contact-form' => 'Contact Form',
         ]);
 

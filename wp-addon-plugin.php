@@ -22,7 +22,7 @@ use WpAddon\Core\Plugin;
 defined('ABSPATH') || exit;
 
 // Register autoloader
-require_once __DIR__.'/src/Autoloader.php';
+require_once __DIR__ . '/src/Autoloader.php';
 Autoloader::register();
 
 // Initialize plugin

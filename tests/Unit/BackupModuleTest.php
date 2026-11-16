@@ -3,7 +3,7 @@
 use WpAddon\Backup\Storage;
 use WpAddon\Interfaces\ModuleInterface;
 
-require_once dirname(__DIR__, 2).'/functions/Backup.php';
+require_once dirname(__DIR__, 2) . '/functions/Backup.php';
 
 describe('Backup module', function () {
     it('implements ModuleInterface', function () {
@@ -23,7 +23,7 @@ describe('Backup module', function () {
     });
 
     it('keeps JS and PHP AJAX action names in sync', function () {
-        $js = (string) file_get_contents(dirname(__DIR__, 2).'/assets/js/backup.js');
+        $js = (string) file_get_contents(dirname(__DIR__, 2) . '/assets/js/backup.js');
 
         preg_match_all('/wp_addon_backup_[a-z]+/', $js, $matches);
         $jsActions = array_values(array_unique($matches[0]));
@@ -36,7 +36,7 @@ describe('Backup module', function () {
     });
 
     it('routes download through admin-ajax.php', function () {
-        $js = (string) file_get_contents(dirname(__DIR__, 2).'/assets/js/backup.js');
+        $js = (string) file_get_contents(dirname(__DIR__, 2) . '/assets/js/backup.js');
 
         expect($js)->toContain('wp-addon-backup-download');
         expect($js)->toContain('wpAddonBackup.ajaxUrl');
@@ -52,9 +52,9 @@ describe('Backup module', function () {
             public string $prefix = 'wp_';
         };
 
-        $dir = sys_get_temp_dir().'/wp_addon_backup_test_'.uniqid();
-        mkdir($dir.'/backup', 0777, true);
-        file_put_contents($dir.'/backup/backup_test.sql', "-- test\n");
+        $dir = sys_get_temp_dir() . '/wp_addon_backup_test_' . uniqid();
+        mkdir($dir . '/backup', 0777, true);
+        file_put_contents($dir . '/backup/backup_test.sql', "-- test\n");
 
         try {
             $html = Backup::render_settings_content(new Storage($dir));
@@ -67,7 +67,7 @@ describe('Backup module', function () {
                 'wp-addon-backup-upload',
                 'wp-addon-backup-upload-btn',
             ] as $id) {
-                expect($html)->toContain('id="'.$id.'"');
+                expect($html)->toContain('id="' . $id . '"');
             }
 
             // Select removed; restore button lives in the table.
@@ -81,14 +81,14 @@ describe('Backup module', function () {
             expect($html)->toContain('wp_');
             expect($html)->toContain('Restore');
         } finally {
-            unlink($dir.'/backup/backup_test.sql');
-            rmdir($dir.'/backup');
+            unlink($dir . '/backup/backup_test.sql');
+            rmdir($dir . '/backup');
             rmdir($dir);
         }
     });
 
     it('shows the empty-state message when no dumps exist', function () {
-        $dir = sys_get_temp_dir().'/wp_addon_backup_empty_'.uniqid();
+        $dir = sys_get_temp_dir() . '/wp_addon_backup_empty_' . uniqid();
         mkdir($dir, 0777, true);
 
         try {

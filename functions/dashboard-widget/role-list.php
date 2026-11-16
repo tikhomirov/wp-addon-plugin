@@ -13,7 +13,7 @@ function dashboard_role_list()
         wp_add_dashboard_widget(
             'wp_addon_role_list_widget',
             __('Users role info', 'wp-addon'),
-            'wp_addon_render_role_list_widget'
+            'wp_addon_render_role_list_widget',
         );
     });
 }
@@ -34,7 +34,7 @@ function wp_addon_render_role_list_widget(): void
     echo '<ol>';
 
     foreach ($roles as $role => $label) {
-        echo '<li>'.esc_html($role).' - '.esc_html(translate_user_role($label)).'</li>';
+        echo '<li>' . esc_html($role) . ' - ' . esc_html(translate_user_role($label)) . '</li>';
     }
 
     echo '</ol>';

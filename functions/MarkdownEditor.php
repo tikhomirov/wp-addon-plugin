@@ -365,9 +365,9 @@ class MarkdownEditor implements ModuleInterface
     /**
      * Save post content according to the active editor mode (Markdown or Classic).
      *
-     * @param  int  $post_id  Post ID
-     * @param  WP_Post  $post_after  Post after update
-     * @param  WP_Post|null  $post_before  Post before update
+     * @param int          $post_id     Post ID
+     * @param WP_Post      $post_after  Post after update
+     * @param WP_Post|null $post_before Post before update
      */
     public function saveMarkdownContent(int $post_id, $post_after, $post_before): void
     {
@@ -435,7 +435,7 @@ class MarkdownEditor implements ModuleInterface
                 $this->saving = true;
 
                 wp_update_post([
-                    'ID' => $post_id,
+                    'ID'           => $post_id,
                     'post_content' => $parsed_html,
                 ]);
 
@@ -463,10 +463,10 @@ class MarkdownEditor implements ModuleInterface
     public function parseMarkdown(string $markdown): string
     {
         // Check presence autoloader Composer
-        if (file_exists(ABSPATH.'vendor/autoload.php')) {
-            require_once ABSPATH.'vendor/autoload.php';
-        } elseif (file_exists(dirname(ABSPATH).'/vendor/autoload.php')) {
-            require_once dirname(ABSPATH).'/vendor/autoload.php';
+        if (file_exists(ABSPATH . 'vendor/autoload.php')) {
+            require_once ABSPATH . 'vendor/autoload.php';
+        } elseif (file_exists(dirname(ABSPATH) . '/vendor/autoload.php')) {
+            require_once dirname(ABSPATH) . '/vendor/autoload.php';
         }
 
         // Use Parsedown when available
@@ -547,10 +547,10 @@ class MarkdownEditor implements ModuleInterface
         $html_paragraphs = [];
 
         foreach ($paragraphs as $paragraph) {
-            $paragraph = trim($paragraph);
+            $paragraph = mb_trim($paragraph);
             if (! empty($paragraph)) {
                 if (! preg_match('/^<(h[1-6]|hr)/', $paragraph)) {
-                    $paragraph = '<p>'.$paragraph.'</p>';
+                    $paragraph = '<p>' . $paragraph . '</p>';
                 }
                 $html_paragraphs[] = $paragraph;
             }
@@ -600,12 +600,12 @@ class MarkdownEditor implements ModuleInterface
         $markdown = preg_replace('/<blockquote[^>]*>(.*?)<\/blockquote>/s', '> $1', $markdown);
 
         // Paragraphs
-        $markdown = preg_replace('/<p[^>]*>(.*?)<\/p>/i', '$1'."\n\n", $markdown);
+        $markdown = preg_replace('/<p[^>]*>(.*?)<\/p>/i', '$1' . "\n\n", $markdown);
 
         // Strip remaining HTML tags
         $markdown = strip_tags($markdown);
 
-        return trim($markdown);
+        return mb_trim($markdown);
     }
 
     /**
@@ -641,14 +641,14 @@ class MarkdownEditor implements ModuleInterface
             'https://unpkg.com/easymde/dist/easymde.min.js',
             [],
             '2.18.0',
-            true
+            true,
         );
 
         wp_enqueue_style(
             'easymde',
             'https://unpkg.com/easymde/dist/easymde.min.css',
             [],
-            '2.18.0'
+            '2.18.0',
         );
 
         // WordPress media uploader
@@ -656,37 +656,37 @@ class MarkdownEditor implements ModuleInterface
 
         wp_enqueue_script(
             'markdown-editor',
-            RW_PLUGIN_URL.'assets/js/markdown-editor.js',
+            RW_PLUGIN_URL . 'assets/js/markdown-editor.js',
             ['jquery', 'easymde'],
             '1.3.0',
-            true
+            true,
         );
 
         wp_localize_script('markdown-editor', 'markdownAjax', [
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('markdown_preview'),
+            'ajax_url'         => admin_url('admin-ajax.php'),
+            'nonce'            => wp_create_nonce('markdown_preview'),
             'enable_shortcuts' => (bool) $this->getSetting('markdown_enable_shortcuts', true),
-            'enable_preview' => (bool) $this->getSetting('markdown_enable_preview', true),
-            'i18n' => [
-                'import_html_confirm' => __('Import current HTML content into the Markdown editor?', 'wp-addon'),
-                'import_md_confirm' => __('Convert Markdown to HTML for the classic editor?', 'wp-addon'),
-                'overwrite_md_confirm' => __('Replace current Markdown with HTML conversion result?', 'wp-addon'),
+            'enable_preview'   => (bool) $this->getSetting('markdown_enable_preview', true),
+            'i18n'             => [
+                'import_html_confirm'    => __('Import current HTML content into the Markdown editor?', 'wp-addon'),
+                'import_md_confirm'      => __('Convert Markdown to HTML for the classic editor?', 'wp-addon'),
+                'overwrite_md_confirm'   => __('Replace current Markdown with HTML conversion result?', 'wp-addon'),
                 'overwrite_html_confirm' => __('Replace classic editor HTML with Markdown conversion result?', 'wp-addon'),
-                'convert_error' => __('Content conversion error', 'wp-addon'),
-                'media_title' => __('Choose an image', 'wp-addon'),
-                'media_button' => __('Insert into post', 'wp-addon'),
-                'media_toolbar' => __('Insert image (WP Media)', 'wp-addon'),
-                'help_summary' => __('Markdown help (click to expand)', 'wp-addon'),
-                'help_h1' => __('# Heading 1 — large heading', 'wp-addon'),
-                'help_h2' => __('## Heading 2 — medium heading', 'wp-addon'),
-                'help_bold' => __('**bold** — bold text', 'wp-addon'),
-                'help_italic' => __('*italic* — italic text', 'wp-addon'),
-                'help_link' => __('[text](url) — link', 'wp-addon'),
-                'help_image' => __('![alt](url) — image', 'wp-addon'),
-                'help_code' => __('`code` — inline code', 'wp-addon'),
-                'help_ul' => __('* item — bullet list', 'wp-addon'),
-                'help_ol' => __('1. item — numbered list', 'wp-addon'),
-                'help_shortcuts' => __('Shortcuts: Ctrl+B (bold), Ctrl+I (italic), Ctrl+K (link)', 'wp-addon'),
+                'convert_error'          => __('Content conversion error', 'wp-addon'),
+                'media_title'            => __('Choose an image', 'wp-addon'),
+                'media_button'           => __('Insert into post', 'wp-addon'),
+                'media_toolbar'          => __('Insert image (WP Media)', 'wp-addon'),
+                'help_summary'           => __('Markdown help (click to expand)', 'wp-addon'),
+                'help_h1'                => __('# Heading 1 — large heading', 'wp-addon'),
+                'help_h2'                => __('## Heading 2 — medium heading', 'wp-addon'),
+                'help_bold'              => __('**bold** — bold text', 'wp-addon'),
+                'help_italic'            => __('*italic* — italic text', 'wp-addon'),
+                'help_link'              => __('[text](url) — link', 'wp-addon'),
+                'help_image'             => __('![alt](url) — image', 'wp-addon'),
+                'help_code'              => __('`code` — inline code', 'wp-addon'),
+                'help_ul'                => __('* item — bullet list', 'wp-addon'),
+                'help_ol'                => __('1. item — numbered list', 'wp-addon'),
+                'help_shortcuts'         => __('Shortcuts: Ctrl+B (bold), Ctrl+I (italic), Ctrl+K (link)', 'wp-addon'),
             ],
         ]);
 
@@ -695,7 +695,7 @@ class MarkdownEditor implements ModuleInterface
             'github-markdown-css',
             'https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown.min.css',
             [],
-            '5.5.0'
+            '5.5.0',
         );
 
         // Highlight.js for syntax highlighting
@@ -703,7 +703,7 @@ class MarkdownEditor implements ModuleInterface
             'highlightjs-github',
             'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css',
             [],
-            '11.9.0'
+            '11.9.0',
         );
 
         wp_enqueue_script(
@@ -711,17 +711,17 @@ class MarkdownEditor implements ModuleInterface
             'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js',
             [],
             '11.9.0',
-            true
+            true,
         );
 
-        $css_file = defined('RW_PLUGIN_DIR') ? RW_PLUGIN_DIR.'assets/css/markdown-editor.css' : '';
+        $css_file = defined('RW_PLUGIN_DIR') ? RW_PLUGIN_DIR . 'assets/css/markdown-editor.css' : '';
         $css_version = ($css_file && file_exists($css_file)) ? (string) filemtime($css_file) : '1.5.2';
 
         wp_enqueue_style(
             'markdown-editor',
-            RW_PLUGIN_URL.'assets/css/markdown-editor.css',
+            RW_PLUGIN_URL . 'assets/css/markdown-editor.css',
             [],
-            $css_version
+            $css_version,
         );
 
         // Extra styles for Markdown elements

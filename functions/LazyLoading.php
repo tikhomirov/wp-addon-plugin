@@ -36,7 +36,7 @@ class LazyLoading implements ModuleInterface
         return preg_replace_callback(
             '~<img\s+([^>]+)>~i',
             [$this, 'processImage'],
-            $content
+            $content,
         );
     }
 
@@ -64,18 +64,18 @@ class LazyLoading implements ModuleInterface
             $newAttrs['data-srcset'] = $attrs['srcset'];
             unset($newAttrs['srcset']);
         }
-        $classes = preg_split('/\s+/', trim($attrs['class'] ?? '')) ?: [];
+        $classes = preg_split('/\s+/', mb_trim($attrs['class'] ?? '')) ?: [];
         $classes[] = 'lazy-img';
         $newAttrs['class'] = implode(' ', array_unique(array_filter($classes)));
         $newAttrs['loading'] = 'lazy';
 
-        return '<img'.$this->buildAttributes($newAttrs).'>';
+        return '<img' . $this->buildAttributes($newAttrs) . '>';
     }
 
     private function shouldSkip(string $src, array $attrs): bool
     {
         return (bool) preg_match('/\.svg(?:[?#]|$)/i', $src)
-            || stripos($src, 'data:') === 0
+            || mb_stripos($src, 'data:') === 0
             || (isset($attrs['class']) && in_array('no-lazy', preg_split('/\s+/', $attrs['class']) ?: [], true));
     }
 
@@ -84,7 +84,7 @@ class LazyLoading implements ModuleInterface
         $attrs = [];
         preg_match_all('/([^\s=\/>]+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'=<>`]+)))?/', $attrString, $matches, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL);
         foreach ($matches as $match) {
-            $name = strtolower($match[1]);
+            $name = mb_strtolower($match[1]);
             $value = $match[2] ?? $match[3] ?? $match[4] ?? $name;
             $attrs[$name] = $value;
         }
@@ -99,20 +99,20 @@ class LazyLoading implements ModuleInterface
             $escapedValue = function_exists('esc_attr')
                 ? esc_attr($value)
                 : htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-            $parts[] = $name.'="'.$escapedValue.'"';
+            $parts[] = $name . '="' . $escapedValue . '"';
         }
 
-        return ' '.implode(' ', $parts);
+        return ' ' . implode(' ', $parts);
     }
 
     public function enqueueScripts(): void
     {
         wp_enqueue_script(
             'lazy-loading',
-            RW_PLUGIN_URL.'assets/js/lazy-loading.js',
+            RW_PLUGIN_URL . 'assets/js/lazy-loading.js',
             [],
             '1.0.0',
-            true
+            true,
         );
     }
 }

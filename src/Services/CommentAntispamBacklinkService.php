@@ -12,15 +12,15 @@ class CommentAntispamBacklinkService
 {
     public function isPingbackSourceValid(string $url): bool
     {
-        $url = trim($url);
+        $url = mb_trim($url);
 
         if ($url === '') {
             return false;
         }
 
         $response = wp_safe_remote_get($url, [
-            'timeout' => 5,
-            'redirection' => 2,
+            'timeout'             => 5,
+            'redirection'         => 2,
             'limit_response_size' => 1024 * 1024,
         ]);
 
@@ -35,12 +35,12 @@ class CommentAntispamBacklinkService
     {
         $homeHost = $homeHost ?? (string) wp_parse_url(home_url(), PHP_URL_HOST);
 
-        if ($homeHost === '' || trim($html) === '') {
+        if ($homeHost === '' || mb_trim($html) === '') {
             return false;
         }
 
         $quotedHost = preg_quote($homeHost, '~');
-        $pattern = '~<a[^>]+href=[\'"](?:https?:)?//(?:www\.)?'.$quotedHost.'(?=[:/?#\'"\\s>])~si';
+        $pattern = '~<a[^>]+href=[\'"](?:https?:)?//(?:www\.)?' . $quotedHost . '(?=[:/?#\'"\\s>])~si';
 
         return preg_match($pattern, $html) === 1;
     }

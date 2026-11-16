@@ -25,7 +25,7 @@ final class ValueEncoder
      * esc_sql() is intentionally not used: it replaces "%" with wpdb's placeholder
      * escape and corrupts dump contents. Custom encoding is server-setting agnostic.
      *
-     * @param  mixed  $value  Value from the database.
+     * @param mixed $value Value from the database.
      */
     public static function literal($value): string
     {
@@ -49,7 +49,7 @@ final class ValueEncoder
 
         // Broken bytes, NUL, and SUB cannot be written as text literals; use hex instead.
         if (! self::is_text_safe($value)) {
-            return '0x'.bin2hex($value);
+            return '0x' . bin2hex($value);
         }
 
         return self::quote($value);
@@ -58,8 +58,8 @@ final class ValueEncoder
     /**
      * Build one row as "(v1,v2,...)".
      *
-     * @param  array<string,mixed>  $row  Query result row.
-     * @param  string[]  $columns  Columns in schema order.
+     * @param array<string,mixed> $row     Query result row.
+     * @param string[]            $columns Columns in schema order.
      */
     public static function row_values(array $row, array $columns): string
     {
@@ -69,7 +69,7 @@ final class ValueEncoder
             $parts[] = self::literal($row[$column] ?? null);
         }
 
-        return '('.implode(',', $parts).')';
+        return '(' . implode(',', $parts) . ')';
     }
 
     /**
@@ -79,7 +79,7 @@ final class ValueEncoder
      */
     public static function quote(string $value): string
     {
-        return "'".addcslashes($value, "\0\n\r\t\\'\"\x1a")."'";
+        return "'" . addcslashes($value, "\0\n\r\t\\'\"\x1a") . "'";
     }
 
     /**
@@ -87,7 +87,7 @@ final class ValueEncoder
      */
     public static function is_text_safe(string $value): bool
     {
-        if (strpos($value, "\0") !== false || strpos($value, "\x1a") !== false) {
+        if (mb_strpos($value, "\0") !== false || mb_strpos($value, "\x1a") !== false) {
             return false;
         }
 

@@ -10,17 +10,17 @@ class ImageOptimizationService
     /**
      * Generate blur placeholder for image
      *
-     * @param  string  $imagePath  Path to the image file
-     * @param  int  $blurIntensity  Blur intensity (1-20, default 5)
-     * @param  int  $thumbnailSize  Maximum thumbnail size in pixels (default 50)
-     * @param  int  $quality  JPEG quality (1-100, default 70)
+     * @param  string $imagePath     Path to the image file
+     * @param  int    $blurIntensity Blur intensity (1-20, default 5)
+     * @param  int    $thumbnailSize Maximum thumbnail size in pixels (default 50)
+     * @param  int    $quality       JPEG quality (1-100, default 70)
      * @return string Base64 encoded blur placeholder or empty string on error
      */
     public function generateBlurPlaceholder(
         string $imagePath,
         int $blurIntensity = 5,
         int $thumbnailSize = 50,
-        int $quality = 70
+        int $quality = 70,
     ): string {
         try {
             if (! $this->isGdAvailable()) {
@@ -108,7 +108,7 @@ class ImageOptimizationService
             return $base64Data;
 
         } catch (\Throwable $e) {
-            error_log('ImageOptimizationService error: '.$e->getMessage());
+            error_log('ImageOptimizationService error: ' . $e->getMessage());
 
             return '';
         }
@@ -152,7 +152,7 @@ class ImageOptimizationService
     /**
      * Apply blur effect to image
      *
-     * @param  resource|\GdImage  $image
+     * @param  resource|\GdImage      $image
      * @return resource|\GdImage|null
      */
     private function applyBlur($image, int $intensity)
@@ -170,7 +170,7 @@ class ImageOptimizationService
     /**
      * Convert image to base64 string
      *
-     * @param  resource|\GdImage  $image
+     * @param resource|\GdImage $image
      */
     private function imageToBase64($image, int $quality, string $mimeType = 'image/jpeg'): string
     {
@@ -186,13 +186,13 @@ class ImageOptimizationService
             return '';
         }
 
-        return 'data:'.($mimeType === 'image/png' ? 'image/png' : 'image/jpeg').';base64,'.base64_encode($imageData);
+        return 'data:' . ($mimeType === 'image/png' ? 'image/png' : 'image/jpeg') . ';base64,' . base64_encode($imageData);
     }
 
     /**
      * Optimize image file (reduce size without quality loss)
      *
-     * @param  int  $quality  JPEG quality (1-100, default 85)
+     * @param  int  $quality JPEG quality (1-100, default 85)
      * @return bool Success
      */
     public function optimizeImage(string $imagePath, int $quality = 85): bool
@@ -260,7 +260,7 @@ class ImageOptimizationService
             return false;
 
         } catch (\Throwable $e) {
-            error_log('ImageOptimizationService optimizeImage error: '.$e->getMessage());
+            error_log('ImageOptimizationService optimizeImage error: ' . $e->getMessage());
 
             return false;
         }
@@ -269,7 +269,7 @@ class ImageOptimizationService
     /**
      * Generate responsive image thumbnails
      *
-     * @param  array  $sizes  Array of sizes ['width' => height] or ['width']
+     * @param  array $sizes Array of sizes ['width' => height] or ['width']
      * @return array Array of generated thumbnail paths
      */
     public function generateThumbnails(string $imagePath, array $sizes): array
@@ -331,7 +331,7 @@ class ImageOptimizationService
                 if (imagecopyresampled($thumbnail, $sourceImage, 0, 0, 0, 0, $thumbWidth, $thumbHeight, $originalWidth, $originalHeight)) {
                     // Generate filename
                     $pathInfo = pathinfo($imagePath);
-                    $thumbnailPath = $pathInfo['dirname'].'/'.$pathInfo['filename'].'-'.$thumbWidth.'x'.$thumbHeight.'.'.$pathInfo['extension'];
+                    $thumbnailPath = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '-' . $thumbWidth . 'x' . $thumbHeight . '.' . $pathInfo['extension'];
 
                     // Save thumbnail
                     $saved = false;
@@ -361,7 +361,7 @@ class ImageOptimizationService
             imagedestroy($sourceImage);
 
         } catch (\Exception $e) {
-            error_log('ImageOptimizationService generateThumbnails error: '.$e->getMessage());
+            error_log('ImageOptimizationService generateThumbnails error: ' . $e->getMessage());
         }
 
         return $thumbnails;

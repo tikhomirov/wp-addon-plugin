@@ -85,7 +85,7 @@ function transliteration_enable()
 
         $term = $is_term ? $wpdb->get_var($wpdb->prepare(
             "SELECT slug FROM {$wpdb->terms} WHERE name = %s",
-            $title
+            $title,
         )) : '';
 
         if (! empty($term)) {
@@ -99,7 +99,7 @@ function transliteration_enable()
             $title = preg_replace('/\-+/', '-', $title);
             $title = preg_replace('/^-+/', '', $title);
             $title = preg_replace('/-+$/', '', $title);
-            $title = strtolower($title);
+            $title = mb_strtolower($title);
         }
 
         return $title;

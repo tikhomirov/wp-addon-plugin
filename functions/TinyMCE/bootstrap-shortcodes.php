@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__DIR__).'/main-settings-helpers.php';
+require_once dirname(__DIR__) . '/main-settings-helpers.php';
 
 function add_bootstrap_3()
 {
@@ -29,18 +29,18 @@ function add_bootstrap_3()
         }
 
         /**
-         * @param  array<string, string>  $plugin_array
+         * @param  array<string, string> $plugin_array
          * @return array<string, string>
          */
         public function add_js_mce($plugin_array): array
         {
-            $plugin_array['bootstrap'] = RW_PLUGIN_URL.'assets/js/tinymce/bootstrap.js';
+            $plugin_array['bootstrap'] = RW_PLUGIN_URL . 'assets/js/tinymce/bootstrap.js';
 
             return $plugin_array;
         }
 
         /**
-         * @param  array<int, string>  $buttons
+         * @param  array<int, string> $buttons
          * @return array<int, string>
          */
         public function register_mce_button(array $buttons): array
@@ -69,18 +69,18 @@ function add_bootstrap_3()
 
             if ($framework === 'bootstrap3' && file_exists($file_path)) {
                 $ver = (string) filemtime($file_path);
-                $mce_css .= $file_url.'?'.$ver.',';
-                $mce_css .= get_theme_file_uri('assets/css/theme.min.css').'?'.$ver.',';
-                $mce_css .= get_theme_file_uri('assets/css/fonts.min.css').'?'.$ver.',';
+                $mce_css .= $file_url . '?' . $ver . ',';
+                $mce_css .= get_theme_file_uri('assets/css/theme.min.css') . '?' . $ver . ',';
+                $mce_css .= get_theme_file_uri('assets/css/fonts.min.css') . '?' . $ver . ',';
             } else {
-                $mce_css .= $frameworkCss.'?'.$ver.',';
+                $mce_css .= $frameworkCss . '?' . $ver . ',';
             }
 
             if ($framework === 'bootstrap3') {
                 $mce_css .= 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css,';
             }
 
-            $mce_css .= RW_PLUGIN_URL.'assets/css/min/tiny.min.css?'.$ver;
+            $mce_css .= RW_PLUGIN_URL . 'assets/css/min/tiny.min.css?' . $ver;
 
             return $mce_css;
         }

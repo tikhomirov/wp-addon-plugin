@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__.'/main-settings-helpers.php';
+require_once __DIR__ . '/main-settings-helpers.php';
 
 use WpAddon\Interfaces\ModuleInterface;
 use WpAddon\Traits\HookTrait;
@@ -27,9 +27,9 @@ class SiteStatusNotice implements ModuleInterface
 
         wp_enqueue_style(
             'wp-addon-site-status-notice',
-            RW_PLUGIN_URL.'assets/css/site-status-notice.css',
+            RW_PLUGIN_URL . 'assets/css/site-status-notice.css',
             [],
-            WP_ADDON_VERSION
+            WP_ADDON_VERSION,
         );
     }
 
@@ -39,7 +39,7 @@ class SiteStatusNotice implements ModuleInterface
             return;
         }
 
-        $text = trim((string) (wp_addon_main_settings()['site_status_notice_text'] ?? ''));
+        $text = mb_trim((string) (wp_addon_main_settings()['site_status_notice_text'] ?? ''));
 
         if ($text === '') {
             $text = __('The site is in recovery mode.', 'wp-addon');

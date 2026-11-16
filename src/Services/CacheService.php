@@ -12,7 +12,7 @@ class CacheService implements CacheInterface
 
     public function __construct(string $cacheDir = '', int $ttl = 3600)
     {
-        $this->cacheDir = rtrim($cacheDir ?: WP_CONTENT_DIR.'/cache/pages/', '/\\').'/';
+        $this->cacheDir = mb_rtrim($cacheDir ?: WP_CONTENT_DIR . '/cache/pages/', '/\\') . '/';
         $this->ttl = $ttl;
 
         if (! is_dir($this->cacheDir) && ! $this->createDirectory($this->cacheDir)) {
@@ -27,7 +27,7 @@ class CacheService implements CacheInterface
 
     public function getCachedContent(string $key): ?string
     {
-        $file = $this->cacheDir.$key.'.html';
+        $file = $this->cacheDir . $key . '.html';
         if (! $this->isFresh($file)) {
             return null;
         }
@@ -39,13 +39,13 @@ class CacheService implements CacheInterface
 
     public function getRelativePath(string $host, string $path): ?string
     {
-        $host = strtolower(preg_replace('/:\d+$/', '', $host) ?? '');
+        $host = mb_strtolower(preg_replace('/:\d+$/', '', $host) ?? '');
         if (! preg_match('/\A[a-z0-9.-]+\z/', $host)) {
             return null;
         }
 
         $path = rawurldecode($path);
-        $segments = array_filter(explode('/', trim($path, '/')), static fn (string $segment): bool => $segment !== '');
+        $segments = array_filter(explode('/', mb_trim($path, '/')), static fn (string $segment): bool => $segment !== '');
         foreach ($segments as $segment) {
             if ($segment === '.' || $segment === '..' || str_contains($segment, "\0")) {
                 return null;
@@ -54,14 +54,14 @@ class CacheService implements CacheInterface
 
         $encodedPath = implode('/', array_map('rawurlencode', $segments));
 
-        return $host.'/'.($encodedPath === '' ? '' : $encodedPath.'/').'index.html';
+        return $host . '/' . ($encodedPath === '' ? '' : $encodedPath . '/') . 'index.html';
     }
 
     public function getCachedPage(string $host, string $path): ?string
     {
         $relativePath = $this->getRelativePath($host, $path);
 
-        return $relativePath === null ? null : $this->readFile($this->cacheDir.$relativePath);
+        return $relativePath === null ? null : $this->readFile($this->cacheDir . $relativePath);
     }
 
     public function savePage(string $host, string $path, string $content): bool
@@ -71,14 +71,14 @@ class CacheService implements CacheInterface
             return false;
         }
 
-        $file = $this->cacheDir.$relativePath;
+        $file = $this->cacheDir . $relativePath;
         if (! $this->atomicWrite($file, $content)) {
             return false;
         }
 
         $compressed = gzencode($content, 6);
         if ($compressed !== false) {
-            $this->atomicWrite($file.'.gz', $compressed);
+            $this->atomicWrite($file . '.gz', $compressed);
         }
 
         return true;
@@ -86,7 +86,7 @@ class CacheService implements CacheInterface
 
     public function saveCachedContent(string $key, string $content): void
     {
-        $this->atomicWrite($this->cacheDir.$key.'.html', $content);
+        $this->atomicWrite($this->cacheDir . $key . '.html', $content);
     }
 
     public function cleanup(int $maxEntries, int $maxAge, int $batchSize): void
@@ -127,7 +127,7 @@ class CacheService implements CacheInterface
 
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($this->cacheDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST
+            \RecursiveIteratorIterator::CHILD_FIRST,
         );
 
         foreach ($iterator as $item) {
@@ -199,7 +199,7 @@ class CacheService implements CacheInterface
 
         $files = [];
         $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->cacheDir, \FilesystemIterator::SKIP_DOTS)
+            new \RecursiveDirectoryIterator($this->cacheDir, \FilesystemIterator::SKIP_DOTS),
         );
         foreach ($iterator as $item) {
             if ($item->isFile() && str_ends_with($item->getFilename(), '.html')) {
@@ -213,6 +213,6 @@ class CacheService implements CacheInterface
     private function deleteCachePair(string $file): void
     {
         @unlink($file);
-        @unlink($file.'.gz');
+        @unlink($file . '.gz');
     }
 }

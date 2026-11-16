@@ -38,7 +38,7 @@ class CommentContentPreserve implements ModuleInterface
     }
 
     /**
-     * @param  string  $content  Slashed comment content.
+     * @param string $content Slashed comment content.
      */
     public function filterPreCommentContent(string $content): string
     {
@@ -63,7 +63,7 @@ class CommentContentPreserve implements ModuleInterface
     }
 
     /**
-     * @param  array<string, array<string, bool>>|string  $allowed
+     * @param  array<string, array<string, bool>>|string $allowed
      * @return array<string, array<string, bool>>|string
      */
     public function allowPreTag($allowed, string $context)

@@ -12,7 +12,7 @@ describe('CommentAntispamScoringService', function () {
             'IjtRwXHmcvybfzgmAiM',
             'ztpyuOkqNTwQsQKwwkC',
             'o.x.on.e.j.o.f.eza.96@gmail.com',
-            true
+            true,
         );
 
         expect($verdict['score'])->toBeGreaterThanOrEqual(3);
@@ -34,8 +34,8 @@ describe('CommentAntispamScoringService', function () {
         foreach ($samples as $sample) {
             $verdict = CommentAntispamScoringService::score($sample, 'Алексей', 'user.name@gmail.com', false);
 
-            expect($verdict['score'])->toBe(0, $sample.' must not be scored');
-            expect($verdict['reasons'])->toBe([], $sample.' must have no reasons');
+            expect($verdict['score'])->toBe(0, $sample . ' must not be scored');
+            expect($verdict['reasons'])->toBe([], $sample . ' must have no reasons');
         }
     });
 
@@ -61,8 +61,8 @@ describe('CommentAntispamScoringService', function () {
      */
     it('scores the coherent promo spam above the default threshold', function () {
         $content = 'Онлайн-сервис РУС-ФИНЕР помогает подобрать займ с дистанционным оформлением.'
-            .' Через https://rus-finer.ru/zaimy-pensioneram-na-kartu/ легко сравнить условия МФО.'
-            .' Используя https://rus-finer.ru/zaim-45000-rubley-na-kartu/ можно подать заявку.';
+            . ' Через https://rus-finer.ru/zaimy-pensioneram-na-kartu/ легко сравнить условия МФО.'
+            . ' Используя https://rus-finer.ru/zaim-45000-rubley-na-kartu/ можно подать заявку.';
 
         $verdict = CommentAntispamScoringService::score($content, 'RusFiner', 'rusfiner2@pil-casi.fun', true);
 
@@ -82,7 +82,7 @@ describe('CommentAntispamScoringService', function () {
             'Сообщение без ссылок и промо-акций никак не оценивается.',
             'Игорь',
             'igor@example.org',
-            false
+            false,
         );
 
         expect($verdict['score'])->toBe(0);
@@ -90,7 +90,7 @@ describe('CommentAntispamScoringService', function () {
 
     it('detects links in html attributes, markdown and bare domains', function () {
         $urls = CommentAntispamScoringService::extractUrls(
-            '<a href="https://a.ru/">А</a> www.b.com/x [текст](https://d.fun/y) и сайт e.io, ещё wp-kama.ru'
+            '<a href="https://a.ru/">А</a> www.b.com/x [текст](https://d.fun/y) и сайт e.io, ещё wp-kama.ru',
         );
 
         expect($urls)->toContain('https://a.ru/');
@@ -113,7 +113,7 @@ describe('CommentAntispamScoringService', function () {
             'RusFiner',
             'test@mail.ru',
             false,
-            'https://rus-finer.ru/'
+            'https://rus-finer.ru/',
         );
 
         expect($verdict['reasons'])->toContain(CommentAntispamScoringService::REASON_BRAND);
@@ -124,7 +124,7 @@ describe('CommentAntispamScoringService', function () {
             'Обзор казино и лучшие слоты, как выиграть.',
             'Иван',
             'ivan@mail.ru',
-            false
+            false,
         );
 
         expect($comment['reasons'])->toContain(CommentAntispamScoringService::REASON_KEYWORDS);
@@ -142,7 +142,7 @@ describe('CommentAntispamScoringService', function () {
             'Спасибо за разбор!',
             'Олег',
             'oleg@abc123.fun',
-            false
+            false,
         );
 
         expect($verdict['reasons'])->toContain(CommentAntispamScoringService::REASON_TLD);
@@ -160,7 +160,7 @@ describe('CommentAntispamScoringService', function () {
             'Thanks for the article, very helpful!',
             'John',
             'john@example.com',
-            false
+            false,
         );
 
         expect($verdict['score'])->toBe(0);
@@ -183,7 +183,7 @@ describe('CommentAntispamScoringService', function () {
             '<p>Спасибо   за</p><p>статью</p>',
             'Алексей',
             'user@example.com',
-            false
+            false,
         );
 
         expect($verdict['score'])->toBe(0);
@@ -207,7 +207,7 @@ describe('CommentAntispamScoringService', function () {
             $spam,
             'Sue',
             'suemassey689@hotmail.com',
-            true
+            true,
         );
 
         // 1 (first_time) + 2 (html_anchor) + 3 (latin_link) = 6 >= threshold 3
@@ -222,7 +222,7 @@ describe('CommentAntispamScoringService', function () {
             $translit,
             'Alex',
             'alex@gmail.com',
-            false
+            false,
         );
 
         expect($verdict['score'])->toBe(0);
@@ -235,7 +235,7 @@ describe('CommentAntispamScoringService', function () {
             $translit,
             'Dmitriy',
             'dmitriy@gmail.com',
-            false
+            false,
         );
 
         expect($verdict['reasons'])->not->toContain(CommentAntispamScoringService::REASON_LATIN_LINK);

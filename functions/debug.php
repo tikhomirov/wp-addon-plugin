@@ -16,10 +16,10 @@ if (! function_exists('_log')) {
             return '';
         }
 
-        $file = WP_CONTENT_DIR.'/debug.log';
+        $file = WP_CONTENT_DIR . '/debug.log';
         $maxSize = 5 * 1024 * 1024;
         if (is_file($file) && filesize($file) >= $maxSize) {
-            $rotatedFile = $file.'.1';
+            $rotatedFile = $file . '.1';
             if (is_file($rotatedFile)) {
                 unlink($rotatedFile);
             }
@@ -27,7 +27,7 @@ if (! function_exists('_log')) {
         }
 
         ob_start();
-        echo '['.date('d-M-Y h:i:s T').'] ';
+        echo '[' . date('d-M-Y h:i:s T') . '] ';
         var_export($log);
         echo "\r\n";
         $data = ob_get_clean();
@@ -84,11 +84,11 @@ if (! function_exists('console_log')) {
                 $wp_query->debug_log = "'$wp_query->debug_log'";
             }
 
-            echo '<script type="text/javascript" name="woo2iiko_debugger">console.log({debug: \'wp-addon\'}, '.$wp_query->debug_log.')</script>';
+            echo '<script type="text/javascript" name="woo2iiko_debugger">console.log({debug: \'wp-addon\'}, ' . $wp_query->debug_log . ')</script>';
             $wp_query->debug_showed = true;
 
             echo '<hr><h5 style="color:red;">DEBUG INFO</h5>';
-            echo '<pre style="color:white; background: #0a0a0a; padding: 20px;">'.$wp_query->debug_log.'</pre>';
+            echo '<pre style="color:white; background: #0a0a0a; padding: 20px;">' . $wp_query->debug_log . '</pre>';
         }
     }
 }

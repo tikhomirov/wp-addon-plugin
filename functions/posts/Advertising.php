@@ -15,8 +15,8 @@ class Advertising
     /**
      * Advertising constructor.
      *
-     * @param  string  $placement  - placement: 'before_content', 'in_content', 'after_content'
-     * @param  string  $banner  - html code
+     * @param string $placement - placement: 'before_content', 'in_content', 'after_content'
+     * @param string $banner    - html code
      */
     public function __construct($placement, $banner, $selector = null)
     {
@@ -50,11 +50,11 @@ class Advertising
     /**
      * Banner before the post
      *
-     * @param  string  $content
+     * @param string $content
      */
     public function banner_before_content($content): string
     {
-        return $this->banner.$content;
+        return $this->banner . $content;
     }
 
     /**
@@ -63,7 +63,7 @@ class Advertising
     public function banner_in_content($content): string
     {
         $parts = $this->get_parts($content);
-        $content = $parts[0].$this->banner.$parts[1];
+        $content = $parts[0] . $this->banner . $parts[1];
 
         return $content;
     }
@@ -73,7 +73,7 @@ class Advertising
      */
     public function banner_after_content($content): string
     {
-        return $content.$this->banner;
+        return $content . $this->banner;
     }
 
     /**
@@ -105,11 +105,11 @@ class Advertising
      */
     private function get_parts($text): array
     {
-        $length = strlen($text);
+        $length = mb_strlen($text);
         $half = (int) ($length / 2);
 
-        $part_1 = substr($text, 0, $half);
-        $part_2 = substr($text, $half);
+        $part_1 = mb_substr($text, 0, $half);
+        $part_2 = mb_substr($text, $half);
 
         return [$part_1, $part_2];
     }
@@ -117,14 +117,14 @@ class Advertising
     /**
      * Generate settings tabs for ADs
      *
-     * @param  string  $prefix
+     * @param string $prefix
      */
     public static function set_settings($prefix)
     {
 
         $ads = [
             'title' => __('Ads manager', 'wp-addon'),
-            'icon' => 'fa fa-external-link',
+            'icon'  => 'fa fa-external-link',
         ];
 
         $types = get_post_types(['public' => 1]);
@@ -146,169 +146,169 @@ class Advertising
          ];*/
 
         $ads['fields']['enq'] = [
-            'id' => 'ads_enabler',
-            'type' => 'switcher',
-            'title' => __('Enable this extension?', 'wp-addon'),
-            'label' => __('Change to On for enable this.', 'wp-addon'),
+            'id'      => 'ads_enabler',
+            'type'    => 'switcher',
+            'title'   => __('Enable this extension?', 'wp-addon'),
+            'label'   => __('Change to On for enable this.', 'wp-addon'),
             'default' => false,
         ];
 
         $ads['fields'][] = [
-            'id' => 'ads_in_content',
-            'type' => 'tabbed',
-            'title' => __('Ads in content', 'wp-addon'),
+            'id'       => 'ads_in_content',
+            'type'     => 'tabbed',
+            'title'    => __('Ads in content', 'wp-addon'),
             'subtitle' => __('Displays HTML content in the selected location of the post', 'wp-addon'),
-            'tabs' => [
+            'tabs'     => [
                 [
-                    'title' => __('Before content', 'wp-addon'),
-                    'icon' => 'fa fa-th-large',
+                    'title'  => __('Before content', 'wp-addon'),
+                    'icon'   => 'fa fa-th-large',
                     'fields' => [
                         [
-                            'id' => 'before_content_mode',
-                            'type' => 'switcher',
-                            'title' => __('ADs Mode', 'wp-addon'),
-                            'label' => __('Off to run html mode', 'wp-addon'),
+                            'id'      => 'before_content_mode',
+                            'type'    => 'switcher',
+                            'title'   => __('ADs Mode', 'wp-addon'),
+                            'label'   => __('Off to run html mode', 'wp-addon'),
                             'default' => true,
                         ],
                         [
-                            'id' => 'before_content_upload',
-                            'type' => 'upload',
-                            'title' => 'Upload',
-                            'library' => 'image',
-                            'placeholder' => 'http://',
+                            'id'           => 'before_content_upload',
+                            'type'         => 'upload',
+                            'title'        => 'Upload',
+                            'library'      => 'image',
+                            'placeholder'  => 'http://',
                             'button_title' => 'Add Image',
                             'remove_title' => 'Remove Image',
+                            'dependency'   => ['before_content_mode', '==', 'true'],
+                        ],
+                        [
+                            'id'         => 'before_content_url',
+                            'type'       => 'text',
+                            'title'      => __('Link', 'wp-addon'),
                             'dependency' => ['before_content_mode', '==', 'true'],
                         ],
                         [
-                            'id' => 'before_content_url',
-                            'type' => 'text',
-                            'title' => __('Link', 'wp-addon'),
-                            'dependency' => ['before_content_mode', '==', 'true'],
-                        ],
-                        [
-                            'id' => 'before_content_html',
-                            'type' => 'code_editor',
-                            'title' => __('Banner html code', 'wp-addon'),
+                            'id'       => 'before_content_html',
+                            'type'     => 'code_editor',
+                            'title'    => __('Banner html code', 'wp-addon'),
                             'settings' => [
-                                'theme' => 'mbo',
-                                'mode' => 'htmlmixed',
+                                'theme'   => 'mbo',
+                                'mode'    => 'htmlmixed',
                                 'tabSize' => 4,
                             ],
-                            'default' => '',
+                            'default'    => '',
                             'dependency' => ['before_content_mode', '==', 'false'],
                         ],
                         [
-                            'id' => 'before_content_post_type',
-                            'type' => 'select',
-                            'title' => __('Select post type', 'wp-addon'),
-                            'multiple' => true,
-                            'chosen' => true,
+                            'id'          => 'before_content_post_type',
+                            'type'        => 'select',
+                            'title'       => __('Select post type', 'wp-addon'),
+                            'multiple'    => true,
+                            'chosen'      => true,
                             'placeholder' => __('Select post type', 'wp-addon'),
-                            'options' => $types,
-                            'default' => 'post',
+                            'options'     => $types,
+                            'default'     => 'post',
                         ],
                     ],
                 ],
                 [
-                    'title' => __('In content', 'wp-addon'),
-                    'icon' => 'fa fa-th-large',
+                    'title'  => __('In content', 'wp-addon'),
+                    'icon'   => 'fa fa-th-large',
                     'fields' => [
                         [
-                            'id' => 'in_content_mode',
-                            'type' => 'switcher',
-                            'title' => __('ADs Mode', 'wp-addon'),
-                            'label' => __('Off to run html mode', 'wp-addon'),
+                            'id'      => 'in_content_mode',
+                            'type'    => 'switcher',
+                            'title'   => __('ADs Mode', 'wp-addon'),
+                            'label'   => __('Off to run html mode', 'wp-addon'),
                             'default' => true,
                         ],
                         [
-                            'id' => 'in_content_upload',
-                            'type' => 'upload',
-                            'title' => 'Upload',
-                            'library' => 'image',
-                            'placeholder' => 'http://',
+                            'id'           => 'in_content_upload',
+                            'type'         => 'upload',
+                            'title'        => 'Upload',
+                            'library'      => 'image',
+                            'placeholder'  => 'http://',
                             'button_title' => 'Add Image',
                             'remove_title' => 'Remove Image',
+                            'dependency'   => ['in_content_mode', '==', 'true'],
+                        ],
+                        [
+                            'id'         => 'in_content_url',
+                            'type'       => 'text',
+                            'title'      => __('Link', 'wp-addon'),
                             'dependency' => ['in_content_mode', '==', 'true'],
                         ],
                         [
-                            'id' => 'in_content_url',
-                            'type' => 'text',
-                            'title' => __('Link', 'wp-addon'),
-                            'dependency' => ['in_content_mode', '==', 'true'],
-                        ],
-                        [
-                            'id' => 'in_content_html',
-                            'type' => 'code_editor',
-                            'title' => __('Banner html code', 'wp-addon'),
+                            'id'       => 'in_content_html',
+                            'type'     => 'code_editor',
+                            'title'    => __('Banner html code', 'wp-addon'),
                             'settings' => [
-                                'theme' => 'mbo',
-                                'mode' => 'htmlmixed',
+                                'theme'   => 'mbo',
+                                'mode'    => 'htmlmixed',
                                 'tabSize' => 4,
                             ],
-                            'default' => '',
+                            'default'    => '',
                             'dependency' => ['in_content_mode', '==', 'false'],
                         ],
                         [
-                            'id' => 'in_content_post_type',
-                            'type' => 'select',
-                            'title' => __('Select post type', 'wp-addon'),
-                            'multiple' => true,
-                            'chosen' => true,
+                            'id'          => 'in_content_post_type',
+                            'type'        => 'select',
+                            'title'       => __('Select post type', 'wp-addon'),
+                            'multiple'    => true,
+                            'chosen'      => true,
                             'placeholder' => __('Select post type', 'wp-addon'),
-                            'options' => $types,
-                            'default' => 'post',
+                            'options'     => $types,
+                            'default'     => 'post',
                         ],
                     ],
                 ],
                 [
-                    'title' => __('After content', 'wp-addon'),
-                    'icon' => 'fa fa-th-large',
+                    'title'  => __('After content', 'wp-addon'),
+                    'icon'   => 'fa fa-th-large',
                     'fields' => [
                         [
-                            'id' => 'after_content_mode',
-                            'type' => 'switcher',
-                            'title' => __('ADs Mode', 'wp-addon'),
-                            'label' => __('Off to run html mode', 'wp-addon'),
+                            'id'      => 'after_content_mode',
+                            'type'    => 'switcher',
+                            'title'   => __('ADs Mode', 'wp-addon'),
+                            'label'   => __('Off to run html mode', 'wp-addon'),
                             'default' => true,
                         ],
                         [
-                            'id' => 'after_content_upload',
-                            'type' => 'upload',
-                            'title' => 'Upload',
-                            'library' => 'image',
-                            'placeholder' => 'http://',
+                            'id'           => 'after_content_upload',
+                            'type'         => 'upload',
+                            'title'        => 'Upload',
+                            'library'      => 'image',
+                            'placeholder'  => 'http://',
                             'button_title' => 'Add Image',
                             'remove_title' => 'Remove Image',
+                            'dependency'   => ['after_content_mode', '==', 'true'],
+                        ],
+                        [
+                            'id'         => 'after_content_url',
+                            'type'       => 'text',
+                            'title'      => __('Link', 'wp-addon'),
                             'dependency' => ['after_content_mode', '==', 'true'],
                         ],
                         [
-                            'id' => 'after_content_url',
-                            'type' => 'text',
-                            'title' => __('Link', 'wp-addon'),
-                            'dependency' => ['after_content_mode', '==', 'true'],
-                        ],
-                        [
-                            'id' => 'after_content_html',
-                            'type' => 'code_editor',
-                            'title' => __('Banner html code', 'wp-addon'),
+                            'id'       => 'after_content_html',
+                            'type'     => 'code_editor',
+                            'title'    => __('Banner html code', 'wp-addon'),
                             'settings' => [
-                                'theme' => 'mbo',
-                                'mode' => 'htmlmixed',
+                                'theme'   => 'mbo',
+                                'mode'    => 'htmlmixed',
                                 'tabSize' => 4,
                             ],
-                            'default' => '',
+                            'default'    => '',
                             'dependency' => ['after_content_mode', '==', 'false'],
                         ],
                         [
-                            'id' => 'after_content_post_type',
-                            'type' => 'select',
-                            'title' => __('Select post type', 'wp-addon'),
-                            'multiple' => true,
-                            'chosen' => true,
+                            'id'          => 'after_content_post_type',
+                            'type'        => 'select',
+                            'title'       => __('Select post type', 'wp-addon'),
+                            'multiple'    => true,
+                            'chosen'      => true,
                             'placeholder' => __('Select post type', 'wp-addon'),
-                            'options' => $types,
-                            'default' => 'post',
+                            'options'     => $types,
+                            'default'     => 'post',
                         ],
                     ],
                 ],
@@ -316,42 +316,42 @@ class Advertising
         ];
 
         $ads['fields'][] = [
-            'id' => 'jquery_ads_mode',
-            'type' => 'switcher',
-            'title' => __('Enable jQuery ADs mode', 'wp-addon'),
-            'label' => __('Advanced Advertising mode. For developers.', 'wp-addon'),
+            'id'      => 'jquery_ads_mode',
+            'type'    => 'switcher',
+            'title'   => __('Enable jQuery ADs mode', 'wp-addon'),
+            'label'   => __('Advanced Advertising mode. For developers.', 'wp-addon'),
             'default' => false,
         ];
 
         $ads['fields'][] = [
-            'id' => 'ads_jquery',
-            'type' => 'repeater',
-            'title' => __('Banner in jQuery selector'),
+            'id'       => 'ads_jquery',
+            'type'     => 'repeater',
+            'title'    => __('Banner in jQuery selector'),
             'subtitle' => __('Displays HTML content in the selected jQuery selector, anywhere on the site.', 'wp-addon'),
-            'fields' => [
+            'fields'   => [
                 [
-                    'id' => 'ads_jquery_upload',
-                    'type' => 'upload',
-                    'title' => 'Upload',
-                    'library' => 'image',
-                    'placeholder' => 'http://',
+                    'id'           => 'ads_jquery_upload',
+                    'type'         => 'upload',
+                    'title'        => 'Upload',
+                    'library'      => 'image',
+                    'placeholder'  => 'http://',
                     'button_title' => __('Add Banner Image', 'wp-addon'),
                     'remove_title' => __('Remove Image', 'wp-addon'),
                 ],
                 [
-                    'id' => 'js_selector',
-                    'type' => 'text',
-                    'title' => __('jQuery selector', 'wp-addon'),
-                    'help' => __('Example: #div', 'wp-addon'),
+                    'id'          => 'js_selector',
+                    'type'        => 'text',
+                    'title'       => __('jQuery selector', 'wp-addon'),
+                    'help'        => __('Example: #div', 'wp-addon'),
                     'placeholder' => '',
                 ],
                 [
-                    'id' => 'js_html',
-                    'type' => 'code_editor',
-                    'title' => __('Banner code', 'wp-addon'),
+                    'id'       => 'js_html',
+                    'type'     => 'code_editor',
+                    'title'    => __('Banner code', 'wp-addon'),
                     'settings' => [
-                        'theme' => 'mbo',
-                        'mode' => 'htmlmixed',
+                        'theme'   => 'mbo',
+                        'mode'    => 'htmlmixed',
                         'tabSize' => 4,
                     ],
                     'default' => '',
@@ -384,7 +384,7 @@ function rw_init_ads()
                     $img = $settings['ads_in_content']['before_content_upload'] ?? '';
                     $url = $settings['ads_in_content']['before_content_url'] ?? '';
                     if (! empty($img) && ! empty($url)) {
-                        $link = '<a href="'.esc_url($url).'" class="banner '.$prefix['before'].'"><img src="'.esc_url($img).'"></a>';
+                        $link = '<a href="' . esc_url($url) . '" class="banner ' . $prefix['before'] . '"><img src="' . esc_url($img) . '"></a>';
                     }
                 } else {
                     $link = $settings['ads_in_content']['before_content_html'] ?? '';
@@ -402,7 +402,7 @@ function rw_init_ads()
                     $img = $settings['ads_in_content']['in_content_upload'] ?? '';
                     $url = $settings['ads_in_content']['in_content_url'] ?? '';
                     if (! empty($img) && ! empty($url)) {
-                        $link = '<a href="'.esc_url($url).'" class="banner '.$prefix['in'].'"><img src="'.esc_url($img).'"></a>';
+                        $link = '<a href="' . esc_url($url) . '" class="banner ' . $prefix['in'] . '"><img src="' . esc_url($img) . '"></a>';
                     }
                 } else {
                     $link = $settings['ads_in_content']['in_content_html'] ?? '';
@@ -420,7 +420,7 @@ function rw_init_ads()
                     $img = $settings['ads_in_content']['after_content_upload'] ?? '';
                     $url = $settings['ads_in_content']['after_content_url'] ?? '';
                     if (! empty($img) && ! empty($url)) {
-                        $link = '<a href="'.esc_url($url).'" class="banner '.$prefix['after'].'" ><img src="'.esc_url($img).'"></a>';
+                        $link = '<a href="' . esc_url($url) . '" class="banner ' . $prefix['after'] . '" ><img src="' . esc_url($img) . '"></a>';
                     }
                 } else {
                     $link = $settings['ads_in_content']['after_content_html'] ?? '';
@@ -438,7 +438,7 @@ function rw_init_ads()
 function validate_request_post_type($settings, $key)
 {
 
-    $allow_post_types = $settings['ads_in_content'][$key.'_post_type'];
+    $allow_post_types = $settings['ads_in_content'][$key . '_post_type'];
     global $wp_query;
     if ($wp_query->is_main_query() && $wp_query->have_posts()) {
         if ($wp_query->get_queried_object() instanceof WP_Post) {

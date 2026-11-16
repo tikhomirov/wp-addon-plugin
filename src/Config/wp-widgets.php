@@ -2,20 +2,20 @@
 
 return [
     [
-        'type' => 'content',
+        'type'    => 'content',
         'content' => '',
     ],
 
     [
-        'id' => 'disable_guttenberg_widget',
-        'type' => 'switcher',
-        'title' => __('Disable guttenberg for widgets', 'wp-addon'),
+        'id'      => 'disable_guttenberg_widget',
+        'type'    => 'switcher',
+        'title'   => __('Disable guttenberg for widgets', 'wp-addon'),
         'default' => true,
     ],
     [
-        'id' => 'add_clone_widget',
-        'type' => 'switcher',
-        'title' => __('Enable Duplicate widgets', 'wp-addon'),
+        'id'      => 'add_clone_widget',
+        'type'    => 'switcher',
+        'title'   => __('Enable Duplicate widgets', 'wp-addon'),
         'default' => true,
     ],
     /*[
@@ -26,39 +26,39 @@ return [
     ],*/
 
     [   // Shortcodes
-        'id' => 'components',
-        'type' => 'tabbed',
-        'title' => __('Components', 'wp-addon'),
+        'id'       => 'components',
+        'type'     => 'tabbed',
+        'title'    => __('Components', 'wp-addon'),
         'subtitle' => '',
-        'tabs' => [
+        'tabs'     => [
             [
-                'title' => __('Shortcodes', 'rw-addon'),
-                'icon' => '',
+                'title'  => __('Shortcodes', 'rw-addon'),
+                'icon'   => '',
                 'fields' => [
                     [
-                        'id' => 'faq_shortcode',
-                        'type' => 'switcher',
-                        'title' => __('Enable FAQ shortcode', 'wp-addon'),
-                        'desc' => __('WPBakery Page Builder support ', 'wp-addon'),
+                        'id'      => 'faq_shortcode',
+                        'type'    => 'switcher',
+                        'title'   => __('Enable FAQ shortcode', 'wp-addon'),
+                        'desc'    => __('WPBakery Page Builder support ', 'wp-addon'),
                         'default' => true,
                     ],
                     [
-                        'id' => 'table_of_contents',
-                        'type' => 'switcher',
-                        'title' => __('Enable Table of Content shortcode', 'wp-addon'),
-                        'desc' => __('WPBakery Page Builder support ', 'wp-addon'),
+                        'id'      => 'table_of_contents',
+                        'type'    => 'switcher',
+                        'title'   => __('Enable Table of Content shortcode', 'wp-addon'),
+                        'desc'    => __('WPBakery Page Builder support ', 'wp-addon'),
                         'default' => true,
                     ],
                 ],
             ],
             [
-                'title' => __('Widgets', 'rw-addon'),
-                'icon' => 'fa fa-connectdevelop',
+                'title'  => __('Widgets', 'rw-addon'),
+                'icon'   => 'fa fa-connectdevelop',
                 'fields' => [
                     [
-                        'id' => 'archive_widget',
-                        'type' => 'switcher',
-                        'title' => __('Yearly archive widget', 'wp-addon'),
+                        'id'      => 'archive_widget',
+                        'type'    => 'switcher',
+                        'title'   => __('Yearly archive widget', 'wp-addon'),
                         'default' => true,
                     ],
                 ],

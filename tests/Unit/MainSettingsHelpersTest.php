@@ -2,14 +2,14 @@
 
 use functions\users\UserFilter;
 
-require_once dirname(__DIR__, 2).'/functions/main-settings-helpers.php';
+require_once dirname(__DIR__, 2) . '/functions/main-settings-helpers.php';
 
 describe('main settings helper extensions', function () {
     beforeEach(function () {
         global $mock_functions, $mock_wp_current_user;
         $mock_functions['get_option'] = fn ($key, $default = []) => $default;
         $mock_wp_current_user = (object) [
-            'ID' => 1,
+            'ID'    => 1,
             'roles' => ['editor'],
         ];
     });
@@ -34,7 +34,7 @@ describe('main settings helper extensions', function () {
         $mock_user_capabilities = ['manage_options'];
 
         expect(wp_addon_should_bypass_maintenance([
-            'maintenance_ip_whitelist' => '',
+            'maintenance_ip_whitelist'   => '',
             'maintenance_role_whitelist' => [],
         ]))->toBeTrue();
     });
@@ -46,7 +46,7 @@ describe('main settings helper extensions', function () {
         $_SERVER['REMOTE_ADDR'] = '203.0.113.10';
 
         expect(wp_addon_should_bypass_maintenance([
-            'maintenance_ip_whitelist' => "203.0.113.10\n",
+            'maintenance_ip_whitelist'   => "203.0.113.10\n",
             'maintenance_role_whitelist' => [],
         ]))->toBeTrue();
     });
@@ -55,12 +55,12 @@ describe('main settings helper extensions', function () {
         global $mock_user_capabilities, $mock_wp_current_user;
         $mock_user_capabilities = ['edit_posts'];
         $mock_wp_current_user = (object) [
-            'ID' => 2,
+            'ID'    => 2,
             'roles' => ['editor'],
         ];
 
         expect(wp_addon_should_bypass_maintenance([
-            'maintenance_ip_whitelist' => '',
+            'maintenance_ip_whitelist'   => '',
             'maintenance_role_whitelist' => ['editor'],
         ]))->toBeTrue();
     });
@@ -79,7 +79,7 @@ describe('UserFilter sanitization', function () {
         global $mock_wp_roles, $mock_is_admin, $pagenow;
         $mock_wp_roles = [
             'administrator' => 'Administrator',
-            'editor' => 'Editor',
+            'editor'        => 'Editor',
         ];
         $mock_is_admin = true;
         $pagenow = 'users.php';
@@ -89,7 +89,7 @@ describe('UserFilter sanitization', function () {
         }
 
         if (! class_exists('functions\\users\\UserFilter')) {
-            require_once dirname(__DIR__, 2).'/functions/users/UserFilter.php';
+            require_once dirname(__DIR__, 2) . '/functions/users/UserFilter.php';
         }
     });
 

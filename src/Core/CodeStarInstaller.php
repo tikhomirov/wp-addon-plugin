@@ -45,12 +45,12 @@ class CodeStarInstaller
     private readonly string $siblingFile;
 
     /**
-     * @param  string  $pluginDir  Absolute path of the plugin directory
-     * @param  string  $siblingFile  Entry file of the sibling codestar-framework plugin
+     * @param string $pluginDir   Absolute path of the plugin directory
+     * @param string $siblingFile Entry file of the sibling codestar-framework plugin
      */
     public function __construct(string $pluginDir, string $siblingFile)
     {
-        $this->dir = rtrim($pluginDir, '/\\').'/';
+        $this->dir = mb_rtrim($pluginDir, '/\\') . '/';
         $this->siblingFile = $siblingFile;
     }
 
@@ -61,7 +61,7 @@ class CodeStarInstaller
 
     public function bundledFile(): string
     {
-        return $this->dir.'lib/codestar-framework/codestar-framework.php';
+        return $this->dir . 'lib/codestar-framework/codestar-framework.php';
     }
 
     /**
@@ -143,7 +143,7 @@ class CodeStarInstaller
             wp_die(
                 esc_html__('You are not allowed to install plugins.', 'wp-addon'),
                 '',
-                ['response' => 403]
+                ['response' => 403],
             );
         }
 
@@ -163,7 +163,7 @@ class CodeStarInstaller
             return true;
         }
 
-        $adminFile = ABSPATH.'wp-admin/includes/file.php';
+        $adminFile = ABSPATH . 'wp-admin/includes/file.php';
         if (! function_exists('download_url') && file_exists($adminFile)) {
             require_once $adminFile;
         }
@@ -171,7 +171,7 @@ class CodeStarInstaller
         if (! function_exists('download_url') || ! function_exists('unzip_file') || ! function_exists('WP_Filesystem')) {
             return new \WP_Error(
                 'csf_dependencies',
-                __('WordPress download utilities are unavailable (wp-admin/includes/file.php could not be loaded).', 'wp-addon')
+                __('WordPress download utilities are unavailable (wp-admin/includes/file.php could not be loaded).', 'wp-addon'),
             );
         }
 
@@ -186,13 +186,13 @@ class CodeStarInstaller
 
             return new \WP_Error(
                 'csf_filesystem',
-                __('Could not connect to the filesystem to install CodeStar Framework.', 'wp-addon')
+                __('Could not connect to the filesystem to install CodeStar Framework.', 'wp-addon'),
             );
         }
 
         global $wp_filesystem;
 
-        $libDir = $this->dir.'lib/';
+        $libDir = $this->dir . 'lib/';
         if (! is_dir($libDir) && ! wp_mkdir_p($libDir)) {
             @unlink($tempZip);
 
@@ -201,12 +201,12 @@ class CodeStarInstaller
                 sprintf(
                     /* translators: %s: absolute directory path */
                     __('Could not create the directory %s for the CodeStar Framework.', 'wp-addon'),
-                    $libDir
-                )
+                    $libDir,
+                ),
             );
         }
 
-        $target = $libDir.'codestar-framework/';
+        $target = $libDir . 'codestar-framework/';
         if (is_dir($target)) {
             $wp_filesystem->delete($target, true);
         }
@@ -218,25 +218,25 @@ class CodeStarInstaller
             return $unzip;
         }
 
-        $extracted = glob($libDir.'codestar-framework-*', GLOB_ONLYDIR) ?: [];
+        $extracted = glob($libDir . 'codestar-framework-*', GLOB_ONLYDIR) ?: [];
         if ($extracted === []) {
             return new \WP_Error(
                 'csf_extract',
-                __('The CodeStar Framework archive did not extract as expected.', 'wp-addon')
+                __('The CodeStar Framework archive did not extract as expected.', 'wp-addon'),
             );
         }
 
-        if (! $wp_filesystem->move(rtrim($extracted[0], '/\\'), rtrim($target, '/\\'))) {
+        if (! $wp_filesystem->move(mb_rtrim($extracted[0], '/\\'), mb_rtrim($target, '/\\'))) {
             return new \WP_Error(
                 'csf_move',
-                __('Could not move the CodeStar Framework into the plugin directory.', 'wp-addon')
+                __('Could not move the CodeStar Framework into the plugin directory.', 'wp-addon'),
             );
         }
 
         if (! is_readable($this->bundledFile())) {
             return new \WP_Error(
                 'csf_missing_file',
-                __('The CodeStar Framework entry file is missing after installation.', 'wp-addon')
+                __('The CodeStar Framework entry file is missing after installation.', 'wp-addon'),
             );
         }
 
@@ -262,7 +262,7 @@ class CodeStarInstaller
                 printf(
                     '<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>',
                     esc_attr($type),
-                    esc_html((string) $notice['message'])
+                    esc_html((string) $notice['message']),
                 );
             }
 
@@ -277,39 +277,39 @@ class CodeStarInstaller
 
         echo $this->noticeHtml(
             current_user_can('install_plugins'),
-            $error === '' || $error === null ? null : (string) $error
+            $error === '' || $error === null ? null : (string) $error,
         );
     }
 
     /**
      * Markup of the "CodeStar Framework is missing" warning.
      *
-     * @param  bool  $canInstall  Whether the current user may install the framework
-     * @param  string|null  $error  Last installation error to display
+     * @param bool        $canInstall Whether the current user may install the framework
+     * @param string|null $error      Last installation error to display
      */
     public function noticeHtml(bool $canInstall, ?string $error = null): string
     {
-        $installUrl = wp_nonce_url(admin_url('/admin-post.php?action='.self::ACTION), self::ACTION);
+        $installUrl = wp_nonce_url(admin_url('/admin-post.php?action=' . self::ACTION), self::ACTION);
 
         $html = '<div class="notice notice-warning"><p>'
-            .esc_html__('WP Addon uses the CodeStar Framework for its settings screen, but the framework was not found.', 'wp-addon')
-            .'</p>';
+            . esc_html__('WP Addon uses the CodeStar Framework for its settings screen, but the framework was not found.', 'wp-addon')
+            . '</p>';
 
         if ($error !== null && $error !== '') {
-            $html .= '<p><code>'.esc_html($error).'</code></p>';
+            $html .= '<p><code>' . esc_html($error) . '</code></p>';
         }
 
         if ($canInstall) {
-            $html .= '<p><a class="button button-primary" href="'.esc_url($installUrl).'">'
-                .esc_html__('Install CodeStar Framework now', 'wp-addon')
-                .'</a></p>';
+            $html .= '<p><a class="button button-primary" href="' . esc_url($installUrl) . '">'
+                . esc_html__('Install CodeStar Framework now', 'wp-addon')
+                . '</a></p>';
         }
 
         $html .= '<p><a href="https://github.com/Codestar/codestar-framework" target="_blank" rel="noopener noreferrer">'
-            .esc_html__('Or install the framework manually from GitHub', 'wp-addon')
-            .'</a></p>';
+            . esc_html__('Or install the framework manually from GitHub', 'wp-addon')
+            . '</a></p>';
 
-        return $html.'</div>';
+        return $html . '</div>';
     }
 
     /**
@@ -327,10 +327,10 @@ class CodeStarInstaller
         set_transient(
             self::TRANSIENT_NOTICE,
             [
-                'type' => 'success',
+                'type'    => 'success',
                 'message' => __('CodeStar Framework installed. Reload the page to open the settings.', 'wp-addon'),
             ],
-            60
+            60,
         );
     }
 }

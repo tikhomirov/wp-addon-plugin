@@ -20,9 +20,9 @@ class RedirectRulesService
                 continue;
             }
 
-            $request = trim((string) ($rule['request'] ?? ''));
-            $destination = trim((string) ($rule['destination'] ?? ''));
-            $line = trim((string) ($rule['rule'] ?? ''));
+            $request = mb_trim((string) ($rule['request'] ?? ''));
+            $destination = mb_trim((string) ($rule['destination'] ?? ''));
+            $line = mb_trim((string) ($rule['rule'] ?? ''));
 
             if (($request === '' || $destination === '') && $line !== '') {
                 $parts = self::parseCsvLine($line);
@@ -38,7 +38,7 @@ class RedirectRulesService
             }
 
             $normalized[] = [
-                'request' => self::normalizeRequestPath($request),
+                'request'     => self::normalizeRequestPath($request),
                 'destination' => $destination,
             ];
         }
@@ -72,7 +72,7 @@ class RedirectRulesService
                 continue;
             }
 
-            $line = trim($line);
+            $line = mb_trim($line);
 
             if (preg_match('/^(request|source|from)\s*[,;\t]/i', $line)) {
                 continue;
@@ -85,14 +85,14 @@ class RedirectRulesService
             }
 
             $request = self::normalizeRequestPath($parts[0]);
-            $destination = trim($parts[1]);
+            $destination = mb_trim($parts[1]);
 
             if ($request === '' || $destination === '') {
                 continue;
             }
 
             $rules[] = [
-                'request' => $request,
+                'request'     => $request,
                 'destination' => $destination,
             ];
         }
@@ -101,8 +101,8 @@ class RedirectRulesService
     }
 
     /**
-     * @param  array<int, array{request: string, destination: string}>  $existing
-     * @param  array<int, array{request: string, destination: string}>  $imported
+     * @param  array<int, array{request: string, destination: string}> $existing
+     * @param  array<int, array{request: string, destination: string}> $imported
      * @return array<int, array{request: string, destination: string}>
      */
     public static function mergeRules(array $existing, array $imported): array
@@ -121,28 +121,28 @@ class RedirectRulesService
     }
 
     /**
-     * @param  array<string, mixed>  $rule
+     * @param array<string, mixed> $rule
      */
     public static function formatRuleLine(array $rule): string
     {
-        $line = trim((string) ($rule['rule'] ?? ''));
+        $line = mb_trim((string) ($rule['rule'] ?? ''));
 
         if ($line !== '') {
             return $line;
         }
 
-        $request = trim((string) ($rule['request'] ?? ''));
-        $destination = trim((string) ($rule['destination'] ?? ''));
+        $request = mb_trim((string) ($rule['request'] ?? ''));
+        $destination = mb_trim((string) ($rule['destination'] ?? ''));
 
         if ($request === '' || $destination === '') {
             return '';
         }
 
-        return $request.','.$destination;
+        return $request . ',' . $destination;
     }
 
     /**
-     * @param  array<string, mixed>  $options
+     * @param  array<string, mixed> $options
      * @return array<string, mixed>
      */
     public static function prepareOptionsForRedirectsAdmin(array $options): array
@@ -161,7 +161,7 @@ class RedirectRulesService
 
                 return ['rule' => $line];
             },
-            $options['redirects_rules']
+            $options['redirects_rules'],
         ));
 
         return $options;
@@ -169,7 +169,7 @@ class RedirectRulesService
 
     private static function isCommentOrEmptyLine(string $line): bool
     {
-        $trimmed = ltrim($line);
+        $trimmed = mb_ltrim($line);
 
         if ($trimmed === '') {
             return true;
@@ -204,7 +204,7 @@ class RedirectRulesService
 
     private static function normalizeRequestPath(string $path): string
     {
-        $path = trim($path);
+        $path = mb_trim($path);
 
         if ($path === '') {
             return '';
@@ -216,6 +216,6 @@ class RedirectRulesService
             return self::normalizeRequestPath((string) ($parsedPath ?? ''));
         }
 
-        return '/'.ltrim($path, '/');
+        return '/' . mb_ltrim($path, '/');
     }
 }

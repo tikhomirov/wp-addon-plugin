@@ -17,15 +17,15 @@ describe('AssetMinification Real World Integration', function () {
 
         // Minimal mocks for WordPress functions
         Functions\stubs([
-            'is_admin' => false,
-            'wp_doing_ajax' => false,
-            'wp_enqueue_style' => null,
-            'wp_enqueue_script' => null,
-            'wp_dequeue_style' => null,
-            'wp_dequeue_script' => null,
+            'is_admin'             => false,
+            'wp_doing_ajax'        => false,
+            'wp_enqueue_style'     => null,
+            'wp_enqueue_script'    => null,
+            'wp_dequeue_style'     => null,
+            'wp_dequeue_script'    => null,
             'wp_add_inline_script' => null,
-            'add_action' => null,
-            'site_url' => function () {
+            'add_action'           => null,
+            'site_url'             => function () {
                 return 'http://localhost';
             },
             'content_url' => function () {
@@ -70,15 +70,15 @@ describe('AssetMinification Real World Integration', function () {
         Functions\stubs([
             'get_option' => function ($key) {
                 return ['wp-addon' => [
-                    'asset_minification_enabled' => true,
-                    'asset_minify_css' => true,
-                    'asset_minify_js' => true,
-                    'asset_combine_css' => true,
-                    'asset_combine_js' => true,
-                    'asset_critical_css_enabled' => true,
+                    'asset_minification_enabled'   => true,
+                    'asset_minify_css'             => true,
+                    'asset_minify_js'              => true,
+                    'asset_combine_css'            => true,
+                    'asset_combine_js'             => true,
+                    'asset_critical_css_enabled'   => true,
                     'asset_defer_non_critical_css' => true,
-                    'asset_exclude_css' => 'admin-bar,dashicons',
-                    'asset_exclude_js' => 'jquery,jquery-core',
+                    'asset_exclude_css'            => 'admin-bar,dashicons',
+                    'asset_exclude_js'             => 'jquery,jquery-core',
                 ]];
             },
         ]);
@@ -97,7 +97,7 @@ describe('AssetMinification Real World Integration', function () {
 
     it('creates cache directory', function () {
         // Checkpoint 5: Cache directory exists
-        $cacheDir = WP_CONTENT_DIR.'/cache/assets/';
+        $cacheDir = WP_CONTENT_DIR . '/cache/assets/';
         expect(is_dir($cacheDir))->toBeTrue();
         expect(is_writable($cacheDir))->toBeTrue();
     });
@@ -105,15 +105,15 @@ describe('AssetMinification Real World Integration', function () {
     it('works with asset optimization service', function () {
         // Checkpoint 6: Optimization service works
         $config = [
-            'cache_dir' => WP_CONTENT_DIR.'/cache/assets/',
-            'version_salt' => 'test',
-            'minify_css' => true,
-            'minify_js' => true,
-            'combine_css' => true,
-            'combine_js' => true,
+            'cache_dir'            => WP_CONTENT_DIR . '/cache/assets/',
+            'version_salt'         => 'test',
+            'minify_css'           => true,
+            'minify_js'            => true,
+            'combine_css'          => true,
+            'combine_js'           => true,
             'critical_css_enabled' => true,
-            'exclude_css' => [],
-            'exclude_js' => [],
+            'exclude_css'          => [],
+            'exclude_js'           => [],
         ];
 
         $service = new AssetOptimizationService($config);
@@ -140,24 +140,24 @@ describe('AssetMinification Real World Integration', function () {
     it('creates cache file for CSS minification', function () {
         // Checkpoint 7: CSS minification creates cache file
         $config = [
-            'cache_dir' => WP_CONTENT_DIR.'/cache/assets/',
-            'version_salt' => 'test',
-            'minify_css' => true,
-            'minify_js' => true,
-            'combine_css' => true,
-            'combine_js' => true,
+            'cache_dir'            => WP_CONTENT_DIR . '/cache/assets/',
+            'version_salt'         => 'test',
+            'minify_css'           => true,
+            'minify_js'            => true,
+            'combine_css'          => true,
+            'combine_js'           => true,
             'critical_css_enabled' => true,
-            'exclude_css' => [],
-            'exclude_js' => [],
+            'exclude_css'          => [],
+            'exclude_js'           => [],
         ];
 
         $service = new AssetOptimizationService($config);
         $css = '.test { color: red; font-size: 14px; }';
         $version = $service->generateVersion($css);
-        $cacheKey = 'test-css-'.$version;
+        $cacheKey = 'test-css-' . $version;
         $service->saveToCache($cacheKey, $css);
 
-        $cacheFile = $config['cache_dir'].$cacheKey.'.gz';
+        $cacheFile = $config['cache_dir'] . $cacheKey . '.gz';
         expect(file_exists($cacheFile))->toBeTrue();
 
         // Assert contents
@@ -171,24 +171,24 @@ describe('AssetMinification Real World Integration', function () {
     it('creates cache file for JS minification', function () {
         // Checkpoint 8: JS minification creates cache file
         $config = [
-            'cache_dir' => WP_CONTENT_DIR.'/cache/assets/',
-            'version_salt' => 'test',
-            'minify_css' => true,
-            'minify_js' => true,
-            'combine_css' => true,
-            'combine_js' => true,
+            'cache_dir'            => WP_CONTENT_DIR . '/cache/assets/',
+            'version_salt'         => 'test',
+            'minify_css'           => true,
+            'minify_js'            => true,
+            'combine_css'          => true,
+            'combine_js'           => true,
             'critical_css_enabled' => true,
-            'exclude_css' => [],
-            'exclude_js' => [],
+            'exclude_css'          => [],
+            'exclude_js'           => [],
         ];
 
         $service = new AssetOptimizationService($config);
         $js = 'function test() { return true; }';
         $version = $service->generateVersion($js);
-        $cacheKey = 'test-js-'.$version;
+        $cacheKey = 'test-js-' . $version;
         $service->saveToCache($cacheKey, $js);
 
-        $cacheFile = $config['cache_dir'].$cacheKey.'.gz';
+        $cacheFile = $config['cache_dir'] . $cacheKey . '.gz';
         expect(file_exists($cacheFile))->toBeTrue();
         $cachedContent = $service->getFromCache($cacheKey);
         expect($cachedContent)->toBe($js);
@@ -236,8 +236,8 @@ describe('AssetMinification Real World Integration', function () {
             if (! is_wp_error($response) && $response['response']['code'] === 200) {
                 $html = wp_remote_retrieve_body($response);
 
-                $hasCriticalCss = strpos($html, 'wp-addon-critical-css') !== false;
-                $hasOptimizedAssets = strpos($html, 'cache/assets/') !== false;
+                $hasCriticalCss = mb_strpos($html, 'wp-addon-critical-css') !== false;
+                $hasOptimizedAssets = mb_strpos($html, 'cache/assets/') !== false;
 
                 expect($hasCriticalCss || $hasOptimizedAssets)->toBeTrue('Page should show signs of AssetMinification optimization');
             }

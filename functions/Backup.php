@@ -29,7 +29,7 @@ final class Backup implements ModuleInterface
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
 
         foreach (self::ajax_actions() as $action => $handler) {
-            add_action('wp_ajax_'.$action, [$this, $handler]);
+            add_action('wp_ajax_' . $action, [$this, $handler]);
         }
     }
 
@@ -44,19 +44,19 @@ final class Backup implements ModuleInterface
     public static function ajax_actions(): array
     {
         return [
-            'wp_addon_backup_create' => 'ajax_create',
-            'wp_addon_backup_restore' => 'ajax_restore',
-            'wp_addon_backup_delete' => 'ajax_delete',
-            'wp_addon_backup_upload' => 'ajax_upload',
+            'wp_addon_backup_create'   => 'ajax_create',
+            'wp_addon_backup_restore'  => 'ajax_restore',
+            'wp_addon_backup_delete'   => 'ajax_delete',
+            'wp_addon_backup_upload'   => 'ajax_upload',
             'wp_addon_backup_download' => 'ajax_download',
-            'wp_addon_backup_list' => 'ajax_list',
+            'wp_addon_backup_list'     => 'ajax_list',
         ];
     }
 
     /**
      * Enqueues assets on the plugin settings page.
      *
-     * @param  string  $hook_suffix  Current admin hook suffix.
+     * @param string $hook_suffix Current admin hook suffix.
      */
     public function enqueue_assets(string $hook_suffix): void
     {
@@ -66,35 +66,35 @@ final class Backup implements ModuleInterface
 
         wp_enqueue_style(
             'wp-addon-backup',
-            RW_PLUGIN_URL.'assets/css/backup.css',
+            RW_PLUGIN_URL . 'assets/css/backup.css',
             [],
-            WP_ADDON_VERSION
+            WP_ADDON_VERSION,
         );
 
         wp_enqueue_script(
             'wp-addon-backup',
-            RW_PLUGIN_URL.'assets/js/backup.js',
+            RW_PLUGIN_URL . 'assets/js/backup.js',
             ['jquery'],
             WP_ADDON_VERSION,
-            true
+            true,
         );
 
         wp_localize_script('wp-addon-backup', 'wpAddonBackup', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce(self::NONCE_ACTION),
+            'nonce'   => wp_create_nonce(self::NONCE_ACTION),
             'strings' => [
-                'working' => __('Working…', 'wp-addon'),
-                'done' => __('Done.', 'wp-addon'),
-                'operationFailed' => __('Operation failed.', 'wp-addon'),
-                'connectionError' => __('Server connection error.', 'wp-addon'),
-                'fileNotSpecified' => __('No file specified.', 'wp-addon'),
-                'deleteFailed' => __('Could not delete the file.', 'wp-addon'),
-                'selectBackupFile' => __('Choose a backup file.', 'wp-addon'),
-                'uploadFailed' => __('Upload failed.', 'wp-addon'),
-                'confirmRestore' => __('Restore will replace the entire database. Continue?', 'wp-addon'),
-                'confirmDelete' => __('Delete backup file?', 'wp-addon'),
-                'download' => __('Download backup', 'wp-addon'),
-                'uploadTooLarge' => __('File too large: the server rejected the request (nginx or PHP limit). Increase client_max_body_size and post_max_size.', 'wp-addon'),
+                'working'           => __('Working…', 'wp-addon'),
+                'done'              => __('Done.', 'wp-addon'),
+                'operationFailed'   => __('Operation failed.', 'wp-addon'),
+                'connectionError'   => __('Server connection error.', 'wp-addon'),
+                'fileNotSpecified'  => __('No file specified.', 'wp-addon'),
+                'deleteFailed'      => __('Could not delete the file.', 'wp-addon'),
+                'selectBackupFile'  => __('Choose a backup file.', 'wp-addon'),
+                'uploadFailed'      => __('Upload failed.', 'wp-addon'),
+                'confirmRestore'    => __('Restore will replace the entire database. Continue?', 'wp-addon'),
+                'confirmDelete'     => __('Delete backup file?', 'wp-addon'),
+                'download'          => __('Download backup', 'wp-addon'),
+                'uploadTooLarge'    => __('File too large: the server rejected the request (nginx or PHP limit). Increase client_max_body_size and post_max_size.', 'wp-addon'),
                 'uploadBadResponse' => __('The server returned an unexpected response while uploading. Refresh the page and try again.', 'wp-addon'),
             ],
             'canRestore' => BackupAdmin::can_restore(),
@@ -108,7 +108,7 @@ final class Backup implements ModuleInterface
      * comes from the localized object, so CSF save
      * settings stay independent.
      *
-     * @param  Storage|null  $storage  Storage (for tests).
+     * @param Storage|null $storage Storage (for tests).
      */
     public static function render_settings_content(?Storage $storage = null): string
     {
@@ -124,7 +124,7 @@ final class Backup implements ModuleInterface
         printf(
             /* translators: %s: table prefix from wp-config.php */
             esc_html__('The snapshot includes schema and data for all tables. Table prefix: %s', 'wp-addon'),
-            '<code>'.esc_html(isset($wpdb->prefix) ? (string) $wpdb->prefix : 'wp_').'</code>'
+            '<code>' . esc_html(isset($wpdb->prefix) ? (string) $wpdb->prefix : 'wp_') . '</code>',
         );
         ?>
             </p>
@@ -175,7 +175,7 @@ final class Backup implements ModuleInterface
         if (! current_user_can('manage_options')) {
             wp_send_json_error(
                 ['message' => __('Insufficient permissions.', 'wp-addon')],
-                403
+                403,
             );
         }
 
@@ -184,7 +184,7 @@ final class Backup implements ModuleInterface
         if ($nonce === '' || ! wp_verify_nonce($nonce, self::NONCE_ACTION)) {
             wp_send_json_error(
                 ['message' => __('Session expired; refresh the page.', 'wp-addon')],
-                403
+                403,
             );
         }
     }
@@ -194,7 +194,7 @@ final class Backup implements ModuleInterface
      */
     private static function fail(Throwable $error): void
     {
-        $message = trim($error->getMessage());
+        $message = mb_trim($error->getMessage());
 
         if ($message === '') {
             $message = __('Unknown error.', 'wp-addon');
@@ -233,7 +233,7 @@ final class Backup implements ModuleInterface
                     /* translators: 1: tables, 2: size */
                     __('Backup created: %1$d tables, %2$s.', 'wp-addon'),
                     $summary['tables'],
-                    Storage::format_size($summary['bytes'])
+                    Storage::format_size($summary['bytes']),
                 ),
                 'file' => basename($path),
             ]);
@@ -267,11 +267,11 @@ final class Backup implements ModuleInterface
                 /* translators: 1: tables, 2: data rows restored (plain text, no HTML entities) */
                 __('Database restored: %1$d tables, %2$s rows.', 'wp-addon'),
                 $result['tables'],
-                $rows_label
+                $rows_label,
             );
 
             foreach ($result['warnings'] as $warning) {
-                $message .= ' '.$warning;
+                $message .= ' ' . $warning;
             }
 
             wp_send_json_success(['message' => $message]);
@@ -309,7 +309,7 @@ final class Backup implements ModuleInterface
 
             wp_send_json_success([
                 'message' => __('Backup uploaded.', 'wp-addon'),
-                'file' => $name,
+                'file'    => $name,
             ]);
         } catch (Throwable $error) {
             self::fail($error);
@@ -335,8 +335,8 @@ final class Backup implements ModuleInterface
             }
 
             header('Content-Type: application/sql');
-            header('Content-Disposition: attachment; filename="'.basename($path).'"');
-            header('Content-Length: '.(string) filesize($path));
+            header('Content-Disposition: attachment; filename="' . basename($path) . '"');
+            header('Content-Length: ' . (string) filesize($path));
             header('Cache-Control: no-store, no-cache, must-revalidate');
             header('Pragma: no-cache');
 

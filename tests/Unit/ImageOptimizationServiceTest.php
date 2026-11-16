@@ -31,7 +31,7 @@ describe('ImageOptimizationService Unit Tests', function () {
         }
 
         // Create test image
-        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.jpg';
+        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.jpg';
         $image = imagecreatetruecolor(200, 200);
         $blue = imagecolorallocate($image, 0, 0, 255);
         imagefill($image, 0, 0, $blue);
@@ -41,7 +41,7 @@ describe('ImageOptimizationService Unit Tests', function () {
         $result = $this->imageOptimizationService->generateBlurPlaceholder($tempImage);
 
         expect($result)->toStartWith('data:image/jpeg;base64,');
-        expect(strlen($result))->toBeGreaterThan(100); // Base64 string should be long enough
+        expect(mb_strlen($result))->toBeGreaterThan(100); // Base64 string should be long enough
 
         // Cleanup
         unlink($tempImage);
@@ -54,7 +54,7 @@ describe('ImageOptimizationService Unit Tests', function () {
     });
 
     it('handles invalid image files', function () {
-        $tempFile = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.jpg';
+        $tempFile = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.jpg';
         file_put_contents($tempFile, 'not an image content');
 
         $result = $this->imageOptimizationService->generateBlurPlaceholder($tempFile);
@@ -65,7 +65,7 @@ describe('ImageOptimizationService Unit Tests', function () {
     });
 
     it('respects blur intensity parameter', function () {
-        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.png';
+        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.png';
         $image = imagecreatetruecolor(100, 100);
         for ($x = 0; $x < 100; $x++) {
             $color = imagecolorallocate($image, $x * 2, 0, 0);
@@ -86,7 +86,7 @@ describe('ImageOptimizationService Unit Tests', function () {
     });
 
     it('generates correct thumbnail size', function () {
-        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.jpg';
+        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.jpg';
         $image = imagecreatetruecolor(800, 600); // Large image
         $green = imagecolorallocate($image, 0, 255, 0);
         imagefill($image, 0, 0, $green);
@@ -99,7 +99,7 @@ describe('ImageOptimizationService Unit Tests', function () {
 
         // Decode and check size
         $imageData = base64_decode(str_replace('data:image/jpeg;base64,', '', $result));
-        $tempDecoded = tempnam(sys_get_temp_dir(), 'wp_addon_decoded_').'.jpg';
+        $tempDecoded = tempnam(sys_get_temp_dir(), 'wp_addon_decoded_') . '.jpg';
         file_put_contents($tempDecoded, $imageData);
 
         if (function_exists('getimagesize')) {
@@ -113,7 +113,7 @@ describe('ImageOptimizationService Unit Tests', function () {
     });
 
     it('optimizes image quality', function () {
-        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.jpg';
+        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.jpg';
         $image = imagecreatetruecolor(100, 100);
         $yellow = imagecolorallocate($image, 255, 255, 0);
         imagefill($image, 0, 0, $yellow);
@@ -126,7 +126,7 @@ describe('ImageOptimizationService Unit Tests', function () {
         $optimizedResult = $this->imageOptimizationService->generateBlurPlaceholder($tempImage, 5, 50, 70); // Low quality
 
         // Optimized base64 should be smaller
-        expect(strlen($optimizedResult))->toBeLessThan($originalSize * 1.5); // With margin
+        expect(mb_strlen($optimizedResult))->toBeLessThan($originalSize * 1.5); // With margin
 
         unlink($tempImage);
     });
@@ -135,7 +135,7 @@ describe('ImageOptimizationService Unit Tests', function () {
         $formats = ['jpg', 'jpeg', 'png'];
 
         foreach ($formats as $format) {
-            $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.'.$format;
+            $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.' . $format;
             $image = imagecreatetruecolor(50, 50);
             $color = imagecolorallocate($image, rand(0, 255), rand(0, 255), rand(0, 255));
             imagefill($image, 0, 0, $color);
@@ -150,7 +150,7 @@ describe('ImageOptimizationService Unit Tests', function () {
             $result = $this->imageOptimizationService->generateBlurPlaceholder($tempImage);
 
             $expectedMime = $format === 'png' ? 'image/png' : 'image/jpeg';
-            expect($result)->toStartWith('data:'.$expectedMime.';base64,');
+            expect($result)->toStartWith('data:' . $expectedMime . ';base64,');
 
             unlink($tempImage);
         }
@@ -161,7 +161,7 @@ describe('ImageOptimizationService Unit Tests', function () {
             skip('GD library not available');
         }
 
-        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.png';
+        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.png';
         $image = imagecreatetruecolor(50, 50);
         imagealphablending($image, false);
         $transparent = imagecolorallocatealpha($image, 0, 0, 0, 127);
@@ -173,13 +173,13 @@ describe('ImageOptimizationService Unit Tests', function () {
         $result = $this->imageOptimizationService->generateBlurPlaceholder($tempImage);
 
         expect($result)->toStartWith('data:image/png;base64,');
-        expect(strlen($result))->toBeGreaterThan(100);
+        expect(mb_strlen($result))->toBeGreaterThan(100);
 
         unlink($tempImage);
     });
 
     it('validates input parameters', function () {
-        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.jpg';
+        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.jpg';
         $image = imagecreatetruecolor(10, 10);
         imagejpeg($image, $tempImage);
         imagedestroy($image);
@@ -197,7 +197,7 @@ describe('ImageOptimizationService Unit Tests', function () {
     });
 
     it('handles file permission errors', function () {
-        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.jpg';
+        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.jpg';
         $image = imagecreatetruecolor(10, 10);
         imagejpeg($image, $tempImage);
         imagedestroy($image);
@@ -215,7 +215,7 @@ describe('ImageOptimizationService Unit Tests', function () {
     });
 
     it('optimizes image dimensions proportionally', function () {
-        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.jpg';
+        $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.jpg';
         $image = imagecreatetruecolor(400, 200); // Rectangular image
         $color = imagecolorallocate($image, 100, 100, 100);
         imagefill($image, 0, 0, $color);
@@ -226,7 +226,7 @@ describe('ImageOptimizationService Unit Tests', function () {
 
         // Decode and check aspect ratio
         $imageData = base64_decode(str_replace('data:image/jpeg;base64,', '', $result));
-        $tempDecoded = tempnam(sys_get_temp_dir(), 'wp_addon_decoded_').'.jpg';
+        $tempDecoded = tempnam(sys_get_temp_dir(), 'wp_addon_decoded_') . '.jpg';
         file_put_contents($tempDecoded, $imageData);
 
         if (function_exists('getimagesize')) {

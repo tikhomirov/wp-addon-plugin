@@ -3,10 +3,10 @@
 use WpAddon\Core\CodeStarInstaller;
 
 beforeEach(function () {
-    $this->pluginDir = sys_get_temp_dir().'/wp-addon-csf-'.bin2hex(random_bytes(6)).'/';
+    $this->pluginDir = sys_get_temp_dir() . '/wp-addon-csf-' . bin2hex(random_bytes(6)) . '/';
     mkdir($this->pluginDir, 0777, true);
-    $this->bundledFile = $this->pluginDir.'lib/codestar-framework/codestar-framework.php';
-    $this->siblingFile = $this->pluginDir.'sibling/codestar-framework/codestar-framework.php';
+    $this->bundledFile = $this->pluginDir . 'lib/codestar-framework/codestar-framework.php';
+    $this->siblingFile = $this->pluginDir . 'sibling/codestar-framework/codestar-framework.php';
 });
 
 afterEach(function () {
@@ -16,7 +16,7 @@ afterEach(function () {
 
     $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($this->pluginDir, FilesystemIterator::SKIP_DOTS),
-        RecursiveIteratorIterator::CHILD_FIRST
+        RecursiveIteratorIterator::CHILD_FIRST,
     );
     foreach ($iterator as $item) {
         $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
@@ -72,7 +72,7 @@ it('returns a WP_Error when WordPress download utilities are unavailable', funct
         return true;
     }
 
-    return file_exists((defined('ABSPATH') ? ABSPATH : '').'wp-admin/includes/file.php');
+    return file_exists((defined('ABSPATH') ? ABSPATH : '') . 'wp-admin/includes/file.php');
 }, 'WordPress download utilities are available in this environment');
 
 it('renders a one-click install button for users allowed to install plugins', function () {

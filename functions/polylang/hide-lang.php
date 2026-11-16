@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__DIR__).'/main-settings-helpers.php';
+require_once dirname(__DIR__) . '/main-settings-helpers.php';
 
 /**
  * Hide selected Polylang languages on the frontend.
@@ -18,7 +18,7 @@ function pll_hide_lang()
 
         $hidden = wp_addon_main_section_settings('pll')['pll_hide_lang'] ?? '';
 
-        if (! is_string($hidden) || trim($hidden) === '') {
+        if (! is_string($hidden) || mb_trim($hidden) === '') {
             return $languages;
         }
 

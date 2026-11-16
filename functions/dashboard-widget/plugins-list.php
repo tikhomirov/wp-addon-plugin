@@ -18,16 +18,16 @@ function dashboard_plugin_list()
             return false;
         }
         if (! function_exists('get_plugins')) {
-            require_once ABSPATH.'wp-admin/includes/plugin.php'; // load get_plugins()
+            require_once ABSPATH . 'wp-admin/includes/plugin.php'; // load get_plugins()
         }
         // fetch plugin list
         $all_plugins = get_plugins();
         $html = '<ol>';
         foreach ($all_plugins as $plugin) {
             if (! empty($plugin['PluginURI'])) {
-                $html .= '<li><a href="'.$plugin['PluginURI'].'">'.$plugin['Name'].'</a> - '.$plugin['Version'].'</li>';
+                $html .= '<li><a href="' . $plugin['PluginURI'] . '">' . $plugin['Name'] . '</a> - ' . $plugin['Version'] . '</li>';
             } else {
-                $html .= '<li>'.$plugin['Name'].' - '.$plugin['Version'].'</li>';
+                $html .= '<li>' . $plugin['Name'] . ' - ' . $plugin['Version'] . '</li>';
             }
         }
         $html .= '<ol>';
@@ -43,8 +43,11 @@ function dashboard_plugin_list()
             return;
         }
 
-        wp_add_dashboard_widget('plugin_list_widget', __('Plugin list of ', 'wp-addon').' '.get_bloginfo('name'),
-            'echo_plugin_list');
+        wp_add_dashboard_widget(
+            'plugin_list_widget',
+            __('Plugin list of ', 'wp-addon') . ' ' . get_bloginfo('name'),
+            'echo_plugin_list',
+        );
     }
 
     function echo_plugin_list()

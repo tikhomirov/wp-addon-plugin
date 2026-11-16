@@ -52,7 +52,7 @@ if (! function_exists('Brain\Monkey\tearDown')) {
 
 // Prevent any Patchwork autoloading
 spl_autoload_register(function ($class) {
-    if (strpos($class, 'Patchwork') === 0 || strpos($class, 'Brain\\Monkey') === 0) {
+    if (mb_strpos($class, 'Patchwork') === 0 || mb_strpos($class, 'Brain\\Monkey') === 0) {
         // Return a mock class for any Patchwork or Brain Monkey class
         eval("class {$class} { public static function __callStatic(\$method, \$args) { return \$args ? \$args[0] : null; } public function __call(\$method, \$args) { return \$args ? \$args[0] : null; } }");
 
@@ -80,7 +80,7 @@ foreach ($patchworkFunctions as $func) {
 // === END PATCHWORK PREVENTION ===
 
 // Load composer autoloader
-require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 // Disable any remaining Patchwork functionality
 if (class_exists('Patchwork')) {
@@ -104,7 +104,7 @@ if (isset($GLOBALS['__patchwork'])) {
 if (! function_exists('plugin_dir_path')) {
     function plugin_dir_path($file)
     {
-        return dirname($file).'/';
+        return dirname($file) . '/';
     }
 }
 
@@ -117,30 +117,30 @@ if (! function_exists('wp_die')) {
 
 // === WORDPRESS TEST ENVIRONMENT SETUP ===
 $wp_tests_dir = getenv('WP_TESTS_DIR');
-if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
+if ($wp_tests_dir && file_exists($wp_tests_dir . '/includes/bootstrap.php')) {
     // Load WordPress test bootstrap for proper environment
-    require_once $wp_tests_dir.'/includes/bootstrap.php';
+    require_once $wp_tests_dir . '/includes/bootstrap.php';
 } else {
     // Fallback for local development without WordPress test suite
 
     // Define WordPress constants
     if (! defined('ABSPATH')) {
-        define('ABSPATH', dirname(dirname(__DIR__)).'/');
+        define('ABSPATH', dirname(dirname(__DIR__)) . '/');
     }
     if (! defined('WPINC')) {
         define('WPINC', 'wp-includes');
     }
     if (! defined('WP_CONTENT_DIR')) {
-        define('WP_CONTENT_DIR', ABSPATH.'wp-content');
+        define('WP_CONTENT_DIR', ABSPATH . 'wp-content');
     }
     if (! defined('WP_PLUGIN_DIR')) {
-        define('WP_PLUGIN_DIR', WP_CONTENT_DIR.'/plugins');
+        define('WP_PLUGIN_DIR', WP_CONTENT_DIR . '/plugins');
     }
     if (! defined('WP_CONTENT_URL')) {
         define('WP_CONTENT_URL', 'http://localhost/wp-content');
     }
     if (! defined('WP_PLUGIN_URL')) {
-        define('WP_PLUGIN_URL', WP_CONTENT_URL.'/plugins');
+        define('WP_PLUGIN_URL', WP_CONTENT_URL . '/plugins');
     }
     if (! defined('WP_DEBUG')) {
         define('WP_DEBUG', true);
@@ -155,19 +155,19 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
     if (! function_exists('content_url')) {
         function content_url($path = ''): string
         {
-            return rtrim(WP_CONTENT_URL, '/').'/'.ltrim($path, '/');
+            return mb_rtrim(WP_CONTENT_URL, '/') . '/' . mb_ltrim($path, '/');
         }
     }
     if (! function_exists('site_url')) {
         function site_url($path = ''): string
         {
-            return 'http://localhost/'.ltrim($path, '/');
+            return 'http://localhost/' . mb_ltrim($path, '/');
         }
     }
     if (! function_exists('get_template_directory')) {
         function get_template_directory(): string
         {
-            return WP_CONTENT_DIR.'/themes/blog-theme';
+            return WP_CONTENT_DIR . '/themes/blog-theme';
         }
     }
     if (! function_exists('get_template_directory_uri')) {
@@ -180,7 +180,7 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         function wp_add_inline_script($handle, $data, $position = 'after'): bool
         {
             global $wp_inline_scripts;
-            $wp_inline_scripts[$handle] = ($wp_inline_scripts[$handle] ?? '').$data;
+            $wp_inline_scripts[$handle] = ($wp_inline_scripts[$handle] ?? '') . $data;
 
             return true;
         }
@@ -392,7 +392,7 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
     if (! function_exists('home_url')) {
         function home_url($path = '')
         {
-            return 'http://localhost'.$path;
+            return 'http://localhost' . $path;
         }
     }
 
@@ -400,12 +400,12 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         function wp_upload_dir()
         {
             return [
-                'path' => '/tmp/uploads',
-                'url' => 'http://localhost/wp-content/uploads',
-                'subdir' => '',
+                'path'    => '/tmp/uploads',
+                'url'     => 'http://localhost/wp-content/uploads',
+                'subdir'  => '',
                 'basedir' => '/tmp/uploads',
                 'baseurl' => 'http://localhost/wp-content/uploads',
-                'error' => false,
+                'error'   => false,
             ];
         }
     }
@@ -420,7 +420,7 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
     if (! function_exists('plugin_dir_path')) {
         function plugin_dir_path($file)
         {
-            return dirname($file).'/';
+            return dirname($file) . '/';
         }
     }
 
@@ -448,21 +448,21 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
     if (! function_exists('site_url')) {
         function site_url($path = '')
         {
-            return 'http://localhost'.$path;
+            return 'http://localhost' . $path;
         }
     }
 
     if (! function_exists('admin_url')) {
         function admin_url($path = '')
         {
-            return 'http://localhost/wp-admin'.$path;
+            return 'http://localhost/wp-admin' . $path;
         }
     }
 
     if (! function_exists('get_site_url')) {
         function get_site_url($blog_id = null, $path = '', $scheme = null)
         {
-            return 'http://localhost'.$path;
+            return 'http://localhost' . $path;
         }
     }
 
@@ -470,12 +470,12 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         function wp_get_upload_dir()
         {
             return [
-                'path' => '/tmp/uploads',
-                'url' => 'http://localhost/wp-content/uploads',
-                'subdir' => '',
+                'path'    => '/tmp/uploads',
+                'url'     => 'http://localhost/wp-content/uploads',
+                'subdir'  => '',
                 'basedir' => '/tmp/uploads',
                 'baseurl' => 'http://localhost/wp-content/uploads',
-                'error' => false,
+                'error'   => false,
             ];
         }
     }
@@ -532,7 +532,7 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
     if (! function_exists('sanitize_text_field')) {
         function sanitize_text_field($str)
         {
-            return trim($str);
+            return mb_trim($str);
         }
     }
 
@@ -609,14 +609,14 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
     if (! function_exists('wp_create_nonce')) {
         function wp_create_nonce($action = -1)
         {
-            return 'test_nonce_'.$action;
+            return 'test_nonce_' . $action;
         }
     }
 
     if (! function_exists('wp_verify_nonce')) {
         function wp_verify_nonce($nonce, $action = -1)
         {
-            return strpos($nonce, 'test_nonce_') === 0;
+            return mb_strpos($nonce, 'test_nonce_') === 0;
         }
     }
 
@@ -625,7 +625,7 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         {
             $separator = str_contains($actionurl, '?') ? '&' : '?';
 
-            return esc_url($actionurl.$separator.$name.'='.wp_create_nonce($action));
+            return esc_url($actionurl . $separator . $name . '=' . wp_create_nonce($action));
         }
     }
 
@@ -713,9 +713,9 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         function get_userdata($user_id)
         {
             return (object) [
-                'ID' => $user_id,
-                'user_login' => 'testuser',
-                'user_email' => 'test@example.com',
+                'ID'           => $user_id,
+                'user_login'   => 'testuser',
+                'user_email'   => 'test@example.com',
                 'display_name' => 'Test User',
             ];
         }
@@ -877,7 +877,7 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
     if (! function_exists('sanitize_key')) {
         function sanitize_key($key)
         {
-            return preg_replace('/[^a-z0-9_\-]/', '', strtolower((string) $key));
+            return preg_replace('/[^a-z0-9_\-]/', '', mb_strtolower((string) $key));
         }
     }
 
@@ -885,11 +885,11 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         function get_bloginfo($show = '')
         {
             $info = [
-                'name' => 'Test Site',
+                'name'        => 'Test Site',
                 'description' => 'Test Description',
-                'url' => 'http://localhost',
-                'version' => '6.0',
-                'charset' => 'UTF-8',
+                'url'         => 'http://localhost',
+                'version'     => '6.0',
+                'charset'     => 'UTF-8',
             ];
 
             return $info[$show] ?? '';
@@ -1012,7 +1012,7 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
     if (! function_exists('home_url')) {
         function home_url($path = '')
         {
-            return 'http://localhost'.$path;
+            return 'http://localhost' . $path;
         }
     }
 
@@ -1020,12 +1020,12 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
         function wp_upload_dir()
         {
             return [
-                'path' => '/tmp/uploads',
-                'url' => 'http://localhost/wp-content/uploads',
-                'subdir' => '',
+                'path'    => '/tmp/uploads',
+                'url'     => 'http://localhost/wp-content/uploads',
+                'subdir'  => '',
                 'basedir' => '/tmp/uploads',
                 'baseurl' => 'http://localhost/wp-content/uploads',
-                'error' => false,
+                'error'   => false,
             ];
         }
     }
@@ -1040,7 +1040,7 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
     if (! function_exists('plugin_dir_path')) {
         function plugin_dir_path($file)
         {
-            return dirname($file).'/';
+            return dirname($file) . '/';
         }
     }
 
@@ -1077,14 +1077,14 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
             // PHP_URL_SCHEME is -1, which is also the "no component" default,
             // so only a real scheme component selects a key.
             $key = match ($component) {
-                PHP_URL_HOST => 'host',
-                PHP_URL_PORT => 'port',
-                PHP_URL_USER => 'user',
-                PHP_URL_PASS => 'pass',
-                PHP_URL_PATH => 'path',
-                PHP_URL_QUERY => 'query',
+                PHP_URL_HOST     => 'host',
+                PHP_URL_PORT     => 'port',
+                PHP_URL_USER     => 'user',
+                PHP_URL_PASS     => 'pass',
+                PHP_URL_PATH     => 'path',
+                PHP_URL_QUERY    => 'query',
                 PHP_URL_FRAGMENT => 'fragment',
-                default => null,
+                default          => null,
             };
 
             if ($key === null) {
@@ -1130,7 +1130,7 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
             if (isset($mock_http_bodies[$url])) {
                 return [
                     'response' => ['code' => 200],
-                    'body' => $mock_http_bodies[$url],
+                    'body'     => $mock_http_bodies[$url],
                 ];
             }
 

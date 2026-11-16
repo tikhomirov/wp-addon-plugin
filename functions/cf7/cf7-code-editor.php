@@ -30,6 +30,6 @@ add_action("admin_print_styles-{$hook_suffix}", function () {
     // Mail template editor
     wp_add_inline_script(
         'code-editor',
-        sprintf('jQuery( function() { wp.codeEditor.initialize( "wpcf7-mail-body", %s ); } );', wp_json_encode($settings))
+        sprintf('jQuery( function() { wp.codeEditor.initialize( "wpcf7-mail-body", %s ); } );', wp_json_encode($settings)),
     );
 });

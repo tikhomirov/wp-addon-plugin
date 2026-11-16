@@ -23,7 +23,7 @@ CSV;
     it('normalizeRules parses compact rule line field', function () {
         $rules = RedirectRulesService::normalizeRules([
             ['rule' => '/old-a/, /new-a/'],
-            ['rule' => '/old-b/;/new-b/'],
+            ['rule'    => '/old-b/;/new-b/'],
             ['request' => '/legacy/', 'destination' => '/still/'],
         ]);
 

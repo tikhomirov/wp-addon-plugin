@@ -70,7 +70,7 @@ class Plugin
     /**
      * Constructor
      *
-     * @param  string  $file  Plugin file path
+     * @param string $file Plugin file path
      */
     public function __construct(string $file)
     {
@@ -79,7 +79,7 @@ class Plugin
         $this->url = plugin_dir_url($file);
 
         $pluginsDir = defined('WP_PLUGIN_DIR') ? WP_PLUGIN_DIR : dirname($this->dir);
-        $this->codeStar = new CodeStarInstaller($this->dir, $pluginsDir.'/codestar-framework/codestar-framework.php');
+        $this->codeStar = new CodeStarInstaller($this->dir, $pluginsDir . '/codestar-framework/codestar-framework.php');
     }
 
     /**
@@ -106,14 +106,14 @@ class Plugin
     public function activate(): void
     {
         $optionService = new OptionService(defined('RW_LANG') ? RW_LANG : 'wp-addon');
-        require_once plugin_dir_path($this->file).'src/Config/cookie-banner-defaults.php';
+        require_once plugin_dir_path($this->file) . 'src/Config/cookie-banner-defaults.php';
         $optionService->mergeDefaults(
             wp_addon_get_cookie_banner_defaults(),
             [
                 'cookie_banner_link_2_text',
                 'cookie_banner_link_2_url',
                 'cookie_banner_analytics_code',
-            ]
+            ],
         );
     }
 
@@ -121,7 +121,7 @@ class Plugin
     {
         add_action('plugins_loaded', function () {
             $domain = 'wp-addon';
-            $path = dirname(plugin_basename(RW_FILE)).'/languages';
+            $path = dirname(plugin_basename(RW_FILE)) . '/languages';
             load_plugin_textdomain($domain, false, $path);
         }, 9);
     }
@@ -161,7 +161,7 @@ class Plugin
         $this->codeStar->bootstrap();
 
         // Load settings
-        require_once $this->dir.'src/Config/wp-addon-settings.php';
+        require_once $this->dir . 'src/Config/wp-addon-settings.php';
 
         // Initialize services
         $this->optionService = new OptionService(RW_LANG);
@@ -170,7 +170,7 @@ class Plugin
         $this->imageOptimizationService = new ImageOptimizationService;
         $this->ensureCookieBannerDefaults();
 
-        require_once $this->dir.'functions/main-settings-helpers.php';
+        require_once $this->dir . 'functions/main-settings-helpers.php';
 
         // Load functions and modules
         $this->loadModules();
@@ -178,7 +178,7 @@ class Plugin
 
     private function ensureCookieBannerDefaults(): void
     {
-        require_once $this->dir.'src/Config/cookie-banner-defaults.php';
+        require_once $this->dir . 'src/Config/cookie-banner-defaults.php';
 
         $defaults = wp_addon_get_cookie_banner_defaults();
         $allowEmpty = [
@@ -202,8 +202,8 @@ class Plugin
     }
 
     /**
-     * @param  array<string, mixed>  $defaults
-     * @param  array<int, string>  $allowEmpty
+     * @param array<string, mixed> $defaults
+     * @param array<int, string>   $allowEmpty
      */
     private function hasEmptyCookieBannerSettings(array $defaults, array $allowEmpty): bool
     {
@@ -229,15 +229,15 @@ class Plugin
     {
         $initializedModules = [];
         $moduleDependencies = [
-            'MediaCleanup' => [$this->mediaCleanupService],
-            'PageCache' => [$this->optionService],
+            'MediaCleanup'      => [$this->mediaCleanupService],
+            'PageCache'         => [$this->optionService],
             'AssetMinification' => [$this->optionService],
-            'LazyLoading' => [$this->optionService, $this->imageOptimizationService],
-            'CookieBanner' => [$this->optionService],
-            'Backup' => [],
+            'LazyLoading'       => [$this->optionService, $this->imageOptimizationService],
+            'CookieBanner'      => [$this->optionService],
+            'Backup'            => [],
         ];
 
-        $files = glob($this->dir.'functions/*.php') ?: [];
+        $files = glob($this->dir . 'functions/*.php') ?: [];
         sort($files, SORT_STRING);
         foreach ($files as $file) {
             require_once $file;
@@ -249,7 +249,7 @@ class Plugin
             }
         }
 
-        $files = glob($this->dir.'functions/*/*.php') ?: [];
+        $files = glob($this->dir . 'functions/*/*.php') ?: [];
         sort($files, SORT_STRING);
         foreach ($files as $file) {
             require_once $file;
@@ -271,7 +271,7 @@ class Plugin
         add_action('init', [$this, 'loadSeoFunctions'], 1);
         add_action('admin_notices', [$this->codeStar, 'renderNotice']);
         add_action('admin_init', [$this->codeStar, 'maybeAutoInstall']);
-        add_action('admin_post_'.CodeStarInstaller::ACTION, [$this->codeStar, 'handleInstallRequest']);
+        add_action('admin_post_' . CodeStarInstaller::ACTION, [$this->codeStar, 'handleInstallRequest']);
     }
 
     /**
@@ -279,9 +279,9 @@ class Plugin
      */
     public function loadSeoFunctions(): void
     {
-        $seo_dir = $this->dir.'functions/seo/';
+        $seo_dir = $this->dir . 'functions/seo/';
         if (is_dir($seo_dir)) {
-            foreach (glob($seo_dir.'*.php') as $file) {
+            foreach (glob($seo_dir . '*.php') as $file) {
                 require_once $file;
             }
         }
@@ -289,9 +289,9 @@ class Plugin
         // Also load from functions/posts, functions/terms, etc
         $function_subdirs = ['posts', 'terms', 'comments', 'users', 'shortcodes', 'widgets', 'dashboard-widget', 'cf7', 'vc', 'TinyMCE'];
         foreach ($function_subdirs as $subdir) {
-            $dir = $this->dir.'functions/'.$subdir.'/';
+            $dir = $this->dir . 'functions/' . $subdir . '/';
             if (is_dir($dir)) {
-                foreach (glob($dir.'*.php') as $file) {
+                foreach (glob($dir . '*.php') as $file) {
                     require_once $file;
                 }
             }

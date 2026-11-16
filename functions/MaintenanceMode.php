@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__.'/main-settings-helpers.php';
+require_once __DIR__ . '/main-settings-helpers.php';
 
 use WpAddon\Interfaces\ModuleInterface;
 use WpAddon\Traits\HookTrait;
@@ -59,7 +59,7 @@ class MaintenanceMode implements ModuleInterface
         $template = $this->getTemplate();
 
         if ($template === '') {
-            $message = trim((string) (wp_addon_main_settings()['maintenance_message'] ?? ''));
+            $message = mb_trim((string) (wp_addon_main_settings()['maintenance_message'] ?? ''));
 
             if ($message === '') {
                 $message = __('Sorry, the site is temporarily unavailable due to maintenance. Please try again later.', 'wp-addon');

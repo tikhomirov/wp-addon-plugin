@@ -89,7 +89,7 @@ class CommentAntispam implements ModuleInterface
      * Main gate for the classic comment form, pingbacks and trackbacks.
      *
      * @param  int|string|WP_Error  $approved
-     * @param  array<string, mixed>  $commentdata
+     * @param  array<string, mixed> $commentdata
      * @return int|string|WP_Error
      */
     public function filterPreCommentApproved($approved, $commentdata)
@@ -112,7 +112,7 @@ class CommentAntispam implements ModuleInterface
      * The REST comments controller inserts with wp_insert_comment() and never
      * reaches pre_comment_approved, so it needs its own entry point.
      *
-     * @param  array<string, mixed>|WP_Error  $preparedComment
+     * @param  array<string, mixed>|WP_Error $preparedComment
      * @return array<string, mixed>|WP_Error
      */
     public function filterRestPreInsertComment($preparedComment)
@@ -139,14 +139,14 @@ class CommentAntispam implements ModuleInterface
         return new WP_Error(
             $verdict->get_error_code(),
             $verdict->get_error_message(),
-            ['status' => (int) $verdict->get_error_data()]
+            ['status' => (int) $verdict->get_error_data()],
         );
     }
 
     /**
-     * @param  array<string, mixed>  $commentdata
-     * @return WP_Error|int|null WP_Error rejects the comment, 0 holds it for
-     *                           moderation, null approves it unchanged
+     * @param  array<string, mixed> $commentdata
+     * @return WP_Error|int|null    WP_Error rejects the comment, 0 holds it for
+     *                              moderation, null approves it unchanged
      */
     private function screen(array $commentdata): WP_Error|int|null
     {
@@ -167,7 +167,7 @@ class CommentAntispam implements ModuleInterface
         }
 
         $honeypot = $this->getSwitcher('antispam_honeypot', true);
-        if ($honeypot && trim($this->getPostedValue(self::HONEYPOT_FIELD)) !== '') {
+        if ($honeypot && mb_trim($this->getPostedValue(self::HONEYPOT_FIELD)) !== '') {
             return $this->reject(self::REASON_HONEYPOT, 0, $commentdata);
         }
 
@@ -195,7 +195,7 @@ class CommentAntispam implements ModuleInterface
             (string) ($commentdata['comment_author'] ?? ''),
             (string) ($commentdata['comment_author_email'] ?? ''),
             $this->isFirstVisit(),
-            (string) ($commentdata['comment_author_url'] ?? '')
+            (string) ($commentdata['comment_author_url'] ?? ''),
         );
 
         if ($verdict['score'] < $this->threshold) {
@@ -205,9 +205,9 @@ class CommentAntispam implements ModuleInterface
 
             if ($shouldHold) {
                 return $this->hold(
-                    self::REASON_HOLD.':'.implode(',', $verdict['reasons']),
+                    self::REASON_HOLD . ':' . implode(',', $verdict['reasons']),
                     $verdict['score'],
-                    $commentdata
+                    $commentdata,
                 );
             }
 
@@ -216,7 +216,7 @@ class CommentAntispam implements ModuleInterface
             return null;
         }
 
-        $reason = self::REASON_SCORE.':'.implode(',', $verdict['reasons']);
+        $reason = self::REASON_SCORE . ':' . implode(',', $verdict['reasons']);
 
         return $this->reject($reason, $verdict['score'], $commentdata);
     }
@@ -225,20 +225,20 @@ class CommentAntispam implements ModuleInterface
      * A rejected comment is never stored, so this table row is the only
      * trace the attempt happened.
      *
-     * @param  array<string, mixed>  $commentdata
+     * @param array<string, mixed> $commentdata
      */
     private function logAttempt(string $reason, int $score, array $commentdata): void
     {
         CommentAntispamLogService::log([
-            'reason' => $reason,
-            'score' => $score,
-            'threshold' => $this->threshold,
-            'ip' => (string) ($commentdata['comment_author_IP'] ?? ''),
-            'author' => (string) ($commentdata['comment_author'] ?? ''),
-            'email' => (string) ($commentdata['comment_author_email'] ?? ''),
-            'content' => (string) ($commentdata['comment_content'] ?? ''),
-            'user_agent' => (string) ($commentdata['comment_agent'] ?? ''),
-            'post_id' => (int) ($commentdata['comment_post_ID'] ?? 0),
+            'reason'       => $reason,
+            'score'        => $score,
+            'threshold'    => $this->threshold,
+            'ip'           => (string) ($commentdata['comment_author_IP'] ?? ''),
+            'author'       => (string) ($commentdata['comment_author'] ?? ''),
+            'email'        => (string) ($commentdata['comment_author_email'] ?? ''),
+            'content'      => (string) ($commentdata['comment_content'] ?? ''),
+            'user_agent'   => (string) ($commentdata['comment_agent'] ?? ''),
+            'post_id'      => (int) ($commentdata['comment_post_ID'] ?? 0),
             'comment_type' => (string) ($commentdata['comment_type'] ?? ''),
         ]);
     }
@@ -247,7 +247,7 @@ class CommentAntispam implements ModuleInterface
      * Borderline comments go to the moderation queue instead of the public
      * comment list. Zero means "unapproved" in pre_comment_approved.
      *
-     * @param  array<string, mixed>  $commentdata
+     * @param array<string, mixed> $commentdata
      */
     private function hold(string $reason, int $score, array $commentdata): int
     {
@@ -259,7 +259,7 @@ class CommentAntispam implements ModuleInterface
     }
 
     /**
-     * @param  array<string, mixed>  $commentdata
+     * @param array<string, mixed> $commentdata
      */
     private function reject(string $reason, int $score, array $commentdata): WP_Error
     {
@@ -270,7 +270,7 @@ class CommentAntispam implements ModuleInterface
         return new WP_Error(
             'comment_antispam_rejected',
             (string) $this->getSetting('antispam_blocked_message', self::BLOCKED_MESSAGE),
-            403
+            403,
         );
     }
 
@@ -282,17 +282,17 @@ class CommentAntispam implements ModuleInterface
 
         wp_enqueue_style(
             'wp-addon-comment-antispam',
-            RW_PLUGIN_URL.'assets/css/comment-antispam.css',
+            RW_PLUGIN_URL . 'assets/css/comment-antispam.css',
             [],
-            WP_ADDON_VERSION
+            WP_ADDON_VERSION,
         );
 
         wp_enqueue_script(
             'wp-addon-comment-antispam',
-            RW_PLUGIN_URL.'assets/js/comment-antispam.js',
+            RW_PLUGIN_URL . 'assets/js/comment-antispam.js',
             [],
             WP_ADDON_VERSION,
-            true
+            true,
         );
     }
 
@@ -304,11 +304,11 @@ class CommentAntispam implements ModuleInterface
 
         printf(
             '<p class="wp-addon-antispam-hp" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden">'
-            .'<label for="%1$s">%2$s</label>'
-            .'<input type="text" id="%1$s" name="%1$s" value="" tabindex="-1" autocomplete="off" />'
-            .'</p>',
+            . '<label for="%1$s">%2$s</label>'
+            . '<input type="text" id="%1$s" name="%1$s" value="" tabindex="-1" autocomplete="off" />'
+            . '</p>',
             esc_attr(self::HONEYPOT_FIELD),
-            esc_html__('Leave this field empty', 'wp-addon')
+            esc_html__('Leave this field empty', 'wp-addon'),
         );
     }
 
@@ -320,7 +320,7 @@ class CommentAntispam implements ModuleInterface
 
         printf(
             '<input type="hidden" name="%s" value="" />',
-            esc_attr(self::TIMESTAMP_FIELD)
+            esc_attr(self::TIMESTAMP_FIELD),
         );
     }
 
@@ -329,7 +329,7 @@ class CommentAntispam implements ModuleInterface
         if (! isset($schedules['wp_addon_monthly'])) {
             $schedules['wp_addon_monthly'] = [
                 'interval' => 30 * DAY_IN_SECONDS,
-                'display' => __('Once Monthly', 'wp-addon'),
+                'display'  => __('Once Monthly', 'wp-addon'),
             ];
         }
 
@@ -352,16 +352,16 @@ class CommentAntispam implements ModuleInterface
         }
 
         $deactivateUrl = wp_nonce_url(
-            admin_url('plugins.php?action=deactivate&plugin='.rawurlencode(self::KAMA_PLUGIN)),
-            'deactivate-plugin_'.self::KAMA_PLUGIN
+            admin_url('plugins.php?action=deactivate&plugin=' . rawurlencode(self::KAMA_PLUGIN)),
+            'deactivate-plugin_' . self::KAMA_PLUGIN,
         );
 
-        echo '<div class="notice notice-warning"><p><strong>'.esc_html__('WP Addon: Comment Spam', 'wp-addon').'</strong> — ';
+        echo '<div class="notice notice-warning"><p><strong>' . esc_html__('WP Addon: Comment Spam', 'wp-addon') . '</strong> — ';
         echo esc_html__(
             'Kama SpamBlock is active and overlaps with this module. Its JavaScript nonce is not needed anymore and it can be deactivated.',
-            'wp-addon'
+            'wp-addon',
         );
-        echo ' <a href="'.esc_url($deactivateUrl).'">'.esc_html__('Deactivate Kama SpamBlock', 'wp-addon').'</a></p></div>';
+        echo ' <a href="' . esc_url($deactivateUrl) . '">' . esc_html__('Deactivate Kama SpamBlock', 'wp-addon') . '</a></p></div>';
     }
 
     public static function renderAdminPanel(): string
@@ -374,60 +374,60 @@ class CommentAntispam implements ModuleInterface
 
         if ($report['total'] === 0) {
             return '<div class="notice notice-info inline"><p>'
-                .esc_html__('No spam comments blocked in the last 30 days.', 'wp-addon')
-                .'</p></div>';
+                . esc_html__('No spam comments blocked in the last 30 days.', 'wp-addon')
+                . '</p></div>';
         }
 
         $html = '<div class="wp-addon-antispam-stats" style="margin:0 0 12px">';
         $html .= '<p><strong>'
-            .sprintf(esc_html__('Blocked in 30 days: %s', 'wp-addon'), esc_html(number_format_i18n($report['total'])))
-            .'</strong></p>';
+            . sprintf(esc_html__('Blocked in 30 days: %s', 'wp-addon'), esc_html(number_format_i18n($report['total'])))
+            . '</strong></p>';
 
         if ($report['by_reason'] !== []) {
-            $html .= '<p><strong>'.esc_html__('By reason', 'wp-addon').'</strong><br>';
+            $html .= '<p><strong>' . esc_html__('By reason', 'wp-addon') . '</strong><br>';
             foreach ($report['by_reason'] as $reason => $hits) {
-                $html .= esc_html($reason).' — '.esc_html(number_format_i18n($hits)).'<br>';
+                $html .= esc_html($reason) . ' — ' . esc_html(number_format_i18n($hits)) . '<br>';
             }
             $html .= '</p>';
         }
 
         if ($report['top_ips'] !== []) {
-            $html .= '<p><strong>'.esc_html__('Top IPs', 'wp-addon').'</strong><br>';
+            $html .= '<p><strong>' . esc_html__('Top IPs', 'wp-addon') . '</strong><br>';
             foreach ($report['top_ips'] as $row) {
-                $html .= esc_html($row['ip']).' — '.esc_html(number_format_i18n($row['hits'])).'<br>';
+                $html .= esc_html($row['ip']) . ' — ' . esc_html(number_format_i18n($row['hits'])) . '<br>';
             }
             $html .= '</p>';
         }
 
         if ($report['last'] !== []) {
-            $html .= '<p><strong>'.esc_html__('Last attempts', 'wp-addon').'</strong></p>';
+            $html .= '<p><strong>' . esc_html__('Last attempts', 'wp-addon') . '</strong></p>';
             $html .= '<table class="widefat striped" style="max-width:100%"><thead><tr>'
-                .'<th>'.esc_html__('Time', 'wp-addon').'</th>'
-                .'<th>'.esc_html__('Reason', 'wp-addon').'</th>'
-                .'<th>'.esc_html__('Score', 'wp-addon').'</th>'
-                .'<th>'.esc_html__('IP', 'wp-addon').'</th>'
-                .'<th>'.esc_html__('Author', 'wp-addon').'</th>'
-                .'<th>'.esc_html__('Comment', 'wp-addon').'</th>'
-                .'</tr></thead><tbody>';
+                . '<th>' . esc_html__('Time', 'wp-addon') . '</th>'
+                . '<th>' . esc_html__('Reason', 'wp-addon') . '</th>'
+                . '<th>' . esc_html__('Score', 'wp-addon') . '</th>'
+                . '<th>' . esc_html__('IP', 'wp-addon') . '</th>'
+                . '<th>' . esc_html__('Author', 'wp-addon') . '</th>'
+                . '<th>' . esc_html__('Comment', 'wp-addon') . '</th>'
+                . '</tr></thead><tbody>';
             foreach ($report['last'] as $row) {
                 $html .= '<tr>'
-                    .'<td>'.esc_html((string) ($row['created_at'] ?? '')).'</td>'
-                    .'<td>'.esc_html((string) ($row['reason'] ?? '')).'</td>'
-                    .'<td>'.esc_html((string) ($row['score'] ?? '')).' / '.esc_html((string) ($row['threshold'] ?? '')).'</td>'
-                    .'<td>'.esc_html((string) ($row['ip'] ?? '')).'</td>'
-                    .'<td>'.esc_html((string) ($row['author'] ?? '')).'</td>'
-                    .'<td>'.esc_html(mb_substr((string) ($row['content'] ?? ''), 0, 80)).'</td>'
-                    .'</tr>';
+                    . '<td>' . esc_html((string) ($row['created_at'] ?? '')) . '</td>'
+                    . '<td>' . esc_html((string) ($row['reason'] ?? '')) . '</td>'
+                    . '<td>' . esc_html((string) ($row['score'] ?? '')) . ' / ' . esc_html((string) ($row['threshold'] ?? '')) . '</td>'
+                    . '<td>' . esc_html((string) ($row['ip'] ?? '')) . '</td>'
+                    . '<td>' . esc_html((string) ($row['author'] ?? '')) . '</td>'
+                    . '<td>' . esc_html(mb_substr((string) ($row['content'] ?? ''), 0, 80)) . '</td>'
+                    . '</tr>';
             }
             $html .= '</tbody></table>';
         }
 
         $html .= '<p style="margin-top:8px">'
-            .sprintf(
+            . sprintf(
                 esc_html__('History is kept for %s months.', 'wp-addon'),
-                esc_html(number_format_i18n(CommentAntispamLogService::RETENTION_MONTHS))
+                esc_html(number_format_i18n(CommentAntispamLogService::RETENTION_MONTHS)),
             )
-            .'</p></div>';
+            . '</p></div>';
 
         return $html;
     }
@@ -448,7 +448,7 @@ class CommentAntispam implements ModuleInterface
     {
         return $this->rateLimiter ??= new CommentAntispamRateLimitService(
             $this->getNumberSetting('antispam_rate_hour', 0),
-            $this->getNumberSetting('antispam_rate_day', 0)
+            $this->getNumberSetting('antispam_rate_day', 0),
         );
     }
 
@@ -468,7 +468,7 @@ class CommentAntispam implements ModuleInterface
         $hash = defined('COOKIEHASH') ? COOKIEHASH : md5((string) get_site_option('siteurl'));
 
         foreach (['comment_author_', 'comment_author_email_', 'comment_author_url_'] as $cookie) {
-            if (! empty($_COOKIE[$cookie.$hash])) {
+            if (! empty($_COOKIE[$cookie . $hash])) {
                 return false;
             }
         }
@@ -480,7 +480,7 @@ class CommentAntispam implements ModuleInterface
     {
         $value = $_POST[$key] ?? '';
 
-        return is_string($value) ? trim(wp_unslash($value)) : '';
+        return is_string($value) ? mb_trim(wp_unslash($value)) : '';
     }
 
     private function isEnabled(): bool

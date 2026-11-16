@@ -1,14 +1,14 @@
 <?php
 
 return [
-    'enabled' => false,
-    'minify_css' => true,
-    'minify_js' => true,
-    'combine_css' => true,
-    'combine_js' => true,
-    'critical_css_enabled' => true,
+    'enabled'                => false,
+    'minify_css'             => true,
+    'minify_js'              => true,
+    'combine_css'            => true,
+    'combine_js'             => true,
+    'critical_css_enabled'   => true,
     'defer_non_critical_css' => true,
-    'exclude_css' => [
+    'exclude_css'            => [
         'admin-bar',
         'dashicons',
     ],
@@ -16,6 +16,6 @@ return [
         'jquery',
         'jquery-core',
     ],
-    'cache_dir' => WP_CONTENT_DIR.'/cache/assets/',
+    'cache_dir'    => WP_CONTENT_DIR . '/cache/assets/',
     'version_salt' => 'wp-addon-v1',
 ];

@@ -62,7 +62,7 @@ final class Restorer
     /**
      * Open dump file for reading.
      *
-     * @param  string  $path  Absolute dump file path.
+     * @param string $path Absolute dump file path.
      *
      * @throws \RuntimeException If file is not accessible.
      */
@@ -130,8 +130,8 @@ final class Restorer
         }
         if ($this->dump_prefix !== '' && $this->dump_prefix !== $this->db->prefix) {
             throw new \RuntimeException(
-                'Table prefix in backup ('.$this->dump_prefix.') does not match site prefix ('.$this->db->prefix.'). '
-                .'Import stopped: automatic table renaming is not allowed.'
+                'Table prefix in backup (' . $this->dump_prefix . ') does not match site prefix (' . $this->db->prefix . '). '
+                . 'Import stopped: automatic table renaming is not allowed.',
             );
         }
 
@@ -145,10 +145,10 @@ final class Restorer
         $this->execute('SET FOREIGN_KEY_CHECKS = 1');
 
         return [
-            'tables' => count($this->created_tables),
-            'rows' => $this->rows,
+            'tables'     => count($this->created_tables),
+            'rows'       => $this->rows,
             'statements' => $this->statements,
-            'warnings' => $this->warnings,
+            'warnings'   => $this->warnings,
         ];
     }
 
@@ -192,21 +192,21 @@ final class Restorer
      */
     private function statement_kind(string $statement): string
     {
-        $head = ltrim($statement);
+        $head = mb_ltrim($statement);
 
-        if (stripos($head, 'INSERT') === 0) {
+        if (mb_stripos($head, 'INSERT') === 0) {
             return 'insert';
         }
 
-        if (stripos($head, 'CREATE') === 0) {
+        if (mb_stripos($head, 'CREATE') === 0) {
             return 'create';
         }
 
-        if (stripos($head, 'SET ') === 0) {
+        if (mb_stripos($head, 'SET ') === 0) {
             return 'set';
         }
 
-        if (stripos($head, 'USE ') === 0) {
+        if (mb_stripos($head, 'USE ') === 0) {
             return 'use';
         }
 
@@ -224,7 +224,7 @@ final class Restorer
      */
     private function run_insert(string $statement): void
     {
-        $values_pos = stripos($statement, 'VALUES');
+        $values_pos = mb_stripos($statement, 'VALUES');
 
         if ($values_pos === false) {
             $this->execute($statement);
@@ -236,7 +236,7 @@ final class Restorer
 
         $this->execute($statement);
         $this->statements++;
-        $this->rows += $this->count_value_tuples(substr($statement, $values_pos + 7));
+        $this->rows += $this->count_value_tuples(mb_substr($statement, $values_pos + 7));
     }
 
     /**
@@ -250,7 +250,7 @@ final class Restorer
         $count = 0;
         $depth = 0;
         $in_string = false;
-        $length = strlen($values_body);
+        $length = mb_strlen($values_body);
         $index = 0;
 
         while ($index < $length) {
@@ -339,7 +339,7 @@ final class Restorer
             $buffer = $rest;
         }
 
-        $tail = trim($buffer);
+        $tail = mb_trim($buffer);
 
         if ($tail !== '') {
             yield $tail;
@@ -357,7 +357,7 @@ final class Restorer
     {
         $statements = [];
         $current = '';
-        $length = strlen($buffer);
+        $length = mb_strlen($buffer);
         $index = 0;
         $in_string = false;
         $in_line_comment = false;
@@ -455,7 +455,7 @@ final class Restorer
             if ($char === ';') {
                 $index++;
 
-                $trimmed = $this->strip_comments(trim($current));
+                $trimmed = $this->strip_comments(mb_trim($current));
 
                 if ($trimmed !== '') {
                     $statements[] = $trimmed;
@@ -487,7 +487,7 @@ final class Restorer
         $statement = preg_replace('#/\*.*?\*/#s', ' ', $statement) ?? $statement;
         $statement = preg_replace('/^\s*(--|#).*$/m', '', $statement) ?? $statement;
 
-        return trim($statement);
+        return mb_trim($statement);
     }
 
     /**
@@ -501,8 +501,8 @@ final class Restorer
 
         if ($result === false) {
             throw new \RuntimeException(
-                'SQL error during restore: '.$this->short_error((string) $this->db->last_error)
-                .' [Query: '.substr(trim($sql), 0, 120).']'
+                'SQL error during restore: ' . $this->short_error((string) $this->db->last_error)
+                . ' [Query: ' . mb_substr(mb_trim($sql), 0, 120) . ']',
             );
         }
     }
@@ -512,14 +512,14 @@ final class Restorer
      */
     private function short_error(string $error): string
     {
-        $error = trim($error);
+        $error = mb_trim($error);
 
         if ($error === '') {
             return 'unknown error';
         }
 
         $lines = preg_split('/\R/', $error) ?: [$error];
-        $first = trim((string) $lines[0]);
+        $first = mb_trim((string) $lines[0]);
 
         return $first !== '' ? $first : 'unknown error';
     }

@@ -21,10 +21,10 @@ describe('MediaCleanupService', function () {
             $options = [
                 'thumbnail_size_w' => 150,
                 'thumbnail_size_h' => 150,
-                'medium_size_w' => 300,
-                'medium_size_h' => 300,
-                'large_size_w' => 1024,
-                'large_size_h' => 1024,
+                'medium_size_w'    => 300,
+                'medium_size_h'    => 300,
+                'large_size_w'     => 1024,
+                'large_size_h'     => 1024,
             ];
 
             return $options[$key] ?? $default;

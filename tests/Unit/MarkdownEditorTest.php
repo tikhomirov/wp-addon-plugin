@@ -17,7 +17,7 @@ if (! function_exists('wp_strip_all_tags')) {
             $string = preg_replace('/[\r\n\t ]+/', ' ', $string);
         }
 
-        return trim($string);
+        return mb_trim($string);
     }
 }
 
@@ -106,22 +106,22 @@ if (! function_exists('check_ajax_referer')) {
 if (! function_exists('wp_send_json_success')) {
     function wp_send_json_success($data = null, $status_code = null)
     {
-        throw new Exception('JSON_SUCCESS: '.json_encode($data));
+        throw new Exception('JSON_SUCCESS: ' . json_encode($data));
     }
 }
 
 if (! function_exists('wp_send_json_error')) {
     function wp_send_json_error($data = null, $status_code = null)
     {
-        throw new Exception('JSON_ERROR: '.json_encode($data));
+        throw new Exception('JSON_ERROR: ' . json_encode($data));
     }
 }
 
 function markdown_test_post(string $content, string $postType = 'post', int $id = 1): stdClass
 {
     return (object) [
-        'ID' => $id,
-        'post_type' => $postType,
+        'ID'           => $id,
+        'post_type'    => $postType,
         'post_content' => $content,
     ];
 }
@@ -130,10 +130,10 @@ describe('MarkdownEditor Unit Tests', function () {
     beforeEach(function () {
         $settings = [
             'wp_addon_markdown_enabled' => '1',
-            'markdown_replace_tinymce' => '1',
-            'markdown_post_types' => ['post', 'page'],
+            'markdown_replace_tinymce'  => '1',
+            'markdown_post_types'       => ['post', 'page'],
             'markdown_enable_shortcuts' => '1',
-            'markdown_enable_preview' => '1',
+            'markdown_enable_preview'   => '1',
         ];
 
         $GLOBALS['mock_functions']['get_option'] = function ($key, $default = []) use ($settings) {

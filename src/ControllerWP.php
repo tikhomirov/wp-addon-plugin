@@ -29,7 +29,7 @@ final class ControllerWP
         }
 
         /**
-         * @var string $key Option name
+         * @var string          $key Option name
          * @var int|array|false $value Option value
          */
         foreach ($this->options as $key => $value) {
@@ -48,7 +48,7 @@ final class ControllerWP
     /**
      * Boot the function when it exists
      *
-     * @param  $settings
+     * @param $settings
      */
     protected function run($function)
     {

@@ -119,7 +119,7 @@ class CommentAntispamScoringService
             $reasons[] = self::REASON_TEXT_TOKEN;
         }
 
-        if (self::isRandomToken(trim($author))) {
+        if (self::isRandomToken(mb_trim($author))) {
             $score += self::WEIGHT_AUTHOR_TOKEN;
             $reasons[] = self::REASON_AUTHOR_TOKEN;
         }
@@ -129,7 +129,7 @@ class CommentAntispamScoringService
             $reasons[] = self::REASON_NO_CYRILLIC;
         }
 
-        if (substr_count(self::localPart($email), '.') >= self::EMAIL_DOTS_LIMIT) {
+        if (mb_substr_count(self::localPart($email), '.') >= self::EMAIL_DOTS_LIMIT) {
             $score += self::WEIGHT_EMAIL_DOTS;
             $reasons[] = self::REASON_EMAIL_DOTS;
         }
@@ -146,7 +146,7 @@ class CommentAntispamScoringService
 
         $hosts = array_values(array_filter(array_map(self::hostOf(...), $urls)));
 
-        if (self::isBrandMatch($author, trim($email), $hosts)) {
+        if (self::isBrandMatch($author, mb_trim($email), $hosts)) {
             $score += self::WEIGHT_BRAND;
             $reasons[] = self::REASON_BRAND;
         }
@@ -179,7 +179,7 @@ class CommentAntispamScoringService
         }
 
         return [
-            'score' => $score,
+            'score'   => $score,
             'reasons' => $reasons,
         ];
     }
@@ -236,7 +236,7 @@ class CommentAntispamScoringService
      */
     public static function looksLikeRussianTranslit(string $text): bool
     {
-        $normalized = mb_strtolower(trim($text));
+        $normalized = mb_strtolower(mb_trim($text));
         if ($normalized === '') {
             return false;
         }
@@ -254,7 +254,7 @@ class CommentAntispamScoringService
             'esli', 'tolko', 'prosto', 'mozhno', 'nado', 'nuzhno', 'est', 'net', 'budet', 'byl',
         ];
 
-        $wordPattern = '/\b(?:'.implode('|', $commonTranslitWords).')\b/i';
+        $wordPattern = '/\b(?:' . implode('|', $commonTranslitWords) . ')\b/i';
         if (preg_match($wordPattern, $normalized) === 1) {
             return true;
         }
@@ -287,7 +287,7 @@ class CommentAntispamScoringService
         $urls = [];
 
         if (preg_match_all('/(?:https?:\/\/|www\.)[^\s<>"\']+/iu', $rawContent, $matches)) {
-            $urls = array_map(fn ($url) => rtrim((string) $url, '),.;]'), $matches[0]);
+            $urls = array_map(fn ($url) => mb_rtrim((string) $url, '),.;]'), $matches[0]);
         }
 
         // Remove matched URLs before the bare domain scan, otherwise bare
@@ -295,14 +295,14 @@ class CommentAntispamScoringService
         $rest = preg_replace('/(?:https?:\/\/|www\.)[^\s<>"\']+/iu', ' ', $rawContent);
 
         if (is_string($rest) && preg_match_all(
-            '/(?<![\p{L}\p{N}@.\-])[a-z0-9][a-z0-9\-]*\.(?:'.self::TLD_ALTERNATION.')(?![\p{L}\p{N}@])/i',
+            '/(?<![\p{L}\p{N}@.\-])[a-z0-9][a-z0-9\-]*\.(?:' . self::TLD_ALTERNATION . ')(?![\p{L}\p{N}@])/i',
             $rest,
-            $bare
+            $bare,
         )) {
             $urls = array_merge($urls, $bare[0]);
         }
 
-        if (trim($authorUrl) !== '') {
+        if (mb_trim($authorUrl) !== '') {
             $urls[] = $authorUrl;
         }
 
@@ -319,20 +319,20 @@ class CommentAntispamScoringService
 
     public static function hostOf(string $url): string
     {
-        $host = preg_replace('#^\w+://#i', '', trim($url, '\'"<>')) ?? $url;
+        $host = preg_replace('#^\w+://#i', '', mb_trim($url, '\'"<>')) ?? $url;
         $host = preg_split('%[/?#<>"\']%', (string) $host)[0] ?? '';
 
-        $host = strtolower(rtrim((string) $host, '.'));
+        $host = mb_strtolower(mb_rtrim((string) $host, '.'));
 
-        return str_starts_with($host, 'www.') ? substr($host, 4) : $host;
+        return str_starts_with($host, 'www.') ? mb_substr($host, 4) : $host;
     }
 
     public static function emailDomain(string $email): string
     {
-        $email = trim($email);
-        $position = strrpos($email, '@');
+        $email = mb_trim($email);
+        $position = mb_strrpos($email, '@');
 
-        return $position === false ? '' : strtolower(substr($email, $position + 1));
+        return $position === false ? '' : mb_strtolower(mb_substr($email, $position + 1));
     }
 
     /**
@@ -345,7 +345,7 @@ class CommentAntispamScoringService
             return '';
         }
 
-        $withoutTld = substr($host, 0, (int) strrpos($host, '.'));
+        $withoutTld = mb_substr($host, 0, (int) mb_strrpos($host, '.'));
 
         return self::alnumLetters($withoutTld);
     }
@@ -389,7 +389,7 @@ class CommentAntispamScoringService
         $found = 0;
 
         foreach (self::SPAM_KEYWORDS as $keyword) {
-            $pattern = '/(?<!\p{L})'.preg_quote($keyword, '/').'/iu';
+            $pattern = '/(?<!\p{L})' . preg_quote($keyword, '/') . '/iu';
 
             if (preg_match($pattern, $text) === 1) {
                 $found++;
@@ -401,7 +401,7 @@ class CommentAntispamScoringService
 
     public static function isSuspiciousTld(string $tld): bool
     {
-        return in_array(strtolower($tld), self::SUSPICIOUS_TLDS, true);
+        return in_array(mb_strtolower($tld), self::SUSPICIOUS_TLDS, true);
     }
 
     public static function hasSuspiciousTld(string $email, array $hosts): bool
@@ -431,17 +431,17 @@ class CommentAntispamScoringService
 
     private static function tldOf(string $host): string
     {
-        $position = strrpos($host, '.');
+        $position = mb_strrpos($host, '.');
 
-        return $position === false ? '' : substr($host, $position + 1);
+        return $position === false ? '' : mb_substr($host, $position + 1);
     }
 
     public static function localPart(string $email): string
     {
-        $email = trim($email);
-        $position = strrpos($email, '@');
+        $email = mb_trim($email);
+        $position = mb_strrpos($email, '@');
 
-        return $position === false ? $email : substr($email, 0, $position);
+        return $position === false ? $email : mb_substr($email, 0, $position);
     }
 
     public static function plainText(string $content): string
@@ -449,6 +449,6 @@ class CommentAntispamScoringService
         $text = html_entity_decode(strip_tags($content), ENT_QUOTES, 'UTF-8');
         $text = preg_replace('/\s+/u', ' ', $text);
 
-        return trim(is_string($text) ? $text : '');
+        return mb_trim(is_string($text) ? $text : '');
     }
 }

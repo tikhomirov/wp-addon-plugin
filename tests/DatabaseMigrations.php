@@ -77,28 +77,28 @@ trait DatabaseMigrations
         }
 
         $defaults = [
-            'post_author' => 1,
-            'post_date' => date('Y-m-d H:i:s'),
-            'post_date_gmt' => gmdate('Y-m-d H:i:s'),
-            'post_content' => 'Test post content',
-            'post_title' => 'Test Post',
-            'post_excerpt' => '',
-            'post_status' => 'publish',
-            'comment_status' => 'open',
-            'ping_status' => 'open',
-            'post_password' => '',
-            'post_name' => 'test-post',
-            'to_ping' => '',
-            'pinged' => '',
-            'post_modified' => date('Y-m-d H:i:s'),
-            'post_modified_gmt' => gmdate('Y-m-d H:i:s'),
+            'post_author'           => 1,
+            'post_date'             => date('Y-m-d H:i:s'),
+            'post_date_gmt'         => gmdate('Y-m-d H:i:s'),
+            'post_content'          => 'Test post content',
+            'post_title'            => 'Test Post',
+            'post_excerpt'          => '',
+            'post_status'           => 'publish',
+            'comment_status'        => 'open',
+            'ping_status'           => 'open',
+            'post_password'         => '',
+            'post_name'             => 'test-post',
+            'to_ping'               => '',
+            'pinged'                => '',
+            'post_modified'         => date('Y-m-d H:i:s'),
+            'post_modified_gmt'     => gmdate('Y-m-d H:i:s'),
             'post_content_filtered' => '',
-            'post_parent' => 0,
-            'guid' => 'http://localhost/?p=1',
-            'menu_order' => 0,
-            'post_type' => 'post',
-            'post_mime_type' => '',
-            'comment_count' => 0,
+            'post_parent'           => 0,
+            'guid'                  => 'http://localhost/?p=1',
+            'menu_order'            => 0,
+            'post_type'             => 'post',
+            'post_mime_type'        => '',
+            'comment_count'         => 0,
         ];
 
         $data = array_merge($defaults, $attributes);
@@ -130,15 +130,15 @@ trait DatabaseMigrations
         }
 
         $defaults = [
-            'user_login' => 'testuser',
-            'user_pass' => 'password',
-            'user_nicename' => 'testuser',
-            'user_email' => 'test@example.com',
-            'user_url' => '',
-            'user_registered' => date('Y-m-d H:i:s'),
+            'user_login'          => 'testuser',
+            'user_pass'           => 'password',
+            'user_nicename'       => 'testuser',
+            'user_email'          => 'test@example.com',
+            'user_url'            => '',
+            'user_registered'     => date('Y-m-d H:i:s'),
             'user_activation_key' => '',
-            'user_status' => 0,
-            'display_name' => 'Test User',
+            'user_status'         => 0,
+            'display_name'        => 'Test User',
         ];
 
         $data = array_merge($defaults, $attributes);

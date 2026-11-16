@@ -18,14 +18,14 @@ class ShowThumbnail
         $dir_path = get_template_directory();
 
         // js
-        if (file_exists($dir_path.'/assets/js/plugins/lightcase.js')) {
-            wp_register_script('lightcase', $dir_uri.'/assets/js/plugins/lightcase.js', ['jquery'], $ver, false);
+        if (file_exists($dir_path . '/assets/js/plugins/lightcase.js')) {
+            wp_register_script('lightcase', $dir_uri . '/assets/js/plugins/lightcase.js', ['jquery'], $ver, false);
         } else {
             wp_register_script('lightcase', 'https://cdnjs.cloudflare.com/ajax/libs/lightcase/2.5.0/js/lightcase.min.js', ['jquery'], $ver, false);
         }
         // css
-        if (file_exists($dir_path.'/assets/css/plugins/lightcase.min.css')) {
-            wp_register_style('lightcase', $dir_uri.'/assets/css/plugins/lightcase.min.css', $ver);
+        if (file_exists($dir_path . '/assets/css/plugins/lightcase.min.css')) {
+            wp_register_style('lightcase', $dir_uri . '/assets/css/plugins/lightcase.min.css', $ver);
         } else {
             wp_register_style('lightcase', 'https://cdnjs.cloudflare.com/ajax/libs/lightcase/2.5.0/css/lightcase.min.css', $ver);
         }
@@ -104,9 +104,9 @@ class ShowThumbnail
             if ($thumbnail_id = get_post_meta($post_id, '_thumbnail_id', true)) {
                 if (function_exists('kama_thumb_img')) {
                     $thumb = kama_thumb_a_img([
-                        'width' => $width,
+                        'width'  => $width,
                         'height' => $height,
-                        'crop' => true,
+                        'crop'   => true,
                         'a_attr' => 'data-rel="lightcase"',
                     ], $thumbnail_id);
                 } else {
@@ -115,18 +115,20 @@ class ShowThumbnail
             } else { // from gallery...
 
                 $attachments = get_children([
-                    'post_parent' => $post_id,
+                    'post_parent'    => $post_id,
                     'post_mime_type' => 'image',
-                    'post_type' => 'attachment',
-                    'numberposts' => 1,
-                    'order' => 'DESC',
+                    'post_type'      => 'attachment',
+                    'numberposts'    => 1,
+                    'order'          => 'DESC',
                 ]);
 
                 $attach = array_shift($attachments);
                 if (isset($attach)) {
                     if (function_exists('kama_thumb_img')) {
-                        $thumb = kama_thumb_img(['width' => $width, 'height' => $height, 'crop' => true],
-                            $attach->ID);
+                        $thumb = kama_thumb_img(
+                            ['width' => $width, 'height' => $height, 'crop' => true],
+                            $attach->ID,
+                        );
                     } else {
                         $thumb = wp_get_attachment_image($attach->ID, [$width, $height], true);
                     }

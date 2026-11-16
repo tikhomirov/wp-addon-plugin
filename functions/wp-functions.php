@@ -146,10 +146,10 @@ function wptweaker_block_wordpress_org_requests($preempt, $parsed_args, $url)
     $blocked_hosts = ['api.wordpress.org', 'downloads.wordpress.org'];
 
     foreach ($blocked_hosts as $host) {
-        if (strtolower((string) wp_parse_url($url, PHP_URL_HOST)) === $host) {
+        if (mb_strtolower((string) wp_parse_url($url, PHP_URL_HOST)) === $host) {
             return new WP_Error(
                 'wptweaker_http_blocked',
-                __('WordPress.org update request blocked by wp-addon tweak.', 'wp-addon')
+                __('WordPress.org update request blocked by wp-addon tweak.', 'wp-addon'),
             );
         }
     }
@@ -183,7 +183,7 @@ function wptweaker_setting_11()
      *
      * @since 1.0
      *
-     * @param  WP_Scripts  $scripts  WP_Scripts object.
+     * @param WP_Scripts $scripts WP_Scripts object.
      */
     function rw_remove_jquery_migrate($scripts)
     {
@@ -280,14 +280,14 @@ function wptweaker_setting_20()
 
 function wptweaker_remove_self_pingbacks(&$links)
 {
-    $host = preg_replace('/^www\./', '', strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST)));
+    $host = preg_replace('/^www\./', '', mb_strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST)));
 
     if ($host === '') {
         return;
     }
 
     foreach ($links as $key => $url) {
-        $targetHost = preg_replace('/^www\./', '', strtolower((string) wp_parse_url($url, PHP_URL_HOST)));
+        $targetHost = preg_replace('/^www\./', '', mb_strtolower((string) wp_parse_url($url, PHP_URL_HOST)));
         if ($targetHost === $host) {
             unset($links[$key]);
         }
@@ -355,7 +355,7 @@ function wptweaker_render_performance_info()
         '<!-- %1$s: %2$s s, %3$s -->',
         esc_html__('Page generated', 'wp-addon'),
         esc_html((string) $time),
-        esc_html((string) $memory)
+        esc_html((string) $memory),
     );
 }
 
@@ -385,8 +385,8 @@ function wptweaker_setting_25()
 {
     // Remove license.txt and readme.html from web root
     if (is_admin() && ! defined('DOING_AJAX')) {
-        $license_file = ABSPATH.'/license.txt';
-        $readme_file = ABSPATH.'/readme.html';
+        $license_file = ABSPATH . '/license.txt';
+        $readme_file = ABSPATH . '/readme.html';
 
         if (current_user_can('manage_options')) {
             $deleted = [];
@@ -410,7 +410,7 @@ function wptweaker_setting_25()
             }
 
             add_action('admin_notices', function () {
-                echo '<div class="error is-dismissible"><p>'.$GLOBALS['readmedel'].'</p></div>';
+                echo '<div class="error is-dismissible"><p>' . $GLOBALS['readmedel'] . '</p></div>';
             });
         }
     }
@@ -473,7 +473,7 @@ function wptweaker_setting_28()
         if ($count) {
             foreach ($menu as $key => $value) {
                 if ($menu[$key][2] === 'edit.php') {
-                    $menu[$key][0] .= ' <span class="awaiting-mod"><span class="pending-count">'.$count.'</span></span>';
+                    $menu[$key][0] .= ' <span class="awaiting-mod"><span class="pending-count">' . $count . '</span></span>';
                     break;
                 }
             }
@@ -502,7 +502,7 @@ function wptweaker_setting_30()
     {
         global $post;
 
-        return '<a class="read_more" href="'.get_permalink($post).'">'.__('Read more ...', 'wp-addon').'</a>';
+        return '<a class="read_more" href="' . get_permalink($post) . '">' . __('Read more ...', 'wp-addon') . '</a>';
     }
 }
 
@@ -587,7 +587,7 @@ function wptweaker_setting_36()
     if ($user_agent === '') {
         return;
     }
-    add_filter('pre_site_transient_browser_'.md5($user_agent), '__return_empty_array');
+    add_filter('pre_site_transient_browser_' . md5($user_agent), '__return_empty_array');
 }
 
 function wptweaker_setting_37()
@@ -597,7 +597,7 @@ function wptweaker_setting_37()
 
 function wptweaker_generic_login_error_message()
 {
-    return '<strong>'.esc_html__('Error:', 'wp-addon').'</strong> '.
+    return '<strong>' . esc_html__('Error:', 'wp-addon') . '</strong> ' .
         esc_html__('Incorrect username or password.', 'wp-addon');
 }
 
@@ -653,7 +653,7 @@ function wptweaker_restrict_rest_api($result)
         return new WP_Error(
             'rest_not_logged_in',
             __('You must be logged in to access the REST API.', 'wp-addon'),
-            ['status' => 401]
+            ['status' => 401],
         );
     }
 
@@ -759,7 +759,7 @@ function wptweaker_setting_48()
 
 function wptweaker_is_wp_tracking_url($url)
 {
-    $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+    $host = mb_strtolower((string) wp_parse_url($url, PHP_URL_HOST));
     $path = (string) wp_parse_url($url, PHP_URL_PATH);
 
     return in_array($host, ['pixel.wp.com', 'stats.wp.com'], true)
@@ -774,7 +774,7 @@ function wptweaker_block_wp_tracking_requests($preempt, $parsed_args, $url)
 
     return new WP_Error(
         'wptweaker_tracking_blocked',
-        __('WordPress tracking request blocked by wp-addon tweak.', 'wp-addon')
+        __('WordPress tracking request blocked by wp-addon tweak.', 'wp-addon'),
     );
 }
 

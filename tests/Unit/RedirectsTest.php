@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__DIR__, 2).'/functions/Redirects.php';
+require_once dirname(__DIR__, 2) . '/functions/Redirects.php';
 
 describe('Redirects', function () {
     it('imports csv rules on settings save', function () {
@@ -25,7 +25,7 @@ describe('Redirects', function () {
         $redirects = new Redirects;
 
         $data = $redirects->importCsvOnSave([
-            'redirects_rules' => '',
+            'redirects_rules'      => '',
             'redirects_csv_import' => '',
         ], null);
 

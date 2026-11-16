@@ -13,11 +13,12 @@ function widget_shortcode($atts)
 
     $widget_name = $instance = $args = null;
 
-    extract(shortcode_atts([
-        'widget_name' => false,
-        'instance' => [],
-        'args' => [],
-    ], $atts)
+    extract(
+        shortcode_atts([
+            'widget_name' => false,
+            'instance'    => [],
+            'args'        => [],
+        ], $atts),
     );
 
     $widget_name = esc_html($widget_name);

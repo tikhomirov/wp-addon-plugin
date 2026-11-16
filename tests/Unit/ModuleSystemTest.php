@@ -42,7 +42,7 @@ describe('Module System', function () {
     });
 
     it('Redirects module works', function () {
-        require_once dirname(__DIR__, 2).'/functions/Redirects.php';
+        require_once dirname(__DIR__, 2) . '/functions/Redirects.php';
 
         expect(class_exists('Redirects'))->toBeTrue();
         expect(is_subclass_of('Redirects', 'WpAddon\Interfaces\ModuleInterface'))->toBeTrue();
@@ -53,8 +53,8 @@ describe('Module System', function () {
     });
 
     it('MaintenanceMode initializes after main settings helpers are loaded', function () {
-        require_once dirname(__DIR__, 2).'/functions/main-settings-helpers.php';
-        require_once dirname(__DIR__, 2).'/functions/MaintenanceMode.php';
+        require_once dirname(__DIR__, 2) . '/functions/main-settings-helpers.php';
+        require_once dirname(__DIR__, 2) . '/functions/MaintenanceMode.php';
 
         $maintenance = new MaintenanceMode;
 

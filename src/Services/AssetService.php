@@ -55,9 +55,9 @@ class AssetService
 
         wp_enqueue_style(
             $this->name,
-            $this->url.'assets/css/min/wp-addon.min.css',
+            $this->url . 'assets/css/min/wp-addon.min.css',
             [],
-            $this->version
+            $this->version,
         );
 
         do_action('rw_enqueue_scripts');
