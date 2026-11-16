@@ -418,13 +418,12 @@ msgid "Read more ..."
 msgstr "Подробнее..."
 
 #: functions/wp-functions.php:593
-#, fuzzy
 msgid "Error:"
-msgstr "Ошибки: %d."
+msgstr "Ошибка:"
 
 #: functions/wp-functions.php:594
 msgid "Incorrect username or password."
-msgstr ""
+msgstr "Неверное имя пользователя или пароль."
 
 #: functions/wp-functions.php:648
 msgid "You must be logged in to access the REST API."

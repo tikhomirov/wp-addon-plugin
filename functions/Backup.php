@@ -82,12 +82,13 @@ final class Backup implements ModuleInterface
         wp_localize_script('wp-addon-backup', 'wpAddonBackup', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce(self::NONCE_ACTION),
-            'adminUrl' => admin_url(),
             'strings' => [
                 'working' => __('Выполняется…', 'wp-addon'),
                 'confirmRestore' => __('Восстановление полностью заменит содержимое базы данных. Продолжить?', 'wp-addon'),
                 'confirmDelete' => __('Удалить файл дампа?', 'wp-addon'),
                 'download' => __('Скачать дамп', 'wp-addon'),
+                'uploadTooLarge' => __('Файл слишком большой: сервер отклонил запрос (лимит nginx или PHP). Увеличьте client_max_body_size и post_max_size.', 'wp-addon'),
+                'uploadBadResponse' => __('Сервер вернул неожиданный ответ при загрузке. Обновите страницу и попробуйте снова.', 'wp-addon'),
             ],
             'canRestore' => BackupAdmin::can_restore(),
         ]);
@@ -252,11 +253,14 @@ final class Backup implements ModuleInterface
                 $restorer->close();
             }
 
+            // Обычный пробел в разделителе: статус вставляется в DOM через jQuery .text().
+            $rows_label = number_format((int) $result['rows'], 0, '.', ' ');
+
             $message = sprintf(
-                /* translators: 1: таблиц, 2: строк */
+                /* translators: 1: tables, 2: data rows restored (plain text, no HTML entities) */
                 __('База восстановлена: %1$d таблиц, %2$s строк.', 'wp-addon'),
                 $result['tables'],
-                number_format_i18n($result['rows'])
+                $rows_label
             );
 
             foreach ($result['warnings'] as $warning) {

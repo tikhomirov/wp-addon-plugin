@@ -35,6 +35,13 @@ describe('Backup module', function () {
         expect($jsActions)->toBe($phpActions);
     });
 
+    it('routes download through admin-ajax.php', function () {
+        $js = (string) file_get_contents(dirname(__DIR__, 2).'/assets/js/backup.js');
+
+        expect($js)->toContain("wpAddonBackup.ajaxUrl + '?action=wp_addon_backup_download");
+        expect($js)->not->toContain("wpAddonBackup.adminUrl");
+    });
+
     it('renders settings content without select and latest-download', function () {
         global $mock_user_capabilities, $wpdb;
 

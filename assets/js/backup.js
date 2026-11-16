@@ -113,7 +113,7 @@
         var backup = $(this).attr('data-backup');
         if (!backup) return;
 
-        window.location.href = wpAddonBackup.adminUrl + '?action=wp_addon_backup_download&backup=' + encodeURIComponent(backup) + '&nonce=' + encodeURIComponent(wpAddonBackup.nonce);
+        window.location.href = wpAddonBackup.ajaxUrl + '?action=wp_addon_backup_download&backup=' + encodeURIComponent(backup) + '&nonce=' + encodeURIComponent(wpAddonBackup.nonce);
     });
 
     $('#wp-addon-backup-list').on('click', '.wp-addon-backup-delete', function () {
@@ -178,8 +178,17 @@
                 }
             })
             .fail(function (xhr) {
-                var payloadError = xhr && xhr.responseJSON && xhr.responseJSON.data;
-                setStatus(payloadError && payloadError.message ? payloadError.message : 'Ошибка загрузки.', 'error');
+                var message = 'Ошибка загрузки.';
+
+                if (xhr && xhr.status === 413) {
+                    message = wpAddonBackup.strings.uploadTooLarge || message;
+                } else if (xhr && xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+                    message = xhr.responseJSON.data.message;
+                } else if (xhr && xhr.responseText && xhr.responseText.indexOf('<html') !== -1) {
+                    message = wpAddonBackup.strings.uploadBadResponse || message;
+                }
+
+                setStatus(message, 'error');
             })
             .always(function () {
                 setBusy(false);
@@ -187,6 +196,8 @@
     });
 
     $(function () {
-        // Инициализация: ничего не требуется, таблица уже отрисована PHP.
+        if (wpAddonBackup.canRestore === false) {
+            $('.wp-addon-backup-restore').prop('disabled', true);
+        }
     });
 })(jQuery);
