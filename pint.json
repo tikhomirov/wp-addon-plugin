@@ -73,7 +73,6 @@
     "exclude": [
         "vendor",
         "node_modules",
-        "coverage",
-        "tests/TestCase.php"
+        "coverage"
     ]
 }
