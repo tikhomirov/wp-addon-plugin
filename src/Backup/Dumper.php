@@ -620,11 +620,11 @@ final class Dumper
             throw new \RuntimeException('Backup file is not open for writing.');
         }
 
-        $length = mb_strlen($chunk);
+        $length = strlen($chunk);
         $offset = 0;
 
         while ($offset < $length) {
-            $written = fwrite($this->handle, mb_substr($chunk, $offset));
+            $written = fwrite($this->handle, substr($chunk, $offset));
 
             if ($written === false || $written === 0) {
                 throw new \RuntimeException('Could not write to backup file (disk full or permission denied).');

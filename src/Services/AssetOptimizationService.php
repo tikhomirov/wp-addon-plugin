@@ -240,7 +240,7 @@ class AssetOptimizationService
         }
 
         try {
-            if (file_put_contents($temporary, $content, LOCK_EX) !== mb_strlen($content)
+            if (file_put_contents($temporary, $content, LOCK_EX) !== strlen($content)
                 || ! chmod($temporary, 0644)
                 || ! rename($temporary, $file)) {
                 throw new \RuntimeException("Unable to write asset cache file: {$file}");

@@ -250,7 +250,7 @@ final class Restorer
         $count = 0;
         $depth = 0;
         $in_string = false;
-        $length = mb_strlen($values_body);
+        $length = strlen($values_body);
         $index = 0;
 
         while ($index < $length) {
@@ -357,7 +357,7 @@ final class Restorer
     {
         $statements = [];
         $current = '';
-        $length = mb_strlen($buffer);
+        $length = strlen($buffer);
         $index = 0;
         $in_string = false;
         $in_line_comment = false;
