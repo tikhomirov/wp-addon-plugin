@@ -71,8 +71,9 @@
         "visibility_required": true
     },
     "exclude": [
-        "vendor",
-        "node_modules",
-        "coverage"
+        "vendor/",
+        "node_modules/",
+        "coverage/",
+        "languages/"
     ]
 }
