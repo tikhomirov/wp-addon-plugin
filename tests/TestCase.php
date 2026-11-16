@@ -45,9 +45,9 @@ abstract class TestCase extends BaseTestCase
      */
     protected function getTestDataPath(string $filename = ''): string
     {
-        $path = __DIR__.'/data';
+        $path = __DIR__ . '/data';
 
-        return $filename ? $path.'/'.$filename : $path;
+        return $filename ? $path . '/' . $filename : $path;
     }
 
     /**
@@ -55,7 +55,7 @@ abstract class TestCase extends BaseTestCase
      */
     protected function createTempFile(string $content, string $extension = 'css'): string
     {
-        $filename = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.'.$extension;
+        $filename = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.' . $extension;
         file_put_contents($filename, $content);
 
         return $filename;
@@ -84,10 +84,10 @@ abstract class TestCase extends BaseTestCase
         foreach ($styles as $handle => $style) {
             $wp_styles->registered[$handle] = (object) array_merge([
                 'handle' => $handle,
-                'src' => '',
-                'deps' => [],
-                'ver' => false,
-                'args' => 'all',
+                'src'    => '',
+                'deps'   => [],
+                'ver'    => false,
+                'args'   => 'all',
             ], $style);
         }
     }
@@ -105,10 +105,10 @@ abstract class TestCase extends BaseTestCase
         foreach ($scripts as $handle => $script) {
             $wp_scripts->registered[$handle] = (object) array_merge([
                 'handle' => $handle,
-                'src' => '',
-                'deps' => [],
-                'ver' => false,
-                'args' => false,
+                'src'    => '',
+                'deps'   => [],
+                'ver'    => false,
+                'args'   => false,
             ], $script);
         }
     }
