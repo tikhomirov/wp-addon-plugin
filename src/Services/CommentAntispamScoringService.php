@@ -119,7 +119,7 @@ class CommentAntispamScoringService
             $reasons[] = self::REASON_TEXT_TOKEN;
         }
 
-        if (self::isRandomToken(mb_trim($author))) {
+        if (self::isRandomToken(trim($author))) {
             $score += self::WEIGHT_AUTHOR_TOKEN;
             $reasons[] = self::REASON_AUTHOR_TOKEN;
         }
@@ -146,7 +146,7 @@ class CommentAntispamScoringService
 
         $hosts = array_values(array_filter(array_map(self::hostOf(...), $urls)));
 
-        if (self::isBrandMatch($author, mb_trim($email), $hosts)) {
+        if (self::isBrandMatch($author, trim($email), $hosts)) {
             $score += self::WEIGHT_BRAND;
             $reasons[] = self::REASON_BRAND;
         }
@@ -236,7 +236,7 @@ class CommentAntispamScoringService
      */
     public static function looksLikeRussianTranslit(string $text): bool
     {
-        $normalized = mb_strtolower(mb_trim($text));
+        $normalized = mb_strtolower(trim($text));
         if ($normalized === '') {
             return false;
         }
@@ -287,7 +287,7 @@ class CommentAntispamScoringService
         $urls = [];
 
         if (preg_match_all('/(?:https?:\/\/|www\.)[^\s<>"\']+/iu', $rawContent, $matches)) {
-            $urls = array_map(fn ($url) => mb_rtrim((string) $url, '),.;]'), $matches[0]);
+            $urls = array_map(fn ($url) => rtrim((string) $url, '),.;]'), $matches[0]);
         }
 
         // Remove matched URLs before the bare domain scan, otherwise bare
@@ -302,7 +302,7 @@ class CommentAntispamScoringService
             $urls = array_merge($urls, $bare[0]);
         }
 
-        if (mb_trim($authorUrl) !== '') {
+        if (trim($authorUrl) !== '') {
             $urls[] = $authorUrl;
         }
 
@@ -319,17 +319,17 @@ class CommentAntispamScoringService
 
     public static function hostOf(string $url): string
     {
-        $host = preg_replace('#^\w+://#i', '', mb_trim($url, '\'"<>')) ?? $url;
+        $host = preg_replace('#^\w+://#i', '', trim($url, '\'"<>')) ?? $url;
         $host = preg_split('%[/?#<>"\']%', (string) $host)[0] ?? '';
 
-        $host = mb_strtolower(mb_rtrim((string) $host, '.'));
+        $host = mb_strtolower(rtrim((string) $host, '.'));
 
         return str_starts_with($host, 'www.') ? mb_substr($host, 4) : $host;
     }
 
     public static function emailDomain(string $email): string
     {
-        $email = mb_trim($email);
+        $email = trim($email);
         $position = mb_strrpos($email, '@');
 
         return $position === false ? '' : mb_strtolower(mb_substr($email, $position + 1));
@@ -438,7 +438,7 @@ class CommentAntispamScoringService
 
     public static function localPart(string $email): string
     {
-        $email = mb_trim($email);
+        $email = trim($email);
         $position = mb_strrpos($email, '@');
 
         return $position === false ? $email : mb_substr($email, 0, $position);
@@ -449,6 +449,6 @@ class CommentAntispamScoringService
         $text = html_entity_decode(strip_tags($content), ENT_QUOTES, 'UTF-8');
         $text = preg_replace('/\s+/u', ' ', $text);
 
-        return mb_trim(is_string($text) ? $text : '');
+        return trim(is_string($text) ? $text : '');
     }
 }

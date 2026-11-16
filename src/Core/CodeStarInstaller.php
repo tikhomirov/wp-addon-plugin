@@ -50,7 +50,7 @@ class CodeStarInstaller
      */
     public function __construct(string $pluginDir, string $siblingFile)
     {
-        $this->dir = mb_rtrim($pluginDir, '/\\') . '/';
+        $this->dir = rtrim($pluginDir, '/\\') . '/';
         $this->siblingFile = $siblingFile;
     }
 
@@ -226,7 +226,7 @@ class CodeStarInstaller
             );
         }
 
-        if (! $wp_filesystem->move(mb_rtrim($extracted[0], '/\\'), mb_rtrim($target, '/\\'))) {
+        if (! $wp_filesystem->move(rtrim($extracted[0], '/\\'), rtrim($target, '/\\'))) {
             return new \WP_Error(
                 'csf_move',
                 __('Could not move the CodeStar Framework into the plugin directory.', 'wp-addon'),

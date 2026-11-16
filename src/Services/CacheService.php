@@ -12,7 +12,7 @@ class CacheService implements CacheInterface
 
     public function __construct(string $cacheDir = '', int $ttl = 3600)
     {
-        $this->cacheDir = mb_rtrim($cacheDir ?: WP_CONTENT_DIR . '/cache/pages/', '/\\') . '/';
+        $this->cacheDir = rtrim($cacheDir ?: WP_CONTENT_DIR . '/cache/pages/', '/\\') . '/';
         $this->ttl = $ttl;
 
         if (! is_dir($this->cacheDir) && ! $this->createDirectory($this->cacheDir)) {
@@ -45,7 +45,7 @@ class CacheService implements CacheInterface
         }
 
         $path = rawurldecode($path);
-        $segments = array_filter(explode('/', mb_trim($path, '/')), static fn (string $segment): bool => $segment !== '');
+        $segments = array_filter(explode('/', trim($path, '/')), static fn (string $segment): bool => $segment !== '');
         foreach ($segments as $segment) {
             if ($segment === '.' || $segment === '..' || str_contains($segment, "\0")) {
                 return null;

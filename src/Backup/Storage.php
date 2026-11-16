@@ -40,7 +40,7 @@ final class Storage
     public function __construct(?string $root = null)
     {
         $base = $root ?? (defined('WP_CONTENT_DIR') ? WP_CONTENT_DIR . '/uploads' : '');
-        $this->root = mb_rtrim($base, '/') . '/' . self::DIRNAME;
+        $this->root = rtrim($base, '/') . '/' . self::DIRNAME;
     }
 
     /**
@@ -166,7 +166,7 @@ final class Storage
      */
     public function resolve(string $name): string
     {
-        $safe = basename(mb_trim($name));
+        $safe = basename(trim($name));
 
         if ($safe === '' || $safe === '.' || $safe === '..' || ! $this->is_backup_name($safe)) {
             throw new \RuntimeException(__('Invalid backup file name.', 'wp-addon'));

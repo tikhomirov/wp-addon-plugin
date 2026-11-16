@@ -20,9 +20,9 @@ class RedirectRulesService
                 continue;
             }
 
-            $request = mb_trim((string) ($rule['request'] ?? ''));
-            $destination = mb_trim((string) ($rule['destination'] ?? ''));
-            $line = mb_trim((string) ($rule['rule'] ?? ''));
+            $request = trim((string) ($rule['request'] ?? ''));
+            $destination = trim((string) ($rule['destination'] ?? ''));
+            $line = trim((string) ($rule['rule'] ?? ''));
 
             if (($request === '' || $destination === '') && $line !== '') {
                 $parts = self::parseCsvLine($line);
@@ -72,7 +72,7 @@ class RedirectRulesService
                 continue;
             }
 
-            $line = mb_trim($line);
+            $line = trim($line);
 
             if (preg_match('/^(request|source|from)\s*[,;\t]/i', $line)) {
                 continue;
@@ -85,7 +85,7 @@ class RedirectRulesService
             }
 
             $request = self::normalizeRequestPath($parts[0]);
-            $destination = mb_trim($parts[1]);
+            $destination = trim($parts[1]);
 
             if ($request === '' || $destination === '') {
                 continue;
@@ -125,14 +125,14 @@ class RedirectRulesService
      */
     public static function formatRuleLine(array $rule): string
     {
-        $line = mb_trim((string) ($rule['rule'] ?? ''));
+        $line = trim((string) ($rule['rule'] ?? ''));
 
         if ($line !== '') {
             return $line;
         }
 
-        $request = mb_trim((string) ($rule['request'] ?? ''));
-        $destination = mb_trim((string) ($rule['destination'] ?? ''));
+        $request = trim((string) ($rule['request'] ?? ''));
+        $destination = trim((string) ($rule['destination'] ?? ''));
 
         if ($request === '' || $destination === '') {
             return '';
@@ -169,7 +169,7 @@ class RedirectRulesService
 
     private static function isCommentOrEmptyLine(string $line): bool
     {
-        $trimmed = mb_ltrim($line);
+        $trimmed = ltrim($line);
 
         if ($trimmed === '') {
             return true;
@@ -204,7 +204,7 @@ class RedirectRulesService
 
     private static function normalizeRequestPath(string $path): string
     {
-        $path = mb_trim($path);
+        $path = trim($path);
 
         if ($path === '') {
             return '';
@@ -216,6 +216,6 @@ class RedirectRulesService
             return self::normalizeRequestPath((string) ($parsedPath ?? ''));
         }
 
-        return '/' . mb_ltrim($path, '/');
+        return '/' . ltrim($path, '/');
     }
 }

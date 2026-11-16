@@ -547,7 +547,7 @@ class MarkdownEditor implements ModuleInterface
         $html_paragraphs = [];
 
         foreach ($paragraphs as $paragraph) {
-            $paragraph = mb_trim($paragraph);
+            $paragraph = trim($paragraph);
             if (! empty($paragraph)) {
                 if (! preg_match('/^<(h[1-6]|hr)/', $paragraph)) {
                     $paragraph = '<p>' . $paragraph . '</p>';
@@ -605,7 +605,7 @@ class MarkdownEditor implements ModuleInterface
         // Strip remaining HTML tags
         $markdown = strip_tags($markdown);
 
-        return mb_trim($markdown);
+        return trim($markdown);
     }
 
     /**

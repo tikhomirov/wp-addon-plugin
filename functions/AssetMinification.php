@@ -372,7 +372,7 @@ class AssetMinification implements ModuleInterface
     {
         if ($type === 'css') {
             // Heuristic: minified CSS
-            return preg_match('/^[^{}]+{[^}]+}/', mb_trim($content)) &&
+            return preg_match('/^[^{}]+{[^}]+}/', trim($content)) &&
                    ! preg_match('/\\n/', $content);
         }
         if ($type === 'js') {
@@ -409,7 +409,7 @@ class AssetMinification implements ModuleInterface
         }
         $path = str_replace(site_url(), '', $url);
 
-        return mb_rtrim(ABSPATH, '/') . '/' . mb_ltrim($path, '/');
+        return rtrim(ABSPATH, '/') . '/' . ltrim($path, '/');
     }
 
     private function getCacheUrl(string $key, string $extension = 'css'): string

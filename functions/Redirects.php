@@ -38,7 +38,7 @@ class Redirects implements ModuleInterface
     {
         $data['redirects_rules'] = RedirectRulesService::normalizeRules($data['redirects_rules'] ?? null);
 
-        $csv = mb_trim((string) ($data['redirects_csv_import'] ?? ''));
+        $csv = trim((string) ($data['redirects_csv_import'] ?? ''));
         if ($csv !== '') {
             $imported = RedirectRulesService::parseCsv($csv);
             $data['redirects_rules'] = RedirectRulesService::mergeRules($data['redirects_rules'], $imported);
@@ -75,7 +75,7 @@ class Redirects implements ModuleInterface
             ], 403);
         }
 
-        $csv = isset($_POST['csv']) ? mb_trim(wp_unslash((string) $_POST['csv'])) : '';
+        $csv = isset($_POST['csv']) ? trim(wp_unslash((string) $_POST['csv'])) : '';
 
         if ($csv === '') {
             wp_send_json_error([
@@ -147,7 +147,7 @@ class Redirects implements ModuleInterface
                 continue;
             }
 
-            if (mb_trim($matched, '/') === mb_trim($userrequest, '/')) {
+            if (trim($matched, '/') === trim($userrequest, '/')) {
                 continue;
             }
 
@@ -166,7 +166,7 @@ class Redirects implements ModuleInterface
             }
 
             $patternRequest = str_replace('*', '(.*)', $storedrequest);
-            $pattern = '/^' . str_replace('/', '\/', mb_rtrim($patternRequest, '/')) . '/';
+            $pattern = '/^' . str_replace('/', '\/', rtrim($patternRequest, '/')) . '/';
             $target = str_replace('*', '$1', $destination);
             $output = preg_replace($pattern, $target, $userrequest);
 
@@ -177,8 +177,8 @@ class Redirects implements ModuleInterface
             return null;
         }
 
-        $normalizedRequest = mb_rtrim(urldecode($userrequest), '/') ?: '/';
-        $normalizedStored = mb_rtrim($storedrequest, '/') ?: '/';
+        $normalizedRequest = rtrim(urldecode($userrequest), '/') ?: '/';
+        $normalizedStored = rtrim($storedrequest, '/') ?: '/';
 
         if ($normalizedRequest === $normalizedStored) {
             return $destination;
@@ -197,7 +197,7 @@ class Redirects implements ModuleInterface
             return home_url($destination);
         }
 
-        return home_url('/' . mb_ltrim($destination, '/'));
+        return home_url('/' . ltrim($destination, '/'));
     }
 
     private function getRequestPath(): string
@@ -206,15 +206,15 @@ class Redirects implements ModuleInterface
         $path = wp_parse_url($requestUri, PHP_URL_PATH) ?? '/';
 
         $homePath = wp_parse_url(home_url(), PHP_URL_PATH) ?? '';
-        $homePath = mb_rtrim((string) $homePath, '/');
+        $homePath = rtrim((string) $homePath, '/');
 
         if ($homePath !== '' && str_starts_with($path, $homePath)) {
             $path = mb_substr($path, mb_strlen($homePath));
         }
 
-        $path = '/' . mb_ltrim((string) $path, '/');
+        $path = '/' . ltrim((string) $path, '/');
 
-        return mb_rtrim($path, '/') ?: '/';
+        return rtrim($path, '/') ?: '/';
     }
 
     private function isEnabled(): bool

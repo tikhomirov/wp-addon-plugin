@@ -64,7 +64,7 @@ class LazyLoading implements ModuleInterface
             $newAttrs['data-srcset'] = $attrs['srcset'];
             unset($newAttrs['srcset']);
         }
-        $classes = preg_split('/\s+/', mb_trim($attrs['class'] ?? '')) ?: [];
+        $classes = preg_split('/\s+/', trim($attrs['class'] ?? '')) ?: [];
         $classes[] = 'lazy-img';
         $newAttrs['class'] = implode(' ', array_unique(array_filter($classes)));
         $newAttrs['loading'] = 'lazy';

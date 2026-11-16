@@ -14,7 +14,7 @@ class AssetOptimizationService
     public function __construct(array $config)
     {
         $this->config = $config;
-        $this->cacheDir = mb_rtrim($config['cache_dir'], '/') . '/';
+        $this->cacheDir = rtrim($config['cache_dir'], '/') . '/';
         $this->ensureCacheDir();
     }
 
@@ -42,7 +42,7 @@ class AssetOptimizationService
         $css = preg_replace('/\s*([{}:;,>+~])\s*/', '$1', $css);
         $css = preg_replace('/;}/', '}', $css);
 
-        return mb_trim($css);
+        return trim($css);
     }
 
     /**
@@ -122,7 +122,7 @@ class AssetOptimizationService
             $result .= $char;
         }
 
-        return mb_trim($result);
+        return trim($result);
     }
 
     /**
@@ -308,7 +308,7 @@ class AssetOptimizationService
 
         foreach ($lines as $line) {
             // Simple check for common critical selectors
-            if (preg_match('/^(body|html|\.site|\.header|\.nav|\.main|\.footer)/i', mb_trim($line))) {
+            if (preg_match('/^(body|html|\.site|\.header|\.nav|\.main|\.footer)/i', trim($line))) {
                 $critical .= $line . "\n";
             }
         }

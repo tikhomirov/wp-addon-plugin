@@ -24,9 +24,9 @@ class PageCacheRewriteService
             return false;
         }
 
-        $relativeCacheDirectory = mb_trim(mb_substr($cacheDirectory, mb_strlen($contentDirectory)), '/');
-        $contentPath = mb_trim((string) wp_parse_url(content_url(), PHP_URL_PATH), '/');
-        $cacheUrlPath = '/' . mb_trim($contentPath . '/' . $relativeCacheDirectory, '/');
+        $relativeCacheDirectory = trim(mb_substr($cacheDirectory, mb_strlen($contentDirectory)), '/');
+        $contentPath = trim((string) wp_parse_url(content_url(), PHP_URL_PATH), '/');
+        $cacheUrlPath = '/' . trim($contentPath . '/' . $relativeCacheDirectory, '/');
         $rules = $this->buildRules($cacheUrlPath, $ttl);
         $current = (string) file_get_contents($htaccess);
         $updated = $this->replaceBlock($current, $rules);
@@ -66,7 +66,7 @@ class PageCacheRewriteService
 
     public function buildRules(string $cacheUrlPath, int $ttl): string
     {
-        $cacheUrlPath = '/' . mb_trim($cacheUrlPath, '/');
+        $cacheUrlPath = '/' . trim($cacheUrlPath, '/');
         $maxAge = max(1, $ttl);
 
         return self::BEGIN_MARKER . "\n" .
@@ -131,7 +131,7 @@ class PageCacheRewriteService
     {
         $pattern = '/\n?' . preg_quote(self::BEGIN_MARKER, '/') . '.*?' . preg_quote(self::END_MARKER, '/') . '\n?/s';
         $content = preg_replace($pattern, "\n", $content) ?? $content;
-        $content = mb_ltrim($content);
+        $content = ltrim($content);
 
         return $block === '' ? $content : $block . "\n\n" . $content;
     }

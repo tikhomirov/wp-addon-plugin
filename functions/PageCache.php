@@ -198,7 +198,7 @@ class PageCache implements ModuleInterface
         $server = mb_stripos((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''), 'nginx') !== false ? 'Nginx' : 'Apache';
         $htaccess = function_exists('get_home_path') ? get_home_path() . '.htaccess' : ABSPATH . '.htaccess';
         $htaccessStatus = is_file($htaccess) && str_contains((string) file_get_contents($htaccess), '# BEGIN WP Addon Page Cache') ? 'active' : 'not installed';
-        $cacheDirectory = mb_rtrim($defaults['cache_dir'], '/\\') . '/';
+        $cacheDirectory = rtrim($defaults['cache_dir'], '/\\') . '/';
         $nginxConfig = $cacheDirectory . 'nginx.conf';
         $delivery = $server === 'Nginx' ? (is_file($nginxConfig) ? 'configuration generated; include and reload required' : 'configuration not generated') : $htaccessStatus;
         $cacheFiles = glob($cacheDirectory . '*/*/index.html') ?: [];
@@ -292,7 +292,7 @@ class PageCache implements ModuleInterface
             }
         }
 
-        return mb_stripos(mb_ltrim($content), '<!doctype html') === 0 || mb_stripos(mb_ltrim($content), '<html') === 0;
+        return mb_stripos(ltrim($content), '<!doctype html') === 0 || mb_stripos(ltrim($content), '<html') === 0;
     }
 
     private function getRequest(): ?array
@@ -310,7 +310,7 @@ class PageCache implements ModuleInterface
 
     private function normalizePath(string $url): ?string
     {
-        $url = mb_trim($url);
+        $url = trim($url);
         if ($url === '') {
             return null;
         }
@@ -320,14 +320,14 @@ class PageCache implements ModuleInterface
             return '/';
         }
 
-        $path = '/' . mb_ltrim(preg_replace('#/+#', '/', $path) ?? $path, '/');
+        $path = '/' . ltrim(preg_replace('#/+#', '/', $path) ?? $path, '/');
 
         return str_ends_with($path, '/') || pathinfo($path, PATHINFO_EXTENSION) !== '' ? $path : $path . '/';
     }
 
     private function isExcludedPath(string $path): bool
     {
-        $customLoginSlug = mb_trim((string) get_option('whl_page'), '/');
+        $customLoginSlug = trim((string) get_option('whl_page'), '/');
         if ($customLoginSlug !== '' && $this->pathMatches($path, '/' . $customLoginSlug . '/')) {
             return true;
         }
@@ -343,7 +343,7 @@ class PageCache implements ModuleInterface
 
     private function pathMatches(string $path, string $excluded): bool
     {
-        $excluded = '/' . mb_trim($excluded, '/');
+        $excluded = '/' . trim($excluded, '/');
 
         return $excluded !== '/' && ($path === $excluded || $path === $excluded . '/' || str_starts_with($path, $excluded . '/'));
     }
@@ -410,11 +410,11 @@ class PageCache implements ModuleInterface
         $contentDirectory = trailingslashit(wp_normalize_path(WP_CONTENT_DIR));
         $cacheDirectory = trailingslashit(wp_normalize_path($this->config['cache_dir']));
         $relativeDirectory = str_starts_with($cacheDirectory, $contentDirectory)
-            ? mb_trim(mb_substr($cacheDirectory, mb_strlen($contentDirectory)), '/')
+            ? trim(mb_substr($cacheDirectory, mb_strlen($contentDirectory)), '/')
             : 'cache/pages';
-        $contentPath = mb_trim((string) wp_parse_url(content_url(), PHP_URL_PATH), '/');
+        $contentPath = trim((string) wp_parse_url(content_url(), PHP_URL_PATH), '/');
 
-        return '/' . mb_trim($contentPath . '/' . $relativeDirectory, '/');
+        return '/' . trim($contentPath . '/' . $relativeDirectory, '/');
     }
 
     private function isNginx(): bool

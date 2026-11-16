@@ -110,7 +110,7 @@ class WP_Addon_Settings
         $zipUrl = (string) ($plugin['zip_url'] ?? '');
 
         if ($htmlUrl === '' && $githubRepo !== '') {
-            $htmlUrl = 'https://github.com/' . mb_ltrim($githubRepo, '/');
+            $htmlUrl = 'https://github.com/' . ltrim($githubRepo, '/');
         }
 
         if ($zipUrl === '' && $githubRepo !== '') {

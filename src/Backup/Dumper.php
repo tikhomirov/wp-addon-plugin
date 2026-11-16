@@ -84,7 +84,7 @@ final class Dumper
     {
         global $wpdb;
 
-        $raw = mb_trim((string) $wpdb->get_charset_collate());
+        $raw = trim((string) $wpdb->get_charset_collate());
 
         $charset = 'utf8mb4';
         $collate = '';
@@ -219,7 +219,7 @@ final class Dumper
         global $wpdb;
 
         $sql_mode = $wpdb->get_var('SELECT @@SESSION.sql_mode');
-        $sql_mode = is_string($sql_mode) ? mb_trim($sql_mode) : '';
+        $sql_mode = is_string($sql_mode) ? trim($sql_mode) : '';
 
         $lines = ['SET @OLD_SQL_MODE = @@SESSION.sql_mode;'];
 
@@ -290,7 +290,7 @@ final class Dumper
             return null;
         }
 
-        $sql = mb_trim((string) $row[1]);
+        $sql = trim((string) $row[1]);
 
         return $sql === '' ? null : $sql;
     }

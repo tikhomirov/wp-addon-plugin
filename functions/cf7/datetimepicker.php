@@ -113,7 +113,7 @@ function wpcf7_datetime_validation_filter($result, $tag)
     $max = $tag->get_date_option( 'max' ); */
 
     $value = isset($_POST[$name])
-        ? mb_trim(strtr((string) $_POST[$name], "\n", ' '))
+        ? trim(strtr((string) $_POST[$name], "\n", ' '))
         : '';
 
     if ($tag->is_required() && $value == '') {
@@ -297,7 +297,7 @@ function wpcf7_datetimepicker_validation_filter($result, $tag)
 {
     $name = $tag->name;
     $value = isset($_POST[$name])
-        ? mb_trim(strtr((string) $_POST[$name], "\n", ' '))
+        ? trim(strtr((string) $_POST[$name], "\n", ' '))
         : '';
     if ($tag->is_required() && $value == '') {
         $result->invalidate($tag, wpcf7_get_message('invalid_required'));

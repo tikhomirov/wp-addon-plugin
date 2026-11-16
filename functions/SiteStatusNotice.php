@@ -39,7 +39,7 @@ class SiteStatusNotice implements ModuleInterface
             return;
         }
 
-        $text = mb_trim((string) (wp_addon_main_settings()['site_status_notice_text'] ?? ''));
+        $text = trim((string) (wp_addon_main_settings()['site_status_notice_text'] ?? ''));
 
         if ($text === '') {
             $text = __('The site is in recovery mode.', 'wp-addon');

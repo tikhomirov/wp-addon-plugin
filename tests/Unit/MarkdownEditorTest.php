@@ -17,7 +17,7 @@ if (! function_exists('wp_strip_all_tags')) {
             $string = preg_replace('/[\r\n\t ]+/', ' ', $string);
         }
 
-        return mb_trim($string);
+        return trim($string);
     }
 }
 

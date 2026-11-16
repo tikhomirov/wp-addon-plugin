@@ -167,7 +167,7 @@ class CommentAntispam implements ModuleInterface
         }
 
         $honeypot = $this->getSwitcher('antispam_honeypot', true);
-        if ($honeypot && mb_trim($this->getPostedValue(self::HONEYPOT_FIELD)) !== '') {
+        if ($honeypot && trim($this->getPostedValue(self::HONEYPOT_FIELD)) !== '') {
             return $this->reject(self::REASON_HONEYPOT, 0, $commentdata);
         }
 
@@ -480,7 +480,7 @@ class CommentAntispam implements ModuleInterface
     {
         $value = $_POST[$key] ?? '';
 
-        return is_string($value) ? mb_trim(wp_unslash($value)) : '';
+        return is_string($value) ? trim(wp_unslash($value)) : '';
     }
 
     private function isEnabled(): bool

@@ -6,7 +6,7 @@ class PageCacheNginxService
 {
     public function sync(string $cacheDirectory, string $cacheUrlPath, int $ttl): bool
     {
-        $directory = mb_rtrim($cacheDirectory, '/\\') . '/';
+        $directory = rtrim($cacheDirectory, '/\\') . '/';
         if (! is_dir($directory) && ! wp_mkdir_p($directory)) {
             return false;
         }
@@ -29,7 +29,7 @@ class PageCacheNginxService
 
     public function buildConfig(string $cacheUrlPath, int $ttl): string
     {
-        $cacheUrlPath = '/' . mb_trim($cacheUrlPath, '/');
+        $cacheUrlPath = '/' . trim($cacheUrlPath, '/');
         $maxAge = max(1, $ttl);
 
         return <<<NGINX

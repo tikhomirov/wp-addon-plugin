@@ -92,15 +92,15 @@ function wp_addon_normalize_category_exclude_ids(mixed $raw): array
         return array_values(array_unique($ids));
     }
 
-    if (! is_string($raw) || mb_trim($raw) === '') {
+    if (! is_string($raw) || trim($raw) === '') {
         return [];
     }
 
-    $parts = preg_split('/\s*,\s*/', mb_trim($raw)) ?: [];
+    $parts = preg_split('/\s*,\s*/', trim($raw)) ?: [];
     $ids = [];
 
     foreach ($parts as $part) {
-        $id = absint(mb_ltrim(mb_trim((string) $part), '-+'));
+        $id = absint(ltrim(trim((string) $part), '-+'));
 
         if ($id > 0) {
             $ids[] = $id;
@@ -188,15 +188,15 @@ function wp_addon_get_role_checkbox_options(): array
  */
 function wp_addon_parse_ip_whitelist(?string $raw): array
 {
-    if ($raw === null || mb_trim($raw) === '') {
+    if ($raw === null || trim($raw) === '') {
         return [];
     }
 
-    $lines = preg_split('/\R/u', mb_trim($raw)) ?: [];
+    $lines = preg_split('/\R/u', trim($raw)) ?: [];
     $ips = [];
 
     foreach ($lines as $line) {
-        $line = mb_trim((string) $line);
+        $line = trim((string) $line);
 
         if ($line === '') {
             continue;
@@ -225,7 +225,7 @@ function wp_addon_get_visitor_ip(): string
     ];
 
     foreach ($candidates as $candidate) {
-        if (! is_string($candidate) || mb_trim($candidate) === '') {
+        if (! is_string($candidate) || trim($candidate) === '') {
             continue;
         }
 

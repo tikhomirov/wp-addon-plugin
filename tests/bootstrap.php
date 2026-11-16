@@ -155,13 +155,13 @@ if ($wp_tests_dir && file_exists($wp_tests_dir . '/includes/bootstrap.php')) {
     if (! function_exists('content_url')) {
         function content_url($path = ''): string
         {
-            return mb_rtrim(WP_CONTENT_URL, '/') . '/' . mb_ltrim($path, '/');
+            return rtrim(WP_CONTENT_URL, '/') . '/' . ltrim($path, '/');
         }
     }
     if (! function_exists('site_url')) {
         function site_url($path = ''): string
         {
-            return 'http://localhost/' . mb_ltrim($path, '/');
+            return 'http://localhost/' . ltrim($path, '/');
         }
     }
     if (! function_exists('get_template_directory')) {
@@ -532,7 +532,7 @@ if ($wp_tests_dir && file_exists($wp_tests_dir . '/includes/bootstrap.php')) {
     if (! function_exists('sanitize_text_field')) {
         function sanitize_text_field($str)
         {
-            return mb_trim($str);
+            return trim($str);
         }
     }
 

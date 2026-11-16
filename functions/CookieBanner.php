@@ -130,7 +130,7 @@ class CookieBanner implements ModuleInterface
 
     public function getAnalyticsCode(): string
     {
-        return mb_trim((string) $this->optionService->getSetting('cookie_banner_analytics_code', ''));
+        return trim((string) $this->optionService->getSetting('cookie_banner_analytics_code', ''));
     }
 
     public function formatBannerText(string $text): string

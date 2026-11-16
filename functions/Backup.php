@@ -194,7 +194,7 @@ final class Backup implements ModuleInterface
      */
     private static function fail(Throwable $error): void
     {
-        $message = mb_trim($error->getMessage());
+        $message = trim($error->getMessage());
 
         if ($message === '') {
             $message = __('Unknown error.', 'wp-addon');

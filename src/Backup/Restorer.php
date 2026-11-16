@@ -192,7 +192,7 @@ final class Restorer
      */
     private function statement_kind(string $statement): string
     {
-        $head = mb_ltrim($statement);
+        $head = ltrim($statement);
 
         if (mb_stripos($head, 'INSERT') === 0) {
             return 'insert';
@@ -339,7 +339,7 @@ final class Restorer
             $buffer = $rest;
         }
 
-        $tail = mb_trim($buffer);
+        $tail = trim($buffer);
 
         if ($tail !== '') {
             yield $tail;
@@ -455,7 +455,7 @@ final class Restorer
             if ($char === ';') {
                 $index++;
 
-                $trimmed = $this->strip_comments(mb_trim($current));
+                $trimmed = $this->strip_comments(trim($current));
 
                 if ($trimmed !== '') {
                     $statements[] = $trimmed;
@@ -487,7 +487,7 @@ final class Restorer
         $statement = preg_replace('#/\*.*?\*/#s', ' ', $statement) ?? $statement;
         $statement = preg_replace('/^\s*(--|#).*$/m', '', $statement) ?? $statement;
 
-        return mb_trim($statement);
+        return trim($statement);
     }
 
     /**
@@ -502,7 +502,7 @@ final class Restorer
         if ($result === false) {
             throw new \RuntimeException(
                 'SQL error during restore: ' . $this->short_error((string) $this->db->last_error)
-                . ' [Query: ' . mb_substr(mb_trim($sql), 0, 120) . ']',
+                . ' [Query: ' . mb_substr(trim($sql), 0, 120) . ']',
             );
         }
     }
@@ -512,14 +512,14 @@ final class Restorer
      */
     private function short_error(string $error): string
     {
-        $error = mb_trim($error);
+        $error = trim($error);
 
         if ($error === '') {
             return 'unknown error';
         }
 
         $lines = preg_split('/\R/', $error) ?: [$error];
-        $first = mb_trim((string) $lines[0]);
+        $first = trim((string) $lines[0]);
 
         return $first !== '' ? $first : 'unknown error';
     }

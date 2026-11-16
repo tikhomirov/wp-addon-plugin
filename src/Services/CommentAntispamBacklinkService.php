@@ -12,7 +12,7 @@ class CommentAntispamBacklinkService
 {
     public function isPingbackSourceValid(string $url): bool
     {
-        $url = mb_trim($url);
+        $url = trim($url);
 
         if ($url === '') {
             return false;
@@ -35,7 +35,7 @@ class CommentAntispamBacklinkService
     {
         $homeHost = $homeHost ?? (string) wp_parse_url(home_url(), PHP_URL_HOST);
 
-        if ($homeHost === '' || mb_trim($html) === '') {
+        if ($homeHost === '' || trim($html) === '') {
             return false;
         }
 

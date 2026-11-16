@@ -99,7 +99,7 @@ class HierarchicalTagsRewrite
             $tag_base = 'tag';
         }
 
-        $tag_base = mb_trim($tag_base, '/');
+        $tag_base = trim($tag_base, '/');
 
         $tags = get_terms([
             'taxonomy'   => 'post_tag',
