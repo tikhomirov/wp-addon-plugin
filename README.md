@@ -1,9 +1,9 @@
 # WP Excellence Addon
 
-[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](https://github.com/rwsite/wp-addon-plugin/releases)
+[![Version](https://img.shields.io/badge/version-1.6.1-blue.svg)](https://github.com/rwsite/wp-addon-plugin/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-purple.svg)](https://php.net/)
-[![Tests](https://img.shields.io/badge/tests-265%20passed-green.svg)](https://github.com/rwsite/wp-addon-plugin/actions)
+[![Tests](https://img.shields.io/badge/tests-309%20passed-green.svg)](https://github.com/rwsite/wp-addon-plugin/actions)
 
 Transforms a standard WordPress site into a faster, safer, and easier-to-manage installation. The plugin bundles **WP Tweaker** (48 performance and security tweaks), **Redirects**, **Cookie Banner**, **Markdown editor**, **Plugin catalog**, **Comment spam protection**, and admin utilities in one place.
 
@@ -117,7 +117,7 @@ make release
 # or: composer run build:zip
 ```
 
-Publish on GitHub: push tag `v1.6.0` (must match `Version` in `wp-addon-plugin.php`). The [`.github/workflows/release.yml`](.github/workflows/release.yml) workflow attaches `wp-addon-plugin-<version>.zip` to the GitHub Release.
+Publish on GitHub: push tag `v1.6.1` (must match `Version` in `wp-addon-plugin.php`). The [`.github/workflows/release.yml`](.github/workflows/release.yml) workflow attaches `wp-addon-plugin-<version>.zip` to the GitHub Release.
 
 ## Architecture
 

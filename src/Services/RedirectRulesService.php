@@ -167,9 +167,6 @@ class RedirectRulesService
         return $options;
     }
 
-    /**
-     * @return array<int, string>
-     */
     private static function isCommentOrEmptyLine(string $line): bool
     {
         $trimmed = ltrim($line);

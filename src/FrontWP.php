@@ -66,7 +66,7 @@ final class FrontWP
                         continue;
                     }
                     foreach ($val as $item) {
-                        if (! is_array($item)) {
+                        if (! is_string($item)) {
                             continue;
                         }
                         echo $item;

@@ -56,7 +56,7 @@ final class Restorer
     /** @var string|null Prefix mismatch warning. */
     private ?string $prefix_warning = null;
 
-    /** @var wpdb Database connection for queries. */
+    /** @var \wpdb Database connection for queries. */
     private $db;
 
     /**

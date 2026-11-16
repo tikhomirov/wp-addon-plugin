@@ -413,7 +413,7 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
     if (! function_exists('get_file_data')) {
         function get_file_data($file, $headers)
         {
-            return ['Version' => '1.6.0'];
+            return ['Version' => '1.6.1'];
         }
     }
 
@@ -1033,7 +1033,7 @@ if ($wp_tests_dir && file_exists($wp_tests_dir.'/includes/bootstrap.php')) {
     if (! function_exists('get_file_data')) {
         function get_file_data($file, $headers)
         {
-            return ['Version' => '1.6.0'];
+            return ['Version' => '1.6.1'];
         }
     }
 

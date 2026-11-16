@@ -35,7 +35,7 @@ class Plugin
     /**
      * Plugin version
      */
-    private string $version = '1.6.0';
+    private string $version = '1.6.1';
 
     /**
      * Text domain

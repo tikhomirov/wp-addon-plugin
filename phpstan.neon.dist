@@ -4,19 +4,31 @@ includes:
 parameters:
     level: 2
     paths:
-        - src/Core/Plugin.php
-        - src/Core/CodeStarInstaller.php
-        - src/Services/CacheService.php
-        - src/Services/ImageOptimizationService.php
-        - src/Services/CommentAntispamScoringService.php
-        - src/Services/CommentAntispamBacklinkService.php
-        - src/Services/CommentAntispamRateLimitService.php
-        - src/Services/CommentAntispamLogService.php
-        - functions/PageCache.php
+        - src/Autoloader.php
+        - src/Backup
+        - src/ControllerWP.php
+        - src/Core
+        - src/FrontWP.php
+        - src/Interfaces
+        - src/Services
+        - src/Traits
+        - functions/AssetMinification.php
+        - functions/Backup.php
         - functions/LazyLoading.php
+        - functions/MaintenanceMode.php
+        - functions/MarkdownEditor.php
+        - functions/MediaCleanup.php
+        - functions/PageCache.php
         - functions/Redirects.php
+        - functions/SiteStatusNotice.php
         - functions/comments/CommentAntispam.php
+        - functions/comments/CommentContentPreserve.php
+    excludePaths:
+        - src/Config/wp-addon-settings.php
+        - src/Config/_options.php
     scanFiles:
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
         - phpstan-bootstrap.php
         - src/Config/cookie-banner-defaults.php
+    bootstrapFiles:
+        - phpstan-bootstrap.php

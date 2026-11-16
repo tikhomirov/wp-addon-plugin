@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [1.6.1] — 2026-11-16
+
+### Changed
+
+- Expanded PHPStan coverage (`src/` and modern `functions/` modules); legacy procedural tweaks remain excluded until typed.
+- Removed deprecated `version` field from `composer.json` so `composer validate --strict` passes in CI.
+
+### Fixed
+
+- PHPStan and Pint fixes in backup restore, redirect rules, front output, and maintenance mode (`wp_doing_ajax()`).
+
 ## [1.6.0] — 2026-11-16
 
 ### Added

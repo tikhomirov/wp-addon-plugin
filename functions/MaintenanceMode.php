@@ -31,7 +31,7 @@ class MaintenanceMode implements ModuleInterface
             return;
         }
 
-        if (defined('DOING_AJAX') && DOING_AJAX) {
+        if (wp_doing_ajax()) {
             return;
         }
 
