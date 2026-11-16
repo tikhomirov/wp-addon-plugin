@@ -12,6 +12,7 @@ class Redirects implements ModuleInterface
     {
         $this->addHook('csf_wp-addon_save', [$this, 'sanitizeRulesOnSave'], 10, 2);
         $this->addHook('wp_ajax_wp_addon_redirects_import', [$this, 'importRulesAjax']);
+        $this->addHook('option_wp-addon', [$this, 'prepareRulesForAdminForm'], 5);
 
         if (! $this->isEnabled()) {
             return;
@@ -26,9 +27,42 @@ class Redirects implements ModuleInterface
      */
     public function sanitizeRulesOnSave(array $data, mixed $instance): array
     {
+        return $this->importCsvOnSave($data, $instance);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public function importCsvOnSave(array $data, mixed $instance): array
+    {
         $data['redirects_rules'] = RedirectRulesService::normalizeRules($data['redirects_rules'] ?? null);
 
+        $csv = trim((string) ($data['redirects_csv_import'] ?? ''));
+        if ($csv !== '') {
+            $imported = RedirectRulesService::parseCsv($csv);
+            $data['redirects_rules'] = RedirectRulesService::mergeRules($data['redirects_rules'], $imported);
+            $data['redirects_csv_import'] = '';
+        }
+
         return $data;
+    }
+
+    /**
+     * @param  mixed  $value
+     * @return mixed
+     */
+    public function prepareRulesForAdminForm($value)
+    {
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        if (! is_admin() || ! isset($_GET['page']) || $_GET['page'] !== 'wp-addon') {
+            return $value;
+        }
+
+        return RedirectRulesService::prepareOptionsForRedirectsAdmin($value);
     }
 
     public function importRulesAjax(): void

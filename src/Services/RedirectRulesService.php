@@ -22,6 +22,16 @@ class RedirectRulesService
 
             $request = trim((string) ($rule['request'] ?? ''));
             $destination = trim((string) ($rule['destination'] ?? ''));
+            $line = trim((string) ($rule['rule'] ?? ''));
+
+            if (($request === '' || $destination === '') && $line !== '') {
+                $parts = self::parseCsvLine($line);
+
+                if (count($parts) >= 2) {
+                    $request = $parts[0];
+                    $destination = $parts[1];
+                }
+            }
 
             if ($request === '' || $destination === '') {
                 continue;
@@ -108,6 +118,53 @@ class RedirectRulesService
         }
 
         return array_values($map);
+    }
+
+    /**
+     * @param  array<string, mixed>  $rule
+     */
+    public static function formatRuleLine(array $rule): string
+    {
+        $line = trim((string) ($rule['rule'] ?? ''));
+
+        if ($line !== '') {
+            return $line;
+        }
+
+        $request = trim((string) ($rule['request'] ?? ''));
+        $destination = trim((string) ($rule['destination'] ?? ''));
+
+        if ($request === '' || $destination === '') {
+            return '';
+        }
+
+        return $request.','.$destination;
+    }
+
+    /**
+     * @param  array<string, mixed>  $options
+     * @return array<string, mixed>
+     */
+    public static function prepareOptionsForRedirectsAdmin(array $options): array
+    {
+        if (empty($options['redirects_rules']) || ! is_array($options['redirects_rules'])) {
+            return $options;
+        }
+
+        $options['redirects_rules'] = array_values(array_map(
+            static function (mixed $rule): array {
+                if (! is_array($rule)) {
+                    return ['rule' => ''];
+                }
+
+                $line = self::formatRuleLine($rule);
+
+                return ['rule' => $line];
+            },
+            $options['redirects_rules']
+        ));
+
+        return $options;
     }
 
     /**

@@ -1,6 +1,6 @@
 <?php
 /**
- * Отрисовка интерфейса бэкапов внутри страницы настроек WP Addon.
+ * Backup UI rendered inside the WP Addon settings page.
  */
 
 declare(strict_types=1);
@@ -12,24 +12,23 @@ if (! defined('ABSPATH')) {
 }
 
 /**
- * Строит разметку блока бэкапов.
+ * Builds backup block markup.
  */
 final class Admin
 {
     /**
-     * Таблица со списком дампов и кнопками действий.
+     * Table of backups with action buttons.
      *
-     * Каждая строка и кнопка удаления несут data-backup с именем файла —
-     * JS берёт имя отсюда, чтобы не дублировать разметку.
+     * Each row carries data-backup so JS does not duplicate markup.
      *
-     * @param  Storage  $storage  Хранилище дампов.
+     * @param  Storage  $storage  Backup storage.
      */
     public static function render_backup_table(Storage $storage): void
     {
         $backups = $storage->list_backups();
 
         if ($backups === []) {
-            echo '<p>'.esc_html__('Файлов дампов пока нет.', 'wp-addon').'</p>';
+            echo '<p>'.esc_html__('No backup files yet.', 'wp-addon').'</p>';
 
             return;
         }
@@ -37,10 +36,10 @@ final class Admin
         <table class="widefat striped wp-addon-backup__table">
             <thead>
                 <tr>
-                    <th><?php echo esc_html__('Файл', 'wp-addon'); ?></th>
-                    <th><?php echo esc_html__('Размер', 'wp-addon'); ?></th>
-                    <th><?php echo esc_html__('Создан', 'wp-addon'); ?></th>
-                    <th><?php echo esc_html__('Действия', 'wp-addon'); ?></th>
+                    <th><?php echo esc_html__('File', 'wp-addon'); ?></th>
+                    <th><?php echo esc_html__('Size', 'wp-addon'); ?></th>
+                    <th><?php echo esc_html__('Created', 'wp-addon'); ?></th>
+                    <th><?php echo esc_html__('Actions', 'wp-addon'); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -52,15 +51,15 @@ final class Admin
                     <td>
                         <button type="button" class="button button-small wp-addon-backup-restore"
                                 data-backup="<?php echo esc_attr($backup['name']); ?>">
-                            <?php echo esc_html__('Восстановить', 'wp-addon'); ?>
+                            <?php echo esc_html__('Restore', 'wp-addon'); ?>
                         </button>
                         <button type="button" class="button button-small wp-addon-backup-download"
                                 data-backup="<?php echo esc_attr($backup['name']); ?>">
-                            <?php echo esc_html__('Скачать', 'wp-addon'); ?>
+                            <?php echo esc_html__('Download', 'wp-addon'); ?>
                         </button>
                         <button type="button" class="button button-small wp-addon-backup-delete"
                                 data-backup="<?php echo esc_attr($backup['name']); ?>">
-                            <?php echo esc_html__('Удалить', 'wp-addon'); ?>
+                            <?php echo esc_html__('Delete', 'wp-addon'); ?>
                         </button>
                     </td>
                 </tr>
@@ -71,10 +70,7 @@ final class Admin
     }
 
     /**
-     * Можно ли выполнять восстановление.
-     *
-     * Восстановление перезаписывает базу, поэтому требует права
-     * manage_options и работающего соединения с базой.
+     * Whether restore is allowed (manage_options and live DB connection).
      */
     public static function can_restore(): bool
     {

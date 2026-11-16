@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Кодирование значений ячеек в SQL-литералы.
+ * Encode cell values as SQL literals.
  */
 
 declare(strict_types=1);
@@ -13,22 +13,19 @@ if (! defined('ABSPATH')) {
 }
 
 /**
- * Преобразует значения строки БД в безопасные SQL-литералы.
+ * Turns database row values into safe SQL literals.
  *
- * Отдельный класс без зависимости от WordPress и базы: правила кодирования
- * — самая важная часть дампа, и они должны проверяться напрямую.
+ * Standalone from WordPress and the DB layer so encoding rules are tested directly.
  */
 final class ValueEncoder
 {
     /**
-     * Кодирует одно значение ячейки.
+     * Encode a single cell value.
      *
-     * Важно: здесь намеренно не используется esc_sql(). Он заменяет "%"
-     * служебным плейсхолдером-заглушкой (wpdb::add_placeholder_escape),
-     * из-за чего содержимое базы портится. Собственное кодирование даёт
-     * результат, не зависящий от настроек сервера.
+     * esc_sql() is intentionally not used: it replaces "%" with wpdb's placeholder
+     * escape and corrupts dump contents. Custom encoding is server-setting agnostic.
      *
-     * @param  mixed  $value  Значение из базы.
+     * @param  mixed  $value  Value from the database.
      */
     public static function literal($value): string
     {
@@ -50,9 +47,7 @@ final class ValueEncoder
             return "''";
         }
 
-        // Битые байты, NUL и SUB нельзя писать текстовым литералом:
-        // они ломают потоковый разбор и кодировку. Такие значения
-        // сохраняем как hex — это работает для любых байтов.
+        // Broken bytes, NUL, and SUB cannot be written as text literals; use hex instead.
         if (! self::is_text_safe($value)) {
             return '0x'.bin2hex($value);
         }
@@ -61,10 +56,10 @@ final class ValueEncoder
     }
 
     /**
-     * Собирает список значений одной строки в виде "(v1,v2,...)".
+     * Build one row as "(v1,v2,...)".
      *
-     * @param  array<string,mixed>  $row  Строка результата запроса.
-     * @param  string[]  $columns  Колонки в порядке схемы.
+     * @param  array<string,mixed>  $row  Query result row.
+     * @param  string[]  $columns  Columns in schema order.
      */
     public static function row_values(array $row, array $columns): string
     {
@@ -78,11 +73,9 @@ final class ValueEncoder
     }
 
     /**
-     * Экранирует строку как SQL-литерал.
+     * Escape a string as an SQL literal.
      *
-     * Парность с NO_BACKSLASH_ESCAPES=OFF, который дампер выставляет
-     * явно через SET SESSION sql_mode: обратный слэш всегда экранирует
-     * следующий символ.
+     * Matches NO_BACKSLASH_ESCAPES=OFF set by the dumper via SET SESSION sql_mode.
      */
     public static function quote(string $value): string
     {
@@ -90,7 +83,7 @@ final class ValueEncoder
     }
 
     /**
-     * Можно ли записать значение текстовым литералом.
+     * Whether the value can be written as a text literal.
      */
     public static function is_text_safe(string $value): bool
     {
@@ -98,7 +91,7 @@ final class ValueEncoder
             return false;
         }
 
-        // preg_match с модификатором /u возвращает false на невалидном UTF-8.
+        // preg_match with /u returns false on invalid UTF-8.
         return (bool) preg_match('//u', $value);
     }
 }

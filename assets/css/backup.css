@@ -1,8 +1,8 @@
 /**
- * Стили секции «Backup DB» на странице настроек WP Addon.
+ * Backup DB section styles on the WP Addon settings page.
  *
- * Всё под префиксом .wp-addon-backup, чтобы не пересекаться
- * со стилями самой CSF-страницы.
+ * Scoped under .wp-addon-backup to avoid clashing
+ * with CSF page styles.
  */
 
 .wp-addon-backup__lead {

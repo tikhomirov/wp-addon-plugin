@@ -206,7 +206,7 @@ describe('MarkdownEditor Unit Tests', function () {
     it('does not overwrite html edits even if markdown field still differs', function () {
         $before = markdown_test_post('<p>Old</p>');
         $after = markdown_test_post('<p>Edited in HTML editor</p>');
-        // Устаревший MD в форме, но без флага правки — HTML должен победить.
+        // Legacy MD in form without edit flag — HTML should win.
         $_POST['markdown_content'] = "# Stale markdown\n\nShould not win";
         $_POST['markdown_edited'] = '0';
 

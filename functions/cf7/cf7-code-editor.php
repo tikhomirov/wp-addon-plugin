@@ -16,18 +16,18 @@ add_action("admin_print_styles-{$hook_suffix}", function () {
     if (empty($_GET['post'])) {
         return;
     }
-    // Подключаем редактор кода для HTML.
+    // Code editor for HTML
     $settings = wp_enqueue_code_editor(['type' => 'text/html']);
-    // Ничего не делаем, если CodeMirror отключен.
+    // Skip when CodeMirror is disabled
     if ($settings === false) {
         return;
     }
-    // Инициализация редактора для редактирования шаблона формы
+    // Form template editor
     /* wp_add_inline_script(
          'code-editor',
          sprintf( 'jQuery( function() { wp.codeEditor.initialize( "wpcf7-form", %s ); } );', wp_json_encode( $settings ) )
      );*/
-    // Инициализация редактора для редактирования шаблона письма
+    // Mail template editor
     wp_add_inline_script(
         'code-editor',
         sprintf('jQuery( function() { wp.codeEditor.initialize( "wpcf7-mail-body", %s ); } );', wp_json_encode($settings))

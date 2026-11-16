@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Виджет в Консоли для связи с разработчиком
+ * Dashboard widget for developer contact
  */
 function dashboard_server_info()
 {

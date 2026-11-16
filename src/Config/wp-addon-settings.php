@@ -225,7 +225,7 @@ class WP_Addon_Settings
         $body = $this->fetch_plugins_catalog_payload();
         if (! is_array($body) || empty($body['plugins']) || ! is_array($body['plugins'])) {
             if ($body !== null) {
-                $this->set_github_plugins_error('Некорректный ответ API каталога плагинов.');
+                $this->set_github_plugins_error(__('Invalid plugin catalog API response.', 'wp-addon'));
             }
 
             return [];
@@ -250,7 +250,7 @@ class WP_Addon_Settings
             set_transient($cache_key, $plugins, HOUR_IN_SECONDS);
         } else {
             delete_transient($cache_key);
-            $this->set_github_plugins_error('Каталог плагинов пуст.');
+            $this->set_github_plugins_error(__('The plugin catalog is empty.', 'wp-addon'));
         }
 
         return $plugins;
@@ -299,7 +299,7 @@ class WP_Addon_Settings
 
         $repos = json_decode(wp_remote_retrieve_body($response), true);
         if (! is_array($repos)) {
-            $this->set_github_plugins_error('Некорректный ответ GitHub API.');
+            $this->set_github_plugins_error(__('Invalid GitHub API response.', 'wp-addon'));
 
             return [];
         }
@@ -337,7 +337,7 @@ class WP_Addon_Settings
             set_transient($cache_key, $plugins, DAY_IN_SECONDS);
         } else {
             delete_transient($cache_key);
-            $this->set_github_plugins_error('Плагины формата wp-*-plugin не найдены у пользователя '.$owner.'.');
+            $this->set_github_plugins_error(sprintf(__('No wp-*-plugin repositories found for user %s.', 'wp-addon'), $owner));
         }
 
         return $plugins;
@@ -498,10 +498,10 @@ class WP_Addon_Settings
             $html .= '<span class="my-plugins-stat" title="GitHub Stars"><span class="dashicons dashicons-star-filled" aria-hidden="true"></span>'.esc_html(number_format_i18n($plugin['stars'])).'</span>';
         }
         if ($plugin['views'] > 0) {
-            $html .= '<span class="my-plugins-stat" title="Просмотры"><span class="dashicons dashicons-visibility" aria-hidden="true"></span>'.esc_html(number_format_i18n($plugin['views'])).'</span>';
+            $html .= '<span class="my-plugins-stat" title="'.esc_attr__('Views', 'wp-addon').'"><span class="dashicons dashicons-visibility" aria-hidden="true"></span>'.esc_html(number_format_i18n($plugin['views'])).'</span>';
         }
         if ($plugin['updated_label'] !== '') {
-            $html .= '<span class="my-plugins-stat" title="Обновлён"><span class="dashicons dashicons-clock" aria-hidden="true"></span>'.esc_html($plugin['updated_label']).'</span>';
+            $html .= '<span class="my-plugins-stat" title="'.esc_attr__('Updated', 'wp-addon').'"><span class="dashicons dashicons-clock" aria-hidden="true"></span>'.esc_html($plugin['updated_label']).'</span>';
         }
         $html .= '</div>';
         $html .= '</div>';
@@ -529,12 +529,12 @@ class WP_Addon_Settings
                 $html .= '<a class="button button-small" href="'.esc_url($plugin['html_url']).'" target="_blank" rel="noopener">GitHub</a>';
             }
             if ($state['is_installed']) {
-                $activate_text = $state['is_active'] ? 'Деактивировать' : 'Активировать';
+                $activate_text = $state['is_active'] ? __('Deactivate', 'wp-addon') : __('Activate', 'wp-addon');
                 $activate_class = $state['is_active'] ? 'deactivate-plugin-btn button button-small' : 'activate-plugin-btn button button-small button-primary';
                 $html .= '<button class="'.esc_attr($activate_class).'" data-repo="'.esc_attr($slug).'" data-file="'.esc_attr((string) $state['plugin_file']).'">'.esc_html($activate_text).'</button>';
-                $html .= '<button class="uninstall-plugin-btn button button-small button-link-delete" data-repo="'.esc_attr($slug).'">Удалить</button>';
+                $html .= '<button class="uninstall-plugin-btn button button-small button-link-delete" data-repo="'.esc_attr($slug).'">'.esc_html__('Uninstall', 'wp-addon').'</button>';
             } else {
-                $html .= '<button class="install-plugin-btn button button-small button-primary" data-repo="'.esc_attr($slug).'" data-zip="'.esc_attr($plugin['zip_url']).'">Установить</button>';
+                $html .= '<button class="install-plugin-btn button button-small button-primary" data-repo="'.esc_attr($slug).'" data-zip="'.esc_attr($plugin['zip_url']).'">'.esc_html__('Install', 'wp-addon').'</button>';
             }
             $html .= '</div>';
         }
@@ -555,7 +555,7 @@ class WP_Addon_Settings
         return '<div style="background:#f0f6fc;border:1px solid #d0d7de;border-radius:6px;padding:16px;margin:0 0 16px;line-height:1.55;color:#1d2327;">'
             .'<h4 style="margin:0 0 12px;">'.esc_html__('How redirects work', 'wp-addon').'</h4>'
             .'<p style="margin:0 0 12px;">'.sprintf(
-                esc_html__('Плагин отдаёт ответ %1$s и перенаправляет посетителя с одного адреса на другой. Указывайте пути без домена — от корня WordPress, например %2$s (не /wp/old-page/, если сайт в подпапке). Абсолютные URL (https://...) — только в поле «Куда». Запросы к %3$s и %4$s никогда не перенаправляются.', 'wp-addon'),
+                esc_html__('The plugin returns a %1$s response and redirects visitors from one URL to another. Use paths without the domain — from the WordPress root, e.g. %2$s (not /wp/old-page/ if the site lives in a subdirectory). Absolute URLs (https://...) belong only in the destination field. Requests to %3$s and %4$s are never redirected.', 'wp-addon'),
                 '<code>301 Moved Permanently</code>',
                 '<code>'.$homeExample.'</code>',
                 '<code>/wp-admin</code>',
@@ -563,25 +563,25 @@ class WP_Addon_Settings
             ).'</p>'
             .'<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;">'
             .'<div>'
-            .'<strong>'.esc_html__('Слеш в конце URL', 'wp-addon').'</strong><br>'
-            .esc_html__('/page и /page/ считаются одинаковыми. Можно писать в любом виде — плагин сравнивает пути без учёта завершающего слеша.', 'wp-addon')
-            .'<br><br><strong>'.esc_html__('Простые правила', 'wp-addon').'</strong><br>'
+            .'<strong>'.esc_html__('Trailing slash in URLs', 'wp-addon').'</strong><br>'
+            .esc_html__('/page and /page/ are treated the same. You can write either form — the plugin compares paths without a trailing slash.', 'wp-addon')
+            .'<br><br><strong>'.esc_html__('Simple rules', 'wp-addon').'</strong><br>'
             .'<code>/old-page/ → /new-page/</code><br>'
             .'<code>/archive/2020/ → /archive/</code><br>'
             .'<code>/contact → https://t.me/username</code>'
-            .'<br><br><strong>'.esc_html__('Массовый импорт CSV', 'wp-addon').'</strong><br>'
+            .'<br><br><strong>'.esc_html__('Bulk CSV import', 'wp-addon').'</strong><br>'
             .esc_html__('One line = one rule. Delimiters: comma, semicolon, or tab. Lines starting with #, // or ; are comments. Use the import buttons below.', 'wp-addon')
             .'</div>'
             .'<div>'
-            .'<strong>'.esc_html__('Подстановочный знак * (не regex)', 'wp-addon').'</strong><br>'
-            .esc_html__('Это не полноценные регулярные выражения — поддерживается только символ *. Включите опцию «Подстановочные знаки» выше.', 'wp-addon')
+            .'<strong>'.esc_html__('Wildcard * (not regex)', 'wp-addon').'</strong><br>'
+            .esc_html__('These are not full regular expressions — only * is supported. Enable the wildcards option above.', 'wp-addon')
             .'<br><br><code>/old-blog/* → /blog/*</code><br>'
             .'<code>/docs/*/edit → /help/*/edit</code><br>'
             .'<code>/ru/* → /en/*</code><br>'
             .'<code>/shop/category/* → /catalog/*</code><br>'
             .'<code>/files/*.pdf → /media/*.pdf</code>'
-            .'<br><br><strong>'.esc_html__('Что важно помнить', 'wp-addon').'</strong><br>'
-            .esc_html__('Параметры запроса (?utm=...) при сравнении не учитываются. Если правило совпало — редирект сработает и для URL с query string. Не создавайте циклы: /a → /b и /b → /a.', 'wp-addon')
+            .'<br><br><strong>'.esc_html__('Important notes', 'wp-addon').'</strong><br>'
+            .esc_html__('Query parameters (?utm=...) are ignored when matching. If a rule matches, the redirect also applies to URLs with a query string. Avoid redirect loops: /a → /b and /b → /a.', 'wp-addon')
             .'</div>'
             .'</div>'
             .'</div>';
@@ -622,9 +622,8 @@ class WP_Addon_Settings
             .'var rules=[];'
             .'$(".csf-field-repeater.wp-addon-redirects-rules .csf-repeater-wrapper > .csf-repeater-item").each(function(){'
             .'var $item=$(this);'
-            .'var request=$.trim($item.find("input[name$=\"[request]\"]").val()||"");'
-            .'var destination=$.trim($item.find("input[name$=\"[destination]\"]").val()||"");'
-            .'if(request!==""&&destination!==""){rules.push({request:request,destination:destination});}'
+            .'var line=$.trim($item.find("input[name$=\"[rule]\"]").val()||"");'
+            .'if(line!==""){rules.push({rule:line});}'
             .'});'
             .'return rules;}'
             .'function runImport(csv){'
@@ -661,7 +660,7 @@ class WP_Addon_Settings
         $plugins = $this->get_plugins_catalog();
         $installed_plugins = get_plugins();
         $active_plugins = get_option('active_plugins', []);
-        $source_label = get_transient('wp_addon_plugins_catalog') ? __('каталог rwsite', 'wp-addon') : __('GitHub', 'wp-addon');
+        $source_label = get_transient('wp_addon_plugins_catalog') ? __('rwsite catalog', 'wp-addon') : __('GitHub', 'wp-addon');
         $categories = $this->collect_plugin_categories($plugins);
 
         $html = '<div class="my-plugins-wrap">';
@@ -669,21 +668,21 @@ class WP_Addon_Settings
         $html .= '<div class="my-plugins-toolbar-meta">';
         if (! empty($plugins)) {
             $html .= sprintf(
-                __('Показано: %1$s из %2$d. Источник: %3$s.', 'wp-addon'),
+                __('Showing %1$s of %2$d. Source: %3$s.', 'wp-addon'),
                 '<span id="my-plugins-visible-count">'.count($plugins).'</span>',
                 count($plugins),
                 esc_html($source_label)
             );
         }
         $html .= '</div>';
-        $html .= '<button id="refresh-plugins-list" class="button button-small">'.esc_html__('Обновить список', 'wp-addon').'</button>';
+        $html .= '<button id="refresh-plugins-list" class="button button-small">'.esc_html__('Refresh list', 'wp-addon').'</button>';
         $html .= '</div>';
 
         if (! empty($plugins)) {
             $html .= '<div class="my-plugins-filters">';
-            $html .= '<input type="search" id="my-plugins-search" class="my-plugins-search" placeholder="'.esc_attr__('Поиск по названию, описанию или репозиторию', 'wp-addon').'" aria-label="'.esc_attr__('Поиск плагинов', 'wp-addon').'">';
-            $html .= '<select id="my-plugins-category" class="my-plugins-category" aria-label="'.esc_attr__('Категория', 'wp-addon').'">';
-            $html .= '<option value="">'.esc_html__('Все категории', 'wp-addon').'</option>';
+            $html .= '<input type="search" id="my-plugins-search" class="my-plugins-search" placeholder="'.esc_attr__('Search by name, description, or repository', 'wp-addon').'" aria-label="'.esc_attr__('Search plugins', 'wp-addon').'">';
+            $html .= '<select id="my-plugins-category" class="my-plugins-category" aria-label="'.esc_attr__('Category', 'wp-addon').'">';
+            $html .= '<option value="">'.esc_html__('All categories', 'wp-addon').'</option>';
             foreach ($categories as $slug => $name) {
                 $html .= '<option value="'.esc_attr($slug).'">'.esc_html($name).'</option>';
             }
@@ -695,13 +694,13 @@ class WP_Addon_Settings
             $error = get_transient('wp_addon_github_plugins_error');
             $html .= '<div class="my-plugins-empty">';
             if ($error) {
-                $html .= esc_html__('Не удалось загрузить список плагинов:', 'wp-addon').' '.esc_html($error);
+                $html .= esc_html__('Could not load the plugin list:', 'wp-addon').' '.esc_html($error);
             } else {
-                $html .= esc_html__('Не удалось загрузить список плагинов.', 'wp-addon');
+                $html .= esc_html__('Could not load the plugin list.', 'wp-addon');
             }
             $html .= '</div>';
         } else {
-            $html .= '<div class="my-plugins-no-results">'.esc_html__('По вашему запросу ничего не найдено.', 'wp-addon').'</div>';
+            $html .= '<div class="my-plugins-no-results">'.esc_html__('No plugins match your search.', 'wp-addon').'</div>';
             $html .= '<div class="my-plugins-list">';
             foreach ($plugins as $plugin) {
                 $html .= $this->render_plugin_card($plugin, $installed_plugins, $active_plugins);
@@ -709,7 +708,23 @@ class WP_Addon_Settings
             $html .= '</div>';
         }
         $html .= '</div>';
+        $my_plugins_l10n = [
+            'installing' => __('Installing…', 'wp-addon'),
+            'installedActivated' => __('Installed and activated', 'wp-addon'),
+            'installError' => __('Install error', 'wp-addon'),
+            'error' => __('Error', 'wp-addon'),
+            'processing' => __('Processing…', 'wp-addon'),
+            'activate' => __('Activate', 'wp-addon'),
+            'deactivate' => __('Deactivate', 'wp-addon'),
+            'confirmUninstall' => __('Are you sure you want to uninstall this plugin?', 'wp-addon'),
+            'uninstalling' => __('Uninstalling…', 'wp-addon'),
+            'uninstallError' => __('Uninstall error', 'wp-addon'),
+            'refreshing' => __('Refreshing…', 'wp-addon'),
+            'refreshList' => __('Refresh list', 'wp-addon'),
+            'updateError' => __('Update error: %s', 'wp-addon'),
+        ];
         $html .= '<script type="text/javascript">
+        var wpAddonMyPlugins = '.wp_json_encode($my_plugins_l10n).';
         jQuery(document).ready(function($) {
             function filterMyPlugins() {
                 var query = ($("#my-plugins-search").val() || "").toLowerCase().trim();
@@ -740,7 +755,7 @@ class WP_Addon_Settings
             $(document).on("click", ".install-plugin-btn", function() {
                 var btn = $(this);
                 var originalText = btn.text();
-                btn.text("Установка...").prop("disabled", true);
+                btn.text(wpAddonMyPlugins.installing).prop("disabled", true);
                 $.post(ajaxurl, {
                     action: "install_my_plugin",
                     repo: btn.data("repo"),
@@ -748,20 +763,20 @@ class WP_Addon_Settings
                     nonce: "'.wp_create_nonce('install_plugin').'"
                 }, function(response) {
                     if (response.success) {
-                        btn.text("Установлен и активирован").removeClass("button").addClass("button-disabled");
+                        btn.text(wpAddonMyPlugins.installedActivated).removeClass("button").addClass("button-disabled");
                         location.reload();
                     } else {
-                        btn.text("Ошибка установки").prop("disabled", false);
+                        btn.text(wpAddonMyPlugins.installError).prop("disabled", false);
                         console.log(response.data);
                     }
                 }).fail(function() {
-                    btn.text("Ошибка").prop("disabled", false);
+                    btn.text(wpAddonMyPlugins.error).prop("disabled", false);
                 });
             });
             $(document).on("click", ".deactivate-plugin-btn, .activate-plugin-btn", function() {
                 var btn = $(this);
                 var originalText = btn.text();
-                btn.text("Обработка...").prop("disabled", true);
+                btn.text(wpAddonMyPlugins.processing).prop("disabled", true);
                 $.post(ajaxurl, {
                     action: "toggle_my_plugin",
                     plugin_file: btn.data("file"),
@@ -769,9 +784,9 @@ class WP_Addon_Settings
                 }, function(response) {
                     if (response.success) {
                         if (response.data.action == "deactivated") {
-                            btn.removeClass("deactivate-plugin-btn button button-warning").addClass("activate-plugin-btn button button-success").text("Активировать");
+                            btn.removeClass("deactivate-plugin-btn button button-warning").addClass("activate-plugin-btn button button-success").text(wpAddonMyPlugins.activate);
                         } else {
-                            btn.removeClass("activate-plugin-btn button button-success").addClass("deactivate-plugin-btn button button-warning").text("Деактивировать");
+                            btn.removeClass("activate-plugin-btn button button-success").addClass("deactivate-plugin-btn button button-warning").text(wpAddonMyPlugins.deactivate);
                         }
                         location.reload();
                     } else {
@@ -785,10 +800,10 @@ class WP_Addon_Settings
             $(document).on("click", ".uninstall-plugin-btn", function() {
                 var btn = $(this);
                 var originalText = btn.text();
-                if (!confirm("Вы уверены, что хотите деинсталлировать этот плагин?")) {
+                if (!confirm(wpAddonMyPlugins.confirmUninstall)) {
                     return;
                 }
-                btn.text("Деинсталляция...").prop("disabled", true);
+                btn.text(wpAddonMyPlugins.uninstalling).prop("disabled", true);
                 $.post(ajaxurl, {
                     action: "uninstall_my_plugin",
                     repo: btn.data("repo"),
@@ -797,16 +812,16 @@ class WP_Addon_Settings
                     if (response.success) {
                         location.reload();
                     } else {
-                        btn.text("Ошибка деинсталляции").prop("disabled", false);
+                        btn.text(wpAddonMyPlugins.uninstallError).prop("disabled", false);
                         console.log(response.data);
                     }
                 }).fail(function() {
-                    btn.text("Ошибка").prop("disabled", false);
+                    btn.text(wpAddonMyPlugins.error).prop("disabled", false);
                 });
             });
             $("#refresh-plugins-list").click(function() {
                 var btn = $(this);
-                btn.text("Обновление...").prop("disabled", true);
+                btn.text(wpAddonMyPlugins.refreshing).prop("disabled", true);
                 $.post(ajaxurl, {
                     action: "refresh_plugins_list",
                     nonce: "'.wp_create_nonce('refresh_plugins').'"
@@ -814,8 +829,8 @@ class WP_Addon_Settings
                     if (response.success) {
                         location.reload();
                     } else {
-                        btn.text("Ошибка").prop("disabled", false);
-                        alert("Ошибка обновления: " + response.data);
+                        btn.text(wpAddonMyPlugins.refreshList).prop("disabled", false);
+                        alert(wpAddonMyPlugins.updateError.replace("%s", response.data));
                     }
                 });
             });
@@ -829,7 +844,7 @@ class WP_Addon_Settings
     {
         check_ajax_referer('refresh_plugins', 'nonce');
         if (! current_user_can('manage_options')) {
-            wp_send_json_error('Нет прав.');
+            wp_send_json_error(__('Permission denied.', 'wp-addon'));
         }
         delete_transient('wp_addon_plugins_catalog');
         delete_transient('wp_addon_github_plugins');
@@ -841,16 +856,16 @@ class WP_Addon_Settings
     {
         check_ajax_referer('uninstall_plugin', 'nonce');
         if (! current_user_can('delete_plugins')) {
-            wp_send_json_error('Нет прав для удаления плагинов.');
+            wp_send_json_error(__('You do not have permission to delete plugins.', 'wp-addon'));
         }
         $repo = sanitize_text_field($_POST['repo']);
         if (empty($repo)) {
-            wp_send_json_error('Неверные параметры.');
+            wp_send_json_error(__('Invalid parameters.', 'wp-addon'));
         }
         require_once ABSPATH.'wp-admin/includes/plugin.php';
         require_once ABSPATH.'wp-admin/includes/file.php';
         if (! WP_Filesystem()) {
-            wp_send_json_error('Ошибка файловой системы.');
+            wp_send_json_error(__('Filesystem error.', 'wp-addon'));
 
             return;
         }
@@ -864,7 +879,7 @@ class WP_Addon_Settings
             }
         }
         if (! $plugin_file) {
-            wp_send_json_error('Плагин не найден.');
+            wp_send_json_error(__('Plugin not found.', 'wp-addon'));
 
             return;
         }
@@ -879,25 +894,28 @@ class WP_Addon_Settings
     {
         check_ajax_referer('toggle_plugin', 'nonce');
         if (! current_user_can('activate_plugins')) {
-            wp_send_json_error('Нет прав для активации/деактивации плагинов.');
+            wp_send_json_error(__('You do not have permission to activate or deactivate plugins.', 'wp-addon'));
         }
         $plugin_file = sanitize_text_field($_POST['plugin_file']);
         if (empty($plugin_file)) {
-            wp_send_json_error('Неверные параметры.');
+            wp_send_json_error(__('Invalid parameters.', 'wp-addon'));
         }
         require_once ABSPATH.'wp-admin/includes/plugin.php';
         $active_plugins = get_option('active_plugins', []);
         if (in_array($plugin_file, $active_plugins)) {
-            // Деактивировать
+            // Deactivate
             deactivate_plugins($plugin_file);
             wp_send_json_success(['action' => 'deactivated']);
         } else {
-            // Активировать
+            // Activate
             $activate_result = activate_plugin($plugin_file);
             if ($activate_result === true || is_null($activate_result)) {
                 wp_send_json_success(['action' => 'activated']);
             } else {
-                wp_send_json_error('Не удалось активировать плагин: '.(is_wp_error($activate_result) ? $activate_result->get_error_message() : 'Неизвестная ошибка'));
+                wp_send_json_error(sprintf(
+                    __('Could not activate plugin: %s', 'wp-addon'),
+                    is_wp_error($activate_result) ? $activate_result->get_error_message() : __('Unknown error.', 'wp-addon')
+                ));
             }
         }
     }
@@ -906,41 +924,41 @@ class WP_Addon_Settings
     {
         check_ajax_referer('install_plugin', 'nonce');
         if (! current_user_can('install_plugins')) {
-            wp_send_json_error('Нет прав для установки плагинов.');
+            wp_send_json_error(__('You do not have permission to install plugins.', 'wp-addon'));
         }
         $zip_url = esc_url_raw($_POST['zip']);
         $repo = sanitize_text_field($_POST['repo']);
         if (empty($zip_url) || empty($repo)) {
-            wp_send_json_error('Неверные параметры.');
+            wp_send_json_error(__('Invalid parameters.', 'wp-addon'));
         }
         require_once ABSPATH.'wp-admin/includes/plugin.php';
         require_once ABSPATH.'wp-admin/includes/class-wp-upgrader.php';
         require_once ABSPATH.'wp-admin/includes/plugin-install.php';
         require_once ABSPATH.'wp-admin/includes/file.php';
         if (! WP_Filesystem()) {
-            wp_send_json_error('Ошибка файловой системы.');
+            wp_send_json_error(__('Filesystem error.', 'wp-addon'));
 
             return;
         }
         $upgrader = new Plugin_Upgrader(new Automatic_Upgrader_Skin);
         $result = $upgrader->install($zip_url);
         if ($result) {
-            // Найти установленную папку (GitHub ZIP создает папку с -main)
+            // Locate extracted folder (GitHub ZIP often adds -main suffix)
             $possible_dirs = glob(WP_PLUGIN_DIR.'/'.$repo.'-*');
             if (empty($possible_dirs)) {
-                wp_send_json_error('Не найдена установленная папка.');
+                wp_send_json_error(__('Installed folder not found.', 'wp-addon'));
 
                 return;
             }
-            $installed_dir = $possible_dirs[0]; // берем первую
+            $installed_dir = $possible_dirs[0]; // use the first match
             $expected_dir = WP_PLUGIN_DIR.'/'.$repo;
             if (is_dir($expected_dir)) {
-                wp_send_json_error('Папка плагина уже существует.');
+                wp_send_json_error(__('Plugin folder already exists.', 'wp-addon'));
 
                 return;
             }
             if (rename($installed_dir, $expected_dir)) {
-                // Найти основной файл плагина
+                // Find main plugin file
                 $plugin_files = glob($expected_dir.'/*.php');
                 $plugin_file = null;
                 foreach ($plugin_files as $file) {
@@ -955,13 +973,16 @@ class WP_Addon_Settings
                     if ($activate_result === true || is_null($activate_result)) {
                         wp_send_json_success();
                     } else {
-                        wp_send_json_error('Плагин установлен, но не удалось активировать: '.(is_wp_error($activate_result) ? $activate_result->get_error_message() : 'Неизвестная ошибка'));
+                        wp_send_json_error(sprintf(
+                            __('Plugin installed but could not be activated: %s', 'wp-addon'),
+                            is_wp_error($activate_result) ? $activate_result->get_error_message() : __('Unknown error.', 'wp-addon')
+                        ));
                     }
                 } else {
-                    wp_send_json_error('Не найден файл плагина для активации.');
+                    wp_send_json_error(__('Plugin bootstrap file not found for activation.', 'wp-addon'));
                 }
             } else {
-                wp_send_json_error('Не удалось переименовать папку плагина.');
+                wp_send_json_error(__('Could not rename plugin folder.', 'wp-addon'));
             }
         }
     }
@@ -1326,22 +1347,16 @@ class WP_Addon_Settings
                     'type' => 'repeater',
                     'class' => 'wp-addon-redirects-rules',
                     'title' => __('Redirect rules', 'wp-addon'),
-                    'desc' => __('Manual rule list. Source — old URL path; destination — where to send visitors. Trailing slashes are optional. Wildcards need the option above enabled.', 'wp-addon'),
+                    'desc' => __('One field per row: source,destination (comma, semicolon, or tab). Same format as CSV import.', 'wp-addon'),
                     'fields' => [
                         [
-                            'id' => 'request',
+                            'id' => 'rule',
                             'type' => 'text',
-                            'title' => __('Source URL', 'wp-addon'),
                             'attributes' => [
-                                'placeholder' => '/old-page/',
-                            ],
-                        ],
-                        [
-                            'id' => 'destination',
-                            'type' => 'text',
-                            'title' => __('Destination URL', 'wp-addon'),
-                            'attributes' => [
-                                'placeholder' => '/new-page/',
+                                'class' => 'wp-addon-redirect-rule-line large-text',
+                                'placeholder' => '/old-page/, /new-page/',
+                                'spellcheck' => 'false',
+                                'autocomplete' => 'off',
                             ],
                         ],
                     ],
@@ -1412,20 +1427,20 @@ class WP_Addon_Settings
         \CSF::createSection($prefix, [
             'title' => __('Markdown Editor', 'wp-addon'),
             'icon' => 'fa fa-edit',
-            'description' => __('Markdown Editor позволяет писать и редактировать контент в удобном Markdown-синтаксисе. При сохранении Markdown автоматически конвертируется в HTML и сохраняется в основное поле контента — сам исходник Markdown нигде не хранится, и посты на сайте всегда отдают чистый HTML.<br><br><strong>Как работает синхронизация с обычным редактором:</strong><br>• если контент правили в Markdown — сохраненный HTML получается из Markdown<br>• если правили только в стандартном редакторе (TinyMCE) — его HTML сохраняется как есть, а Markdown-поле просто обновляется при следующем открытии', 'wp-addon'),
+            'description' => __('The Markdown Editor lets you write and edit content in Markdown. On save, Markdown is converted to HTML and stored in the main content field — the Markdown source is not persisted, so the site always serves clean HTML.<br><br><strong>Sync with the classic editor:</strong><br>• if you edited in Markdown, saved HTML comes from Markdown<br>• if you edited only in TinyMCE, that HTML is kept and the Markdown field refreshes on next open', 'wp-addon'),
             'fields' => [
                 [
                     'id' => 'wp_addon_markdown_enabled',
                     'type' => 'switcher',
                     'title' => __('Enable Markdown editor', 'wp-addon'),
-                    'desc' => __('Включает Markdown-редактор для записей и страниц. В основном поле поста сохраняется только HTML, а исходный Markdown конвертируется при сохранении и не хранится отдельно.', 'wp-addon'),
+                    'desc' => __('Enables the Markdown editor for posts and pages. Only HTML is stored in the post content field; Markdown is converted on save and not stored separately.', 'wp-addon'),
                     'default' => false,
                 ],
                 [
                     'id' => 'markdown_post_types',
                     'type' => 'checkbox',
                     'title' => __('Post types', 'wp-addon'),
-                    'desc' => __('Типы записей, для которых будет доступен Markdown-редактор. Конвертация в HTML и синхронизация с основным редактором применяется только к выбранным типам.', 'wp-addon'),
+                    'desc' => __('Post types that get the Markdown editor. HTML conversion and sync with the main editor apply only to selected types.', 'wp-addon'),
                     'options' => [
                         'post' => __('Posts', 'wp-addon'),
                         'page' => __('Pages', 'wp-addon'),
@@ -1437,7 +1452,7 @@ class WP_Addon_Settings
                     'id' => 'markdown_replace_tinymce',
                     'type' => 'switcher',
                     'title' => __('Default to Markdown editor', 'wp-addon'),
-                    'desc' => __('По умолчанию открывать Markdown-редактор для новых записей (иначе классический редактор). Переключаться между редакторами можно вкладками над областью контента.', 'wp-addon'),
+                    'desc' => __('Open new posts in the Markdown editor by default (otherwise classic). Switch editors using tabs above the content area.', 'wp-addon'),
                     'default' => true,
                     'dependency' => ['wp_addon_markdown_enabled', '==', 'true'],
                 ],
@@ -1445,7 +1460,7 @@ class WP_Addon_Settings
                     'id' => 'markdown_enable_preview',
                     'type' => 'switcher',
                     'title' => __('Live preview', 'wp-addon'),
-                    'desc' => __('Показывает предпросмотр Markdown рядом с редактором и добавляет кнопку «Side-by-side». При выключении предпросмотр полностью скрывается.', 'wp-addon'),
+                    'desc' => __('Shows Markdown preview beside the editor and adds a Side-by-side button. When off, preview is hidden.', 'wp-addon'),
                     'default' => true,
                     'dependency' => ['wp_addon_markdown_enabled', '==', 'true'],
                 ],
@@ -1453,35 +1468,35 @@ class WP_Addon_Settings
                     'id' => 'markdown_enable_shortcuts',
                     'type' => 'switcher',
                     'title' => __('Keyboard shortcuts', 'wp-addon'),
-                    'desc' => __('Горячие клавиши для быстрого форматирования: Ctrl+B (жирный), Ctrl+I (курсив), Ctrl+K (ссылка).', 'wp-addon'),
+                    'desc' => __('Shortcuts for quick formatting: Ctrl+B (bold), Ctrl+I (italic), Ctrl+K (link).', 'wp-addon'),
                     'default' => true,
                     'dependency' => ['wp_addon_markdown_enabled', '==', 'true'],
                 ],
                 [
                     'type' => 'content',
                     'content' => '<div style="background: #f0f6fc; border: 1px solid #d0d7de; border-radius: 6px; padding: 16px; margin: 16px 0;">
-                        <h4 style="margin-top: 0; color: #1d2327;">📝 Справка по Markdown синтаксису:</h4>
+                        <h4 style="margin-top: 0; color: #1d2327;">📝 Markdown syntax cheat sheet</h4>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-family: monospace; font-size: 13px;">
                             <div>
-                                <strong>Заголовки:</strong><br>
-                                # Заголовок 1<br>
-                                ## Заголовок 2<br>
-                                ### Заголовок 3<br><br>
-                                <strong>Форматирование:</strong><br>
-                                **жирный текст**<br>
-                                *курсив*<br>
-                                ~~зачеркнутый~~<br>
-                                `код`
+                                <strong>Headings:</strong><br>
+                                # Heading 1<br>
+                                ## Heading 2<br>
+                                ### Heading 3<br><br>
+                                <strong>Formatting:</strong><br>
+                                **bold text**<br>
+                                *italic*<br>
+                                ~~strikethrough~~<br>
+                                `code`
                             </div>
                             <div>
-                                <strong>Ссылки и изображения:</strong><br>
-                                [текст ссылки](https://example.com)<br>
-                                ![описание](image.jpg)<br><br>
-                                <strong>Списки:</strong><br>
-                                * Маркированный список<br>
-                                1. Нумерованный список<br><br>
-                                <strong>Цитаты:</strong><br>
-                                > Цитата
+                                <strong>Links and images:</strong><br>
+                                [link text](https://example.com)<br>
+                                ![alt text](image.jpg)<br><br>
+                                <strong>Lists:</strong><br>
+                                * Bullet list<br>
+                                1. Numbered list<br><br>
+                                <strong>Quotes:</strong><br>
+                                > Quote
                             </div>
                         </div>
                     </div>',
@@ -1494,7 +1509,7 @@ class WP_Addon_Settings
         \CSF::createSection($prefix, [
             'title' => __('Backup DB', 'wp-addon'),
             'icon' => 'fa fa-database',
-            'description' => __('Полный SQL-снимок базы данных (схема + данные) с восстановлением на этом же сайте. Дамп с другим префиксом таблиц будет отклонён.', 'wp-addon'),
+            'description' => __('Full SQL snapshot of the database (schema + data) with restore on this site. Backups with a different table prefix are rejected.', 'wp-addon'),
             'fields' => [
                 [
                     'type' => 'content',
@@ -1518,7 +1533,7 @@ class WP_Addon_Settings
 
         // My Plugins
         \CSF::createSection($prefix, [
-            'title' => __('Мои плагины', 'wp-addon'),
+            'title' => __('My plugins', 'wp-addon'),
             'icon' => 'fa fa-plug',
             'fields' => [
                 [

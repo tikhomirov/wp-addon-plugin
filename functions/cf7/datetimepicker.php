@@ -87,7 +87,7 @@ function wpcf7_datetime_form_tag_handler($tag)
     $atts = wpcf7_format_atts($atts);
 
     $html = sprintf(
-        /* <input id="datetimepicker" type="text" value="Дата"> */
+        /* <input id="datetimepicker" type="text" value="Date"> */
         '<span class="wpcf7-form-control-wrap %1$s"><input %2$s />%3$s</span>',
         sanitize_html_class($tag->name), $atts, $validation_error);
 
@@ -312,10 +312,10 @@ function rw_validate_phone($value)
     $pattern = '/^\+[0-9]{1}\([0-9]{3}\)[0-9]{3}\-[0-9]{2}\-[0-9]{2}$/';
     $result = preg_match($pattern, $value);
     if ($result === 1) {
-        // echo 'Это успех, братан!';
+        // echo 'Success!';
         return true;
     } else {
-        // echo 'Это фиаско, братан!';
+        // echo 'Failure!';
         return false;
     }
 }

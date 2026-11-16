@@ -6,7 +6,7 @@
 use WpAddon\Services\MediaCleanupService;
 
 describe('MediaCleanupService', function () {
-    // Пропускаем эти тесты в CI из-за проблем с mock'ами
+    // Skip these tests in CI due to mock issues
     if (getenv('CI') === 'true' || getenv('GITHUB_ACTIONS') === 'true') {
         test('skipped in CI', function () {})->skip('Mock issues in CI');
 

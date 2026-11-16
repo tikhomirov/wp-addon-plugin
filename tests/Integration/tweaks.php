@@ -3,8 +3,8 @@
 use WpAddon\ControllerWP;
 use WpAddon\Services\OptionService;
 
-// Запуск: make wp c='eval-file wp-content/plugins/wp-addon-plugin/tests/Integration/tweaks.php'
-// Меняет только хуки текущего процесса, не настройки и не данные сайта.
+// Run: make wp c='eval-file wp-content/plugins/wp-addon-plugin/tests/Integration/tweaks.php'
+// Only changes hooks in the current process, not settings or site data.
 
 $check = static function (string $name, bool $condition): void {
     if (! $condition) {

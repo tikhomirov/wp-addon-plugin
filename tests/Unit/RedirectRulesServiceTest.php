@@ -20,6 +20,28 @@ CSV;
         expect($rules[1])->toBe(['request' => '/old-b/', 'destination' => '/new-b/']);
     });
 
+    it('normalizeRules parses compact rule line field', function () {
+        $rules = RedirectRulesService::normalizeRules([
+            ['rule' => '/old-a/, /new-a/'],
+            ['rule' => '/old-b/;/new-b/'],
+            ['request' => '/legacy/', 'destination' => '/still/'],
+        ]);
+
+        expect($rules)->toHaveCount(3);
+        expect($rules[0])->toBe(['request' => '/old-a/', 'destination' => '/new-a/']);
+        expect($rules[2])->toBe(['request' => '/legacy/', 'destination' => '/still/']);
+    });
+
+    it('prepareOptionsForRedirectsAdmin maps stored rules to rule lines', function () {
+        $options = RedirectRulesService::prepareOptionsForRedirectsAdmin([
+            'redirects_rules' => [
+                ['request' => '/a/', 'destination' => '/b/'],
+            ],
+        ]);
+
+        expect($options['redirects_rules'][0])->toBe(['rule' => '/a/,/b/']);
+    });
+
     it('mergeRules overwrites duplicate sources', function () {
         $existing = [
             ['request' => '/a/', 'destination' => '/b/'],

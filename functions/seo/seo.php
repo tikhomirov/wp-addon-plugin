@@ -5,7 +5,7 @@
  */
 
 /**
- * Заполняет поле для атрибута alt на основе заголовка изображения при его вставки в контент поста.
+ * Fill the alt attribute from the image title when inserting into post content.
  */
 function img_alt_in_upload()
 {
@@ -23,7 +23,7 @@ function img_alt_in_upload()
  */
 function transliteration_enable()
 {
-    // транслитерация
+    // transliteration
     function cyr_to_lat($title)
     {
         global $wpdb;
@@ -136,7 +136,7 @@ function transliteration_enable()
 }
 
 /**
- * Выключить индексацию. Убирает страницы из поисковой выдачи.
+ * Disable indexing — removes pages from search results.
  */
 function index_disable()
 {

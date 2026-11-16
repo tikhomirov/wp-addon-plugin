@@ -36,7 +36,7 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
-- Builder-style editor switcher tabs ("Классический редактор" / "Markdown Редактор") modeled after WPBakery / YOOtheme / Divi.
+- Builder-style editor switcher tabs ("Classic Editor" / "Markdown Editor") modeled after WPBakery / YOOtheme / Divi.
 - Separate post editing mode storage via `_wp_addon_editor_mode` post meta.
 - Verbatim raw Markdown storage in `_markdown_content` post meta to prevent lossy re-conversions.
 - Bidirectional on-demand conversion buttons and AJAX endpoint (`markdown_convert`).

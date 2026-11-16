@@ -8,7 +8,7 @@ use WpAddon\Services\ImageOptimizationService;
  * @group problematic
  */
 describe('ImageOptimizationService Unit Tests', function () {
-    // Пропускаем эти тесты в CI из-за Patchwork конфликтов
+    // Skip these tests in CI due to Patchwork conflicts
     if (getenv('CI') === 'true' || getenv('GITHUB_ACTIONS') === 'true') {
         test('skipped in CI', function () {})->skip('Patchwork conflicts in CI');
 
@@ -30,7 +30,7 @@ describe('ImageOptimizationService Unit Tests', function () {
             return;
         }
 
-        // Создаем тестовое изображение
+        // Create test image
         $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.jpg';
         $image = imagecreatetruecolor(200, 200);
         $blue = imagecolorallocate($image, 0, 0, 255);
@@ -41,9 +41,9 @@ describe('ImageOptimizationService Unit Tests', function () {
         $result = $this->imageOptimizationService->generateBlurPlaceholder($tempImage);
 
         expect($result)->toStartWith('data:image/jpeg;base64,');
-        expect(strlen($result))->toBeGreaterThan(100); // Base64 строка должна быть достаточно длинной
+        expect(strlen($result))->toBeGreaterThan(100); // Base64 string should be long enough
 
-        // Очищаем
+        // Cleanup
         unlink($tempImage);
     });
 
@@ -74,38 +74,38 @@ describe('ImageOptimizationService Unit Tests', function () {
         imagepng($image, $tempImage);
         imagedestroy($image);
 
-        // Тестируем разные уровни размытия
+        // Test different blur levels
         $resultLow = $this->imageOptimizationService->generateBlurPlaceholder($tempImage, 2);
         $resultHigh = $this->imageOptimizationService->generateBlurPlaceholder($tempImage, 8);
 
         expect($resultLow)->toStartWith('data:image/png;base64,');
         expect($resultHigh)->toStartWith('data:image/png;base64,');
-        expect($resultLow)->not->toBe($resultHigh); // Разные уровни размытия дают разные результаты
+        expect($resultLow)->not->toBe($resultHigh); // Different blur levels yield different results
 
         unlink($tempImage);
     });
 
     it('generates correct thumbnail size', function () {
         $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.jpg';
-        $image = imagecreatetruecolor(800, 600); // Большое изображение
+        $image = imagecreatetruecolor(800, 600); // Large image
         $green = imagecolorallocate($image, 0, 255, 0);
         imagefill($image, 0, 0, $green);
         imagejpeg($image, $tempImage, 90);
         imagedestroy($image);
 
-        $result = $this->imageOptimizationService->generateBlurPlaceholder($tempImage, 5, 50); // Маленький thumbnail
+        $result = $this->imageOptimizationService->generateBlurPlaceholder($tempImage, 5, 50); // Small thumbnail
 
         expect($result)->toStartWith('data:image/jpeg;base64,');
 
-        // Декодируем и проверяем размер
+        // Decode and check size
         $imageData = base64_decode(str_replace('data:image/jpeg;base64,', '', $result));
         $tempDecoded = tempnam(sys_get_temp_dir(), 'wp_addon_decoded_').'.jpg';
         file_put_contents($tempDecoded, $imageData);
 
         if (function_exists('getimagesize')) {
             $size = getimagesize($tempDecoded);
-            expect($size[0])->toBeLessThanOrEqual(50); // Ширина не больше 50px
-            expect($size[1])->toBeLessThanOrEqual(50); // Высота не больше 50px
+            expect($size[0])->toBeLessThanOrEqual(50); // Width at most 50px
+            expect($size[1])->toBeLessThanOrEqual(50); // Height at most 50px
         }
 
         unlink($tempImage);
@@ -117,16 +117,16 @@ describe('ImageOptimizationService Unit Tests', function () {
         $image = imagecreatetruecolor(100, 100);
         $yellow = imagecolorallocate($image, 255, 255, 0);
         imagefill($image, 0, 0, $yellow);
-        imagejpeg($image, $tempImage, 100); // Оригинал высокого качества
+        imagejpeg($image, $tempImage, 100); // High-quality original
         imagedestroy($image);
 
         $originalSize = filesize($tempImage);
 
-        // Оптимизируем
-        $optimizedResult = $this->imageOptimizationService->generateBlurPlaceholder($tempImage, 5, 50, 70); // Низкое качество
+        // Optimize
+        $optimizedResult = $this->imageOptimizationService->generateBlurPlaceholder($tempImage, 5, 50, 70); // Low quality
 
-        // Размер base64 строки должен быть меньше (оптимизированное изображение меньше)
-        expect(strlen($optimizedResult))->toBeLessThan($originalSize * 1.5); // С запасом
+        // Optimized base64 should be smaller
+        expect(strlen($optimizedResult))->toBeLessThan($originalSize * 1.5); // With margin
 
         unlink($tempImage);
     });
@@ -184,12 +184,12 @@ describe('ImageOptimizationService Unit Tests', function () {
         imagejpeg($image, $tempImage);
         imagedestroy($image);
 
-        // Некорректная интенсивность размытия
+        // Invalid intensity blur
         $result1 = $this->imageOptimizationService->generateBlurPlaceholder($tempImage, -1);
         $result2 = $this->imageOptimizationService->generateBlurPlaceholder($tempImage, 0);
         $result3 = $this->imageOptimizationService->generateBlurPlaceholder($tempImage, 21); // > 20
 
-        expect($result1)->toStartWith('data:image/jpeg;base64,'); // Должен обработать
+        expect($result1)->toStartWith('data:image/jpeg;base64,'); // Should still process
         expect($result2)->toStartWith('data:image/jpeg;base64,');
         expect($result3)->toStartWith('data:image/jpeg;base64,');
 
@@ -202,21 +202,21 @@ describe('ImageOptimizationService Unit Tests', function () {
         imagejpeg($image, $tempImage);
         imagedestroy($image);
 
-        // Сделаем файл недоступным для чтения
+        // Make file unreadable
         chmod($tempImage, 0000);
 
-        if (PHP_OS_FAMILY !== 'Windows') { // На Windows chmod может не работать
+        if (PHP_OS_FAMILY !== 'Windows') { // chmod may not work on Windows
             $result = $this->imageOptimizationService->generateBlurPlaceholder($tempImage);
             expect($result)->toBe('');
         }
 
-        chmod($tempImage, 0644); // Восстановим права для удаления
+        chmod($tempImage, 0644); // Restore permissions for cleanup
         unlink($tempImage);
     });
 
     it('optimizes image dimensions proportionally', function () {
         $tempImage = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.jpg';
-        $image = imagecreatetruecolor(400, 200); // Прямоугольное изображение
+        $image = imagecreatetruecolor(400, 200); // Rectangular image
         $color = imagecolorallocate($image, 100, 100, 100);
         imagefill($image, 0, 0, $color);
         imagejpeg($image, $tempImage);
@@ -224,7 +224,7 @@ describe('ImageOptimizationService Unit Tests', function () {
 
         $result = $this->imageOptimizationService->generateBlurPlaceholder($tempImage, 5, 50);
 
-        // Декодируем и проверяем пропорции
+        // Decode and check aspect ratio
         $imageData = base64_decode(str_replace('data:image/jpeg;base64,', '', $result));
         $tempDecoded = tempnam(sys_get_temp_dir(), 'wp_addon_decoded_').'.jpg';
         file_put_contents($tempDecoded, $imageData);
@@ -233,7 +233,7 @@ describe('ImageOptimizationService Unit Tests', function () {
             $size = getimagesize($tempDecoded);
             $aspectRatio = $size[0] / $size[1];
 
-            // Пропорции должны сохраниться (оригинал 2:1)
+            // Aspect ratio should be preserved (original 2:1)
             expect($aspectRatio)->toBeGreaterThan(1.8);
             expect($aspectRatio)->toBeLessThan(2.2);
         }

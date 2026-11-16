@@ -30,29 +30,29 @@
                     title: 'Insert banner',
                     body: [
                         {
-                            type: 'textbox', // тип textbox = текстовое поле
-                            name: 'img', // ID, будет использоваться ниже
-                            label: 'Image url or ID image from library', // лейбл
-                            value: '' // значение по умолчанию
+                            type: 'textbox',
+                            name: 'img',
+                            label: 'Image url or ID image from library',
+                            value: ''
                         },
                         {
-                            type: 'textbox', // тип textbox = текстовое поле
-                            name: 'href', // ID, будет использоваться ниже
-                            label: 'Link', // лейбл
-                            value: '' // значение по умолчанию
+                            type: 'textbox',
+                            name: 'href',
+                            label: 'Link',
+                            value: ''
                         },
                         {
-                            type: 'listbox', // тип listbox = выпадающий список select
+                            type: 'listbox',
                             name: 'align',
                             label: 'Choose alignment',
-                            'values': [ // значения выпадающего списка
-                                {text: 'Left', value: 'left'}, // лейбл, значение
-                                {text: 'Center', value: 'center'}, // лейбл, значение
+                            'values': [
+                                {text: 'Left', value: 'left'},
+                                {text: 'Center', value: 'center'},
                                 {text: 'Right', value: 'right'}
                             ]
                         }
                     ],
-                    onsubmit: function (e) { // это будет происходить после заполнения полей и нажатии кнопки отправки
+                    onsubmit: function (e) {
                         editor.insertContent('<p>[ads img="' + e.data.img + '" href="' + e.data.href + '" align="' + e.data.align + '"]</p>');
                     }
                 });

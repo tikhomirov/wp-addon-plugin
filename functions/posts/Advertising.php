@@ -27,7 +27,7 @@ class Advertising
     }
 
     /**
-     * Выбор места вывода поста
+     * Choose where to inject the ad
      */
     public function select_placement()
     {
@@ -48,7 +48,7 @@ class Advertising
     }
 
     /**
-     * Баннер до поста
+     * Banner before the post
      *
      * @param  string  $content
      */
@@ -58,7 +58,7 @@ class Advertising
     }
 
     /**
-     * Баннер в середине поста
+     * Banner in the middle of the post
      */
     public function banner_in_content($content): string
     {
@@ -69,7 +69,7 @@ class Advertising
     }
 
     /**
-     * Баннер после контента поста
+     * Banner after post content
      */
     public function banner_after_content($content): string
     {
@@ -77,7 +77,7 @@ class Advertising
     }
 
     /**
-     * Добавляет событие
+     * Register hooks
      */
     public function banner_jquery()
     {
@@ -85,7 +85,7 @@ class Advertising
     }
 
     /**
-     * Вставлет баннер в выделенный селектор
+     * Inject banner into selector
      */
     public function js()
     {
@@ -101,7 +101,7 @@ class Advertising
         }
 
     /**
-     * Делит контент поста на 2 части
+     * Split post content in half
      */
     private function get_parts($text): array
     {

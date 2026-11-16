@@ -1,9 +1,9 @@
 <?php
 /**
-Plugin Name: Ремонтирует Guid
+Plugin Name: Repair Guid
 Version: 1.2
 Plugin URI: http://wp-kama.ru/
-Description: Плагин нужен для просмотра/редактирования поля guid в базе данных WordPress. В это поле будет записаны постоянные ссылки (permalink) на статью. Бонус: просмотр/грамотное удаление всевозможных ревизий :)
+Description: View and edit the guid field in WordPress. Stores permalinks; includes revision cleanup helpers.
 Author: Kama
 Author URI: http://wp-kama.ru/
 */

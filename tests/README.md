@@ -1,52 +1,52 @@
-# Руководство по тестированию WP Addon Plugin
+# WP Addon Plugin Testing Guide
 
-Это руководство описывает систему тестирования для WP Addon Plugin, включая принципы TDD (Test-Driven Development), лучшие практики написания тестов и пошаговое руководство по разработке новых модулей.
+This guide describes the testing system for the WP Addon Plugin, including TDD (Test-Driven Development) principles, best practices for writing tests, and a step-by-step guide to developing new modules.
 
-## 📋 Обзор тестирования
+## 📋 Test Overview
 
-WP Addon Plugin использует комплексную систему тестирования с:
-- **Unit тестами** для изоляции компонентов
-- **Feature тестами** для интеграции модулей
-- **Smoke тестами** для проверки базовой функциональности
-- **Полным покрытием** критических путей кода
+The WP Addon Plugin uses a comprehensive testing system with:
+- **Unit tests** for isolating components
+- **Feature tests** for module integration
+- **Smoke tests** to verify basic functionality
+- **Full coverage** of critical code paths
 
-### 🎯 Цели тестирования
+### 🎯 Testing Objectives
 
-- Гарантия работоспособности всех модулей
-- Предотвращение регрессий при изменениях
-- Документация поведения через тесты
-- Поддержка рефакторинга без страха поломок
+- Guarantee of functionality for all modules
+- Prevention of regressions during changes
+- Documentation of behavior through tests
+- Support for refactoring without fear of breakdowns
 
-## 🏗️ Структура тестовой среды
+## 🏗️ Test Environment Structure
 
 ```
 tests/
-├── bootstrap.php              # Настройка тестового окружения
-├── TestCase.php              # Базовый класс с утилитами
-├── DatabaseMigrations.php    # Трейт для работы с БД
-├── Unit/                     # Unit тесты компонентов
+├── bootstrap.php              # Test environment configuration
+├── TestCase.php              # Base class with utilities
+├── DatabaseMigrations.php    # Trait for working with the database
+├── Unit/                     # Unit tests of components
 │   ├── LazyLoadingTest.php
 │   ├── FactoriesTest.php
 │   ├── ModuleSystemTest.php
-│   └── [модуль]Test.php
-├── Feature/                  # Feature тесты интеграции
+│   └── [module]Test.php
+├── Feature/                  # Feature integration tests
 │   ├── LazyLoadingIntegrationTest.php
 │   ├── SmokeTest.php
 │   └── ExampleTest.php
-├── wp-cli/                   # Скрипты, которым нужен настоящий WordPress
+├── wp-cli/                   # Scripts that require an actual WordPress installation
 │   └── comment-antispam-smoke.php
-└── Factories/                # Фабрики для тестовых данных
+└── Factories/                # Factories for test data
     ├── PostFactory.php
     ├── AssetFactory.php
     └── [Factory].php
 ```
 
-## 🧪 Проверка на настоящем WordPress
+## 🧪 Testing on a real WordPress site
 
-Pest работает на мок-окружении из `bootstrap.php`, поэтому часть вещей он
-доказать не может: создание таблицы через `dbDelta()`, реальное расписание cron,
-разметка `comment_form()` и то, что `wp_new_comment()` ничего не пишет при
-отказе. Для этого есть скрипт, который исполняется через WP-CLI:
+Pest runs on a mock environment from `bootstrap.php`, so there are some things it
+cannot prove: creating a table using `dbDelta()`, an actual cron schedule,
+the `comment_form()` markup and the fact that `wp_new_comment()` doesn't write anything in case of
+failure. For this purpose, there is a script that runs via WP-CLI:
 
 ```bash
 make up
@@ -54,61 +54,61 @@ docker compose exec php bash -lc \
   'cd /var/www && HTTP_HOST=rwsite.local wp eval-file wp-content/plugins/wp-addon-plugin/tests/wp-cli/comment-antispam-smoke.php'
 ```
 
-Скрипт печатает `PASS`/`FAIL` по каждой проверке и итог `passed/failed` в конце.
-Он оставляет строки в таблице `wp_addon_antispam_log`; очистить их:
+The script prints `PASS`/`FAIL` for each check and the overall result `passed/failed` at the end.
+It leaves rows in the `wp_addon_antispam_log` table; clear them:
 
 ```bash
 docker compose exec mysql mysql -u root -proot rwsite \
   -e "DELETE FROM rwp_wp_addon_antispam_log"
 ```
 
-## 🚀 Быстрый старт
+QUICK START
 
-### Установка зависимостей
+Installing dependencies
 
 ```bash
 composer install
 ```
 
-### Запуск всех тестов
+### Running all tests
 
 ```bash
 composer test
 ```
 
-### Запуск с покрытием
+### Launch with coverage
 
 ```bash
 composer test:coverage
-# Результаты: coverage/index.html
+# Results: coverage/index.html
 ```
 
-## 📝 Разработка через тестирование (TDD)
+## 📝 Test-Driven Development (TDD)
 
-### 🔄 TDD цикл
+### 🔄 TDD cycle
 
 ```
 🔴 RED → 🟢 GREEN → 🔵 REFACTOR
 ```
 
-1. **RED**: Напиши тест, который падает
-2. **GREEN**: Реализуй минимальный код для прохождения
-3. **REFACTOR**: Улучши код, сохраняя тесты зелёными
+1. **RED**: Write a test that fails
+2. **GREEN**: Implement the minimum code to pass
+3. **REFACTOR**: Improve the code while keeping the tests green
 
-### 📋 Шаги разработки нового модуля
+### 📋 Steps for Developing a New Module
 
-#### 1. Определи требования модуля
+#### 1. Determine the module requirements
 
 ```php
-// Пример: Новый модуль ImageOptimization
-// Требования:
-// - Оптимизация изображений при загрузке
-// - Поддержка форматов JPG, PNG, WebP
-// - Сохранение качества > 80%
-// - Логирование процесса
+// Example: New ImageOptimization module
+// Requirements:
+// - Image optimization during upload
+// - Support for JPG, PNG, and WebP formats
+// - Quality retention > 80%
+// - Process logging
 ```
 
-#### 2. Создай интерфейс модуля
+#### 2. Create the module interface
 
 ```php
 // src/Interfaces/ImageOptimizationInterface.php
@@ -119,7 +119,7 @@ interface ImageOptimizationInterface extends ModuleInterface
 }
 ```
 
-#### 3. Напиши тесты ПЕРЕД реализацией
+#### 3. Write tests BEFORE implementation
 
 ```php
 // tests/Unit/ImageOptimizationTest.php
@@ -145,7 +145,7 @@ describe('ImageOptimization', function () {
     });
 
     it('preserves image quality', function () {
-        // Тест на качество после оптимизации
+// Quality test after optimization
         $originalQuality = $this->getImageQuality('/path/to/test.jpg');
         $this->service->optimizeImage('/path/to/test.jpg');
         $optimizedQuality = $this->getImageQuality('/path/to/test.jpg');
@@ -155,7 +155,7 @@ describe('ImageOptimization', function () {
 });
 ```
 
-#### 4. Реализуй минимальный код
+#### 4. Implement the minimum code
 
 ```php
 // src/Services/ImageOptimizationService.php
@@ -163,12 +163,12 @@ class ImageOptimizationService
 {
     public function optimizeImage(string $filePath): bool
     {
-        // Минимальная реализация для прохождения тестов
+// Minimum implementation to pass the tests
         if (!file_exists($filePath)) {
             return false;
         }
 
-        // Заглушка - просто возвращаем true
+// Placeholder – just return true
         return true;
     }
 
@@ -179,19 +179,19 @@ class ImageOptimizationService
 }
 ```
 
-#### 5. Запусти тесты и исправь
+#### 5. Run the tests and fix the issues
 
 ```bash
 composer test tests/Unit/ImageOptimizationTest.php
 ```
 
-#### 6. Добавь интеграционные тесты
+#### 6. Add integration tests
 
 ```php
 // tests/Feature/ImageOptimizationIntegrationTest.php
 describe('ImageOptimization Integration', function () {
     it('integrates with WordPress upload', function () {
-        // Тест полной интеграции с WP
+// Full WP integration test
         $attachmentId = $this->createTestImage();
         $optimized = apply_filters('wp_handle_upload', ['file' => '/path/to/image.jpg']);
 
@@ -201,7 +201,7 @@ describe('ImageOptimization Integration', function () {
 });
 ```
 
-#### 7. Добавь фабрики для тестовых данных
+#### 7. Add factories for test data
 
 ```php
 // tests/Factories/ImageFactory.php
@@ -218,17 +218,17 @@ class ImageFactory extends Factory
             'post_title' => $this->faker->sentence(),
             'post_type' => 'attachment',
             'post_mime_type' => 'image/jpeg',
-            // ... другие поля
+The bug...
         ];
     }
 }
 ```
 
-## 🧪 Типы тестов
+Quiz Types
 
-### Unit тесты
+Unit tests
 
-Тестируют отдельные компоненты в изоляции:
+Individual components are tested in isolation:
 
 ```php
 describe('OptionService', function () {
@@ -241,9 +241,9 @@ describe('OptionService', function () {
 });
 ```
 
-### Feature тесты
+### Feature tests
 
-Тестируют интеграцию компонентов:
+The integration of components is being tested:
 
 ```php
 describe('LazyLoading Integration', function () {
@@ -258,9 +258,9 @@ describe('LazyLoading Integration', function () {
 });
 ```
 
-### Smoke тесты
+### Smoke tests
 
-Проверяют базовую работоспособность:
+Basic functionality is checked:
 
 ```php
 describe('Smoke Test', function () {
@@ -273,41 +273,41 @@ describe('Smoke Test', function () {
 });
 ```
 
-## 📚 Лучшие практики написания тестов
+## 📚 Best Practices for Writing Tests
 
-### 1. **Один тест - одна ответственность**
+### 1. **One test – one responsibility**
 
 ```php
-// Хорошо
+good
 it('validates email format', function () {
-    // Только проверка email
+// Email verification only
 });
 
 it('saves user to database', function () {
-    // Только сохранение
+// Save only
 });
 
-// Плохо
+bad
 it('validates and saves user', function () {
-    // Две ответственности
+// Two responsibilities
 });
 ```
 
-### 2. **Читаемые названия тестов**
+### 2. **Readable test names**
 
 ```php
-// Хорошо
+good
 it('throws exception when file not found')
 it('returns cached result on second call')
 it('ignores files smaller than 1KB')
 
-// Плохо
+bad
 it('test file')
 it('check cache')
 it('small files')
 ```
 
-### 3. **Изоляция зависимостей**
+### 3. **Isolation of dependencies**
 
 ```php
 describe('UserService', function () {
@@ -326,16 +326,16 @@ describe('UserService', function () {
 });
 ```
 
-### 4. **Тестируй поведение, не реализацию**
+### 4. **Test behavior, not implementation**
 
 ```php
-// Хорошо: тест результата
+// Good: test result
 it('sends welcome email after registration', function () {
     $user = $this->registerUser();
     expect($this->emailsSent())->toContain('welcome@site.com');
 });
 
-// Плохо: тест внутреннего состояния
+// Bad: internal state test
 it('calls mailer send method', function () {
     $this->spyOnMailer();
     $this->registerUser();
@@ -343,7 +343,7 @@ it('calls mailer send method', function () {
 });
 ```
 
-### 5. **Используй фабрики для тестовых данных**
+### 5. **Use factories for test data**
 
 ```php
 describe('PostService', function () {
@@ -359,7 +359,7 @@ describe('PostService', function () {
 });
 ```
 
-### 6. **Тестируй edge cases**
+### 6. **Test edge cases**
 
 ```php
 describe('FileProcessor', function () {
@@ -381,7 +381,7 @@ describe('FileProcessor', function () {
 });
 ```
 
-### 7. **Используй data providers для похожих тестов**
+### 7. **Use data providers for similar tests**
 
 ```php
 describe('Calculator', function () {
@@ -397,16 +397,16 @@ describe('Calculator', function () {
 });
 ```
 
-## 🛠️ Инструменты и утилиты
+## 🛠️ Tools and Utilities
 
-### Mockery для моков
+### Mockery for mocks
 
 ```php
 $mock = Mockery::mock(SomeClass::class);
 $mock->shouldReceive('method')->andReturn('value');
 ```
 
-### Фабрики для данных
+### Data Factories
 
 ```php
 // Создание тестовых данных
@@ -423,7 +423,7 @@ class MyTest extends TestCase
 
     public function testCreatesRecord()
     {
-        // БД очищается перед каждым тестом
+// БД очищается перед каждым тестом
         $this->createPost(['title' => 'Test']);
 
         $count = $this->getPostsCount();
@@ -469,7 +469,7 @@ if (getenv('CI') === 'true') {
  * @group problematic
  */
 describe('Complex Test', function () {
-    // Этот тест будет пропущен в CI
+// Этот тест будет пропущен в CI
 });
 ```
 
@@ -539,7 +539,7 @@ it('processes within time limit', function () {
     $this->service->processLargeDataset();
     $duration = microtime(true) - $start;
 
-    expect($duration)->toBeLessThan(1.0); // < 1 сек
+expect($duration)->toBeLessThan(1.0); // < 1 сек
 });
 ```
 

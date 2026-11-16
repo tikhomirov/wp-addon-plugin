@@ -37,7 +37,7 @@ final class ControllerWP
                 $this->run($key); // 'plugins_loaded'
             } elseif (is_array($value)) { // block options
                 foreach ($value as $name => $val) {
-                    if ($val == '1') { // включаем все что не выключено
+                    if ($val == '1') { // enable nested options that are on
                         $this->run($name);
                     }
                 }
@@ -46,7 +46,7 @@ final class ControllerWP
     }
 
     /**
-     * Запускаем если есть такая функция
+     * Boot the function when it exists
      *
      * @param  $settings
      */

@@ -70,7 +70,7 @@ describe('Backup module', function () {
                 expect($html)->toContain('id="'.$id.'"');
             }
 
-            // Убрано: select больше нет, restore-кнопка в таблице.
+            // Select removed; restore button lives in the table.
             expect($html)->not->toContain('wp-addon-backup-select');
             expect($html)->not->toContain('wp-addon-backup-latest-download');
 
@@ -79,7 +79,7 @@ describe('Backup module', function () {
             expect($html)->toContain('wp-addon-backup-download');
             expect($html)->toContain('wp-addon-backup-restore');
             expect($html)->toContain('wp_');
-            expect($html)->toContain('Восстановление');
+            expect($html)->toContain('Restore');
         } finally {
             unlink($dir.'/backup/backup_test.sql');
             rmdir($dir.'/backup');
@@ -94,7 +94,7 @@ describe('Backup module', function () {
         try {
             $html = Backup::render_settings_content(new Storage($dir));
 
-            expect($html)->toContain('Файлов дампов пока нет.');
+            expect($html)->toContain('No backup files yet.');
         } finally {
             rmdir($dir);
         }

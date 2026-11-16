@@ -186,7 +186,7 @@
     min-height: 400px;
 }
 
-/* Мобильный админ-бар */
+/* Mobile admin bar */
 @media screen and (max-width: 782px) {
     .wp-addon-markdown-container .editor-toolbar {
         top: 46px;
@@ -212,7 +212,7 @@
     display: block;
 }
 
-/* Side-by-side и Fullscreen режимы в админке WP */
+/* Side-by-side and fullscreen modes in WP admin */
 .editor-toolbar.fullscreen,
 .CodeMirror-fullscreen,
 .editor-preview-side {

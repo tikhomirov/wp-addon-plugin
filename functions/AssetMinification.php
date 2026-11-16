@@ -19,7 +19,7 @@ class AssetMinification implements ModuleInterface
     public function __construct(OptionService $optionService)
     {
         $this->optionService = $optionService;
-        // Конфигурация будет загружена в init()
+        // Configuration loads in init()
     }
 
     private function loadConfig(): void
@@ -74,12 +74,12 @@ class AssetMinification implements ModuleInterface
             return;
         }
 
-        // Отладка: добавить HTML комментарий
+        // Debug: HTML comment
         // add_action('wp_head', function() {
         //     echo '<!-- AssetMinification: processCssAssets called -->';
         // });
 
-        // Отладка: записать в лог
+        // Debug: log
         // error_log('AssetMinification: processCssAssets called');
 
         $this->processCss();
@@ -91,7 +91,7 @@ class AssetMinification implements ModuleInterface
             return;
         }
 
-        // Отладка: записать в лог
+        // Debug: log
         // error_log('AssetMinification: processJsAssets called');
 
         $this->processJs();
@@ -115,7 +115,7 @@ class AssetMinification implements ModuleInterface
 
             $style = $wp_styles->registered[$handle];
 
-            // Использовать умную проверку
+            // Smart asset check
             if (! $this->shouldProcessAsset($handle, $style->src, $this->config['exclude_css'])) {
                 continue;
             }
@@ -123,7 +123,7 @@ class AssetMinification implements ModuleInterface
             $filePath = $this->urlToPath($style->src);
             $content = file_get_contents($filePath);
 
-            // Проверить, не минифицирован ли уже файл
+            // Skip if already minified
             if ($this->isAlreadyMinified($content, 'css')) {
                 continue;
             }
@@ -158,7 +158,7 @@ class AssetMinification implements ModuleInterface
                 $filePath = $this->urlToPath($style->src);
                 $content = file_get_contents($filePath);
 
-                // Пропустить, если уже минифицирован
+                // Skip if already minified
                 if ($this->isAlreadyMinified($content, 'css')) {
                     continue;
                 }
@@ -184,7 +184,7 @@ class AssetMinification implements ModuleInterface
             return;
         }
 
-        // Отладка
+        // Debug
         // error_log('AssetMinification: processJs started, scripts count: ' . count($wp_scripts->queue));
 
         $jsFiles = [];
@@ -197,7 +197,7 @@ class AssetMinification implements ModuleInterface
 
             $script = $wp_scripts->registered[$handle];
 
-            // Использовать умную проверку
+            // Smart asset check
             if (! $this->shouldProcessAsset($handle, $script->src, $this->config['exclude_js'])) {
                 continue;
             }
@@ -205,7 +205,7 @@ class AssetMinification implements ModuleInterface
             $filePath = $this->urlToPath($script->src);
             $content = file_get_contents($filePath);
 
-            // Проверить, не минифицирован ли уже файл
+            // Skip if already minified
             if ($this->isAlreadyMinified($content, 'js')) {
                 continue;
             }
@@ -241,7 +241,7 @@ class AssetMinification implements ModuleInterface
                 $filePath = $this->urlToPath($script->src);
                 $content = file_get_contents($filePath);
 
-                // Пропустить, если уже минифицирован
+                // Skip if already minified
                 if ($this->isAlreadyMinified($content, 'js')) {
                     continue;
                 }
@@ -339,28 +339,28 @@ class AssetMinification implements ModuleInterface
 
     private function shouldProcessAsset(string $handle, string $src, array $excludes): bool
     {
-        // Исключить явно указанные
+        // Explicit excludes
         if (in_array($handle, $excludes)) {
             return false;
         }
 
-        // Исключить системные ресурсы WordPress
+        // WordPress core assets
         if ($this->isSystemAsset($handle)) {
             return false;
         }
 
-        // Только локальные файлы
+        // Local files only
         if (! $src || strpos($src, site_url()) !== 0) {
             return false;
         }
 
-        // Проверить существование файла
+        // File must exist
         $filePath = $this->urlToPath($src);
         if (! file_exists($filePath)) {
             return false;
         }
 
-        // Проверить размер файла (минифицировать только файлы > 1KB)
+        // Minify only files > 1KB
         if (filesize($filePath) < 1024) {
             return false;
         }
@@ -371,11 +371,11 @@ class AssetMinification implements ModuleInterface
     private function isAlreadyMinified(string $content, string $type): bool
     {
         if ($type === 'css') {
-            // Проверить на признаки минификации CSS
+            // Heuristic: minified CSS
             return preg_match('/^[^{}]+{[^}]+}/', trim($content)) &&
                    ! preg_match('/\\n/', $content);
         } elseif ($type === 'js') {
-            // Проверить на признаки минификации JS
+            // Heuristic: minified JS
             return ! preg_match('/\\n\\s*\\n/', $content) &&
                    preg_match('/[a-zA-Z_$][a-zA-Z0-9_$]*\\s*[=:]\\s*function/', $content);
         }

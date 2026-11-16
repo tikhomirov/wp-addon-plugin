@@ -4,7 +4,7 @@ if (! function_exists('change_excerpt')) {
     function change_excerpt()
     {
         /**
-         * Обрезка выдержки, если она больше 181 символов. (c точкой).
+         * Trim excerpt when longer than 181 characters (including period).
          *
          * @return string
          */

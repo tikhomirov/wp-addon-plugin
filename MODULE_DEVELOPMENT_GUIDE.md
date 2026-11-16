@@ -1,51 +1,51 @@
-# Руководство по разработке модулей для WP Addon Plugin
+# Guide to Developing Modules for the WP Addon Plugin
 
-## Для AI-ассистента Windsurf
+## For the Windsurf AI Assistant
 
-Это руководство описывает процесс разработки новых модулей для плагина WP Addon Plugin с использованием методологии Test-Driven Development (TDD). Следуя этому подходу, мы гарантируем высокое качество кода, надежность и отсутствие багов.
+This guide describes the process of developing new modules for the WP Addon Plugin using the Test-Driven Development (TDD) methodology. By following this approach, we guarantee high code quality, reliability, and the absence of bugs.
 
-## Основные принципы
+Fundamental Principles
 
-1. **TDD подход**: Сначала тесты, потом код
-2. **Чекпоинты работоспособности**: Определяем критерии успеха заранее
-3. **Интеграционные тесты**: Проверяют работу модуля целиком
-4. **Unit тесты**: Проверяют отдельные компоненты
-5. **Чистый код**: Удаляем все временные файлы перед коммитом
+1. **TDD approach**: Tests first, then code
+2. **Functionality checkpoints**: We define the criteria for success in advance
+3. **Integration tests**: Verify the operation of the module as a whole
+4. **Unit tests**: Test individual components
+5. **Clean code**: Delete all temporary files before committing
 
-## Шаги разработки нового модуля
+## Steps for developing a new module
 
-### Шаг 1: Анализ требований и определение чекпоинтов
+### Step 1: Analyze requirements and define checkpoints
 
-**Что делать:**
-- Определить функциональные требования модуля
-- Выделить ключевые чекпоинты работоспособности
-- Определить входные данные и ожидаемые результаты
+**What to do:**
+- Define the functional requirements of the module
+- Identify key performance checkpoints
+- Define the input data and expected results
 
-**Пример чекпоинтов для нового модуля:**
+**Example of checkpoints for a new module:**
 ```markdown
-- ✅ Модуль активируется без ошибок
-- ✅ Класс модуля загружается и инициализируется
-- ✅ Конфигурация загружается правильно
-- ✅ Основная функция выполняется корректно
-- ✅ Обработка ошибок работает
-- ✅ Производительность не ухудшается
+- ✅ The module is activated without errors
+- ✅ The module class is loaded and initialized
+- ✅ The configuration is loaded correctly
+- ✅ The main function is performed correctly
+- ✅ Error handling works
+- ✅ Performance is not degraded
 ```
 
-**Код:**
+Pollutant Code
 ```php
-// Определить чекпоинты в комментариях
-// TODO: Определить чекпоинты работоспособности
+// Define checkpoints in the comments
+// TODO: Define performance checkpoints
 ```
 
-### Шаг 2: Создание интеграционных тестов
+### Step 2: Creating Integration Tests
 
-**Что делать:**
-- Создать файл `tests/integration/ModuleNameTest.php`
-- Написать тесты, проверяющие чекпоинты
-- Использовать реальные сервисы и моки WordPress функций
-- Тесты должны падать до реализации функционала
+**What to do:**
+- Create the file `tests/integration/ModuleNameTest.php`
+- Write tests that check checkpoints
+- Use real services and mocks of WordPress functions
+- Tests should fail before the functionality is implemented
 
-**Структура интеграционного теста:**
+**Structure of the integration test:**
 ```php
 <?php
 namespace WpAddon\Tests\Integration;
@@ -59,7 +59,7 @@ class ModuleNameTest extends TestCase
     {
         parent::setUp();
         Monkey\setUp();
-        // Настройка моков
+// Mock configuration
     }
 
     protected function tearDown(): void
@@ -70,33 +70,33 @@ class ModuleNameTest extends TestCase
 
     public function testModuleIsActivated(): void
     {
-        // Чекпоинт 1: Модуль активирован
-        // Проверка наличия модуля в системе
+// Checkpoint 1: Module activated
+        // Checking for the presence of the module in the system
     }
 
     public function testModuleLoads(): void
     {
-        // Чекпоинт 2: Класс загружается
-        // Проверка существования класса и интерфейса
+// Checkpoint 2: Class is loading
+        // Check for the existence of the class and interface
     }
 
     public function testMainFunctionality(): void
     {
-        // Чекпоинт 3: Основная функция работает
-        // Тест основного функционала
+// Checkpoint 3: The main function works
+        // Test of the main functionality
     }
 }
 ```
 
-### Шаг 3: Создание unit тестов
+### Step 3: Creating unit tests
 
-**Что делать:**
-- Создать файл `tests/unit/ModuleNameTest.php`
-- Протестировать отдельные методы
-- Мокировать зависимости
-- Проверить edge cases
+**What to do:**
+- Create the file `tests/unit/ModuleNameTest.php`
+- Test individual methods
+- Mock dependencies
+- Check edge cases
 
-**Пример unit теста:**
+**Example of a unit test:**
 ```php
 <?php
 namespace WpAddon\Tests\Unit;
@@ -138,15 +138,15 @@ class ModuleNameTest extends TestCase
 }
 ```
 
-### Шаг 4: Реализация функционала
+### Step 4: Implementing the Functionality
 
-**Что делать:**
-- Создать класс модуля в `functions/ModuleName.php`
-- Реализовать интерфейс `ModuleInterface`
-- Использовать trait `HookTrait` для хуков
-- Добавить проверки и обработку ошибок
+**What to do:**
+- Create a module class in `functions/ModuleName.php`
+- Implement the `ModuleInterface` interface
+- Use the `HookTrait` trait for hooks
+- Add checks and error handling
 
-**Структура модуля:**
+Unit structure
 ```php
 <?php
 
@@ -166,22 +166,22 @@ class ModuleName implements ModuleInterface
 
     public function init(): void
     {
-        // Регистрация хуков
+// Registering hooks
         $this->addHook('hook_name', [$this, 'callback'], 10);
 
-        // Проверка настроек
+Email Fetching Test
         if (!$this->optionService->getSetting('module_enabled')) {
             return;
         }
 
-        // Инициализация логики
+// Initialization of logic
     }
 
     public function callback(): void
     {
-        // Основная логика
+// main logic
         try {
-            // Реализация
+Implementation
         } catch (Exception $e) {
             error_log('ModuleName error: ' . $e->getMessage());
         }
@@ -189,100 +189,100 @@ class ModuleName implements ModuleInterface
 }
 ```
 
-### Шаг 5: Регистрация модуля в системе
+### Step 5: Registering the module in the system
 
-**Что делать:**
-- Добавить модуль в `src/Core/Plugin.php` в методе `loadModules()`
-- Проверить, что модуль загружается при активации плагина
+**What to do:**
+- Add the module to `src/Core/Plugin.php` in the `loadModules()` method
+- Check that the module loads when the plugin is activated
 
-**Код в Plugin.php:**
+**Code in Plugin.php:**
 ```php
 private function loadModules(): void
 {
-    // Существующие модули...
+// Existing modules...
 
-    // Новый модуль
+New Blank Module
     if ($className === 'ModuleName') {
         $module = new $className($this->optionService);
     }
 }
 ```
 
-### Шаг 6: Тестирование и отладка
+### Step 6: Testing and Debugging
 
-**Что делать:**
-- Запускать тесты: `./run-tests.sh`
-- Проверять покрытие кода
-- Исправлять ошибки
-- Добавлять отладочные логи при необходимости
+**What to do:**
+- Run tests: `./run-tests.sh`
+- Check code coverage
+- Fix errors
+- Add debug logs if necessary
 
-**Команды:**
+commands
 ```bash
-# Запуск всех тестов
+# Run all tests
 ./run-tests.sh
 
-# Запуск интеграционных тестов
+# Running integration tests
 ./run-tests.sh integration
 
-# Запуск unit тестов
+# Running unit tests
 ./run-tests.sh unit
 ```
 
-### Шаг 7: Очистка и документирование
+### Step 7: Cleaning and Documentation
 
-**Что делать:**
-- Удалить временные файлы и отладочные логи
-- Обновить документацию (README.md, SETTINGS.md)
-- Добавить модуль в список функций
+**What to do:**
+- Delete temporary files and debug logs
+- Update the documentation (README.md, SETTINGS.md)
+- Add the module to the list of features
 
-**Чек-лист готовности:**
-- [ ] Все тесты проходят
-- [ ] Код соответствует PSR-12
-- [ ] Документация обновлена
-- [ ] Временные файлы удалены
-- [ ] Производительность проверена
+**Readiness checklist:**
+- [ ] All tests pass
+- [ ] The code complies with PSR-12
+- [ ] Documentation has been updated
+- [ ] Temporary files have been deleted
+- [ ] Performance has been tested
 
-## Пример: Разработка модуля AssetMinification
+## Example: Developing the AssetMinification module
 
-### Определение чекпоинтов
-- ✅ Плагин активирован
-- ✅ Класс AssetMinification существует
-- ✅ Конфигурация загружается
-- ✅ CSS минифицируется и кэшируется
-- ✅ JS минифицируется и кэшируется
-- ✅ Critical CSS извлекается
-- ✅ Хуки зарегистрированы
+### Defining checkpoints
+- ✅ Plugin activated
+- ✅ The AssetMinification class exists
+- ✅ Configuration is loading
+- ✅ CSS is minified and cached
+- ✅ JS is minified and cached
+- ✅ Critical CSS is extracted
+- ✅ Hooks are registered
 
-### Интеграционные тесты
-Создан `AssetMinificationRealWorldTest.php` с проверкой всех чекпоинтов.
+### Integration tests
+`AssetMinificationRealWorldTest.php` has been created with verification of all checkpoints.
 
-### Unit тесты
-Создан `AssetMinificationTest.php` с тестированием создания кэш-файлов.
+### Unit tests
+`AssetMinificationTest.php` has been created with testing of cache file creation.
 
-### Реализация
-- Исправлен код `AssetMinification.php`
-- Добавлена минификация и кэширование
-- Регистрация хуков на `wp_print_styles` и `wp_print_scripts`
+### Implementation
+- Fixed the code in `AssetMinification.php`
+- Added minification and caching
+- Registration of hooks on `wp_print_styles` and `wp_print_scripts`
 
-### Результат
-Модуль работает в продакшене, создает минифицированные файлы с GZip сжатием.
+### Result
+The module is in production and creates minified files with GZip compression.
 
-## Важные замечания
+Important Considerations
 
-1. **Всегда проверять синтаксис**: `php -l filename.php`
-2. **Использовать type hints**: Для параметров и возвращаемых значений
-3. **Обработка ошибок**: Логировать исключения, не прерывать работу сайта
-4. **Производительность**: Избегать тяжелых операций в хуках
-5. **Безопасность**: Валидировать входные данные
-6. **Совместимость**: Проверять с разными версиями WordPress/PHP
+1. **Always check the syntax**: `php -l filename.php`
+2. **Use type hints**: For parameters and return values
+3. **Error handling**: Log exceptions without interrupting the site's operation
+4. **Performance**: Avoid heavy operations in hooks
+5. **Security**: Validate input data
+6. **Compatibility**: Test with different versions of WordPress/PHP
 
-## Инструменты
+Tools
 
-- **PHPUnit**: Для запуска тестов
-- **Brain\Monkey**: Для мокинга WordPress функций
-- **Mockery**: Для мокинга сервисов
-- **PHPStan/PHPCS**: Для проверки кода
+- **PHPUnit**: For running tests
+- **Brain\Monkey**: For mocking WordPress functions
+- **Mockery**: For mocking services
+- **PHPStan/PHPCS**: For code validation
 
-## Контакты
+Contact
 
-При разработке новых модулей следуйте этому руководству для обеспечения качества и надежности кода.
+When developing new modules, follow this guide to ensure the quality and reliability of the code.

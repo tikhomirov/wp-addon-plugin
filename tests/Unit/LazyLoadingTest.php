@@ -44,11 +44,11 @@ describe('LazyLoading Unit Tests', function () {
         $html = '<img src="/image.jpg" alt="Test">';
         $result = $lazyLoading->processContent($html);
 
-        // Проверяем что добавлены нужные атрибуты
+        // Check required attributes are added
         expect($result)->toContain('data-src="/image.jpg"');
         expect($result)->toContain('lazy-img');
         expect($result)->toContain('loading="lazy"');
-        // И что НЕТ атрибута src (только data-src)
+        // And no src attribute (data-src only)
         expect(preg_match('/\ssrc\s*=\s*"\/image\.jpg"/', $result))->toBe(0);
     });
 
@@ -90,8 +90,8 @@ describe('LazyLoading Unit Tests', function () {
 
         expect($result)->toContain('data-src="/uploads/1.jpg"');
         expect($result)->toContain('data-src="/uploads/2.jpg"');
-        expect($result)->toContain('src="/uploads/3.svg"'); // SVG пропускается
-        // Проверяем что НЕТ атрибутов src для обработанных изображений
+        expect($result)->toContain('src="/uploads/3.svg"'); // SVG is skipped
+        // Check processed images have no src attribute
         expect(preg_match('/\ssrc\s*=\s*"\/uploads\/1\.jpg"/', $result))->toBe(0);
         expect(preg_match('/\ssrc\s*=\s*"\/uploads\/2\.jpg"/', $result))->toBe(0);
     });

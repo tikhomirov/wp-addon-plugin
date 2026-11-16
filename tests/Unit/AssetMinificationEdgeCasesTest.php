@@ -6,7 +6,7 @@
  * @group problematic
  */
 describe('AssetMinification Edge Cases', function () {
-    // Пропускаем эти тесты в CI из-за Patchwork конфликтов
+    // Skip these tests in CI due to Patchwork conflicts
     if (getenv('CI') === 'true' || getenv('GITHUB_ACTIONS') === 'true') {
         test('skipped in CI', function () {})->skip('Patchwork conflicts in CI');
 

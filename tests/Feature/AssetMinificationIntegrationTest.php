@@ -9,7 +9,7 @@ use WpAddon\Services\OptionService;
  * Integration test for AssetMinification module
  */
 describe('AssetMinification Integration', function () {
-    // Пропустить тесты, если WordPress не загружен (integration среда)
+    // Skip tests if WordPress is not loaded (integration environment)
     if (! function_exists('wp_die')) {
         test('skipped - requires WordPress environment', function () {})->skip('WordPress environment not available');
 
@@ -400,10 +400,10 @@ describe('AssetMinification Integration', function () {
         expect($registeredActions)->toContain('upgrader_process_complete');
     });
 
-    // ===== НОВЫЕ ТЕСТЫ ДЛЯ ПРОВЕРКИ РЕАЛЬНОЙ РАБОТЫ =====
+    // ===== REAL-WORLD BEHAVIOR TESTS =====
 
     it('checks real plugin activation', function () {
-        // Проверяем активацию плагина в реальной среде
+        // Check plugin activation in real environment
         if (function_exists('get_option')) {
             $active_plugins = get_option('active_plugins', []);
             expect($active_plugins)->toContain('wp-addon-plugin/wp-addon-plugin.php');
@@ -413,13 +413,13 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real plugin constants', function () {
-        // Проверяем константы плагина в реальной среде
+        // Check plugin constants in real environment
         if (defined('RW_PLUGIN_DIR')) {
             expect(defined('RW_PLUGIN_DIR'))->toBeTrue();
             expect(defined('RW_PLUGIN_URL'))->toBeTrue();
             expect(defined('RW_FILE'))->toBeTrue();
 
-            // Проверяем что пути существуют
+            // Check paths exist
             expect(is_dir(RW_PLUGIN_DIR))->toBeTrue();
             expect(file_exists(RW_FILE))->toBeTrue();
         } else {
@@ -428,7 +428,7 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real cache directory', function () {
-        // Проверяем директорию кэша в реальной среде
+        // Check cache directory in real environment
         if (defined('WP_CONTENT_DIR')) {
             $cacheDir = WP_CONTENT_DIR.'/cache/assets/';
             expect(is_dir($cacheDir))->toBeTrue();
@@ -439,12 +439,12 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real settings persistence', function () {
-        // Проверяем настройки в реальной среде
+        // Check settings in real environment
         if (function_exists('get_option')) {
             $settings = get_option('wp-addon', []);
             expect($settings)->toBeArray();
 
-            // Проверяем ключевые настройки AssetMinification
+            // Check AssetMinification settings
             $criticalKeys = [
                 'asset_minification_enabled',
                 'asset_minify_css',
@@ -460,18 +460,18 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real module loading', function () {
-        // Проверяем загрузку модуля в реальной среде
+        // Check module loading in real environment
         expect(class_exists('AssetMinification'))->toBeTrue();
 
         expect(is_subclass_of('AssetMinification', 'WpAddon\\Interfaces\\ModuleInterface'))->toBeTrue();
     });
 
     it('checks real WordPress hooks', function () {
-        // Проверяем хуки WordPress в реальной среде
+        // Check WordPress hooks in real environment
         if (isset($GLOBALS['wp_filter'])) {
             global $wp_filter;
 
-            // Проверяем наличие хуков от AssetMinification
+            // Check AssetMinification hooks exist
             $assetHooks = ['wp_enqueue_scripts', 'wp_head', 'wp_footer'];
             $foundAssetHooks = 0;
 
@@ -481,7 +481,7 @@ describe('AssetMinification Integration', function () {
                 }
             }
 
-            // Хотя бы основные хуки должны быть зарегистрированы
+            // At least core hooks should be registered
             expect($foundAssetHooks)->toBeGreaterThan(0);
         } else {
             skip('WordPress hooks not available');
@@ -489,17 +489,17 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real asset processing', function () {
-        // Проверяем обработку реальных активов
+        // Check real asset processing
         if (function_exists('wp_styles') && isset($GLOBALS['wp_styles'])) {
             global $wp_styles;
 
-            // Запоминаем оригинальное состояние
+            // Remember original state
             $originalQueue = $wp_styles->queue;
 
-            // Имитируем вызов processAssets (в реальной среде это происходит через хуки)
+            // Simulate processAssets (hooks in production)
             $this->assetMinification->processAssets();
 
-            // Проверяем что очередь изменилась или остались оригинальные стили
+            // Check queue changed or original styles remain
             expect(! empty($wp_styles->queue) || $wp_styles->queue === $originalQueue)->toBeTrue();
         } else {
             skip('WordPress styles not available');
@@ -507,7 +507,7 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real critical CSS injection', function () {
-        // Проверяем инъекцию критического CSS
+        // Check critical CSS injection
         if (function_exists('get_template_directory')) {
             $themeCss = get_template_directory().'/style.css';
 
@@ -516,7 +516,7 @@ describe('AssetMinification Integration', function () {
                 $this->assetMinification->injectCriticalCss();
                 $output = ob_get_clean();
 
-                // Должен быть какой-то вывод или пустая строка (если отключено)
+                // Output or empty string when disabled
                 expect(strpos($output, '<style') !== false || empty($output))->toBeTrue();
             } else {
                 skip('Theme style.css not found');
@@ -527,25 +527,25 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real HTTP output', function () {
-        // Тест HTTP вывода (если возможно)
+        // HTTP output test when possible
         if (function_exists('home_url') && function_exists('wp_remote_get')) {
             $homeUrl = home_url('/');
 
-            // Пробуем получить главную страницу
+            // Fetch home page
             $response = wp_remote_get($homeUrl, ['timeout' => 5]);
 
             if (! is_wp_error($response)) {
                 $html = wp_remote_retrieve_body($response);
 
-                // Проверяем наличие признаков оптимизации
+                // Check optimization markers
                 $hasOptimizationSigns = (
                     strpos($html, 'wp-addon-critical-css') !== false ||
                     strpos($html, 'cache/assets') !== false ||
                     strpos($html, 'AssetMinification') !== false
                 );
 
-                // Если плагин работает, должны быть признаки оптимизации
-                // Если не работает - тест не должен падать, просто пропускаем
+                // If plugin runs, expect optimization markers
+                // If inactive, test should not fail
                 if ($hasOptimizationSigns) {
                     expect(true)->toBeTrue();
                 } else {
@@ -560,7 +560,7 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real file system operations', function () {
-        // Проверяем файловые операции в реальной среде
+        // Check file operations in real environment
         $service = new AssetOptimizationService([
             'cache_dir' => sys_get_temp_dir().'/test_real_cache/',
             'version_salt' => 'real_test',
@@ -576,14 +576,14 @@ describe('AssetMinification Integration', function () {
         $testContent = 'body { color: red; }';
         $cacheKey = 'real_test_'.time();
 
-        // Тест сохранения
+        // Save test
         $service->saveToCache($cacheKey, $testContent);
 
-        // Тест чтения
+        // Read test
         $cached = $service->getFromCache($cacheKey);
         expect($cached)->toBe($testContent);
 
-        // Очистка
+        // Cleanup
         $cacheFile = sys_get_temp_dir().'/test_real_cache/'.$cacheKey.'.gz';
         if (file_exists($cacheFile)) {
             unlink($cacheFile);

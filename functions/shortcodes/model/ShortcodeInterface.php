@@ -4,7 +4,7 @@
  * Shortcode interface
  */
 
-// Объявим интерфейс 'iTemplate'
+// Declare interface 'iTemplate'
 interface ShortcodeInterface
 {
     public function __construct($tag, $title, $description, $icon = null);
