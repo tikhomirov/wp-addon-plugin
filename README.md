@@ -100,12 +100,24 @@ If every source fails, an admin notice shows the underlying download or filesyst
 
 ```bash
 composer install
-composer test          # 265 unit tests
+composer test          # unit tests (Pest)
 composer test:coverage
-composer analyse       # PHPStan level 2
-composer lint          # Pint
-composer quality       # lint + analyse + test
+composer static-analysis
+composer format:check    # Pint
+composer quality       # validate + lint + analyse + test
+make release           # dist/wp-addon-plugin-<version>.zip
 ```
+
+### Release package
+
+Production ZIP is built with **`git archive`** (respects [`.gitattributes`](.gitattributes) `export-ignore` — no tests, CI, or dev tooling):
+
+```bash
+make release
+# or: composer run build:zip
+```
+
+Publish on GitHub: push tag `v1.6.0` (must match `Version` in `wp-addon-plugin.php`). The [`.github/workflows/release.yml`](.github/workflows/release.yml) workflow attaches `wp-addon-plugin-<version>.zip` to the GitHub Release.
 
 ## Architecture
 

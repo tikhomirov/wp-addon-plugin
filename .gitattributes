@@ -1,0 +1,53 @@
+# Normalize line endings for text files.
+* text=auto eol=lf
+
+# Denote binary files.
+*.mo binary
+*.png binary
+*.gif binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+*.ttf binary
+
+# Paths omitted from `git archive` (release ZIP).
+/.github export-ignore
+/.phpunit.cache export-ignore
+/tests export-ignore
+/CI.md export-ignore
+/AGENTS.md export-ignore
+/MODULES_GUIDE.md export-ignore
+/MODULE_DEVELOPMENT_GUIDE.md export-ignore
+/SETTINGS.md export-ignore
+/phpunit.xml export-ignore
+/phpstan.neon.dist export-ignore
+/phpstan-bootstrap.php export-ignore
+/patchwork.json export-ignore
+/composer.lock export-ignore
+/autoloader.php export-ignore
+
+# Loco / local translation backups (never ship).
+/languages/*backup* export-ignore
+/languages/*.po~ export-ignore
+/languages/*.pot~ export-ignore
+
+# Frontend build tooling (committed assets only in release).
+/assets/gulpfile.js export-ignore
+/assets/package.json export-ignore
+/assets/package-lock.json export-ignore
+/assets/node_modules export-ignore
+
+# Source maps are dev-only.
+*.css.map export-ignore
+
+# Git metadata.
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/.editorconfig export-ignore
+/Makefile export-ignore
+/scripts export-ignore
+/dist export-ignore
