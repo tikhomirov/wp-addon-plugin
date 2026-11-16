@@ -6,7 +6,7 @@
 use WpAddon\Services\MediaCleanupService;
 
 describe('MediaCleanupService', function () {
-    // Пропускаем эти тесты в CI из-за проблем с mock'ами
+    // Skip these tests in CI due to mock issues
     if (getenv('CI') === 'true' || getenv('GITHUB_ACTIONS') === 'true') {
         test('skipped in CI', function () {})->skip('Mock issues in CI');
 
@@ -21,10 +21,10 @@ describe('MediaCleanupService', function () {
             $options = [
                 'thumbnail_size_w' => 150,
                 'thumbnail_size_h' => 150,
-                'medium_size_w' => 300,
-                'medium_size_h' => 300,
-                'large_size_w' => 1024,
-                'large_size_h' => 1024,
+                'medium_size_w'    => 300,
+                'medium_size_h'    => 300,
+                'large_size_w'     => 1024,
+                'large_size_h'     => 1024,
             ];
 
             return $options[$key] ?? $default;

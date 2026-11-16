@@ -7,11 +7,11 @@ if (! function_exists('wptweaker_field')) {
     function wptweaker_field(string $id, string $title, bool $default, string $desc): array
     {
         return [
-            'id' => $id,
-            'type' => 'switcher',
-            'title' => $title,
+            'id'      => $id,
+            'type'    => 'switcher',
+            'title'   => $title,
             'default' => $default,
-            'desc' => $desc,
+            'desc'    => $desc,
         ];
     }
 }

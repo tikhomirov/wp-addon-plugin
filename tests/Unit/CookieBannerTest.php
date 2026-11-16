@@ -6,9 +6,9 @@ describe('CookieBanner Unit Tests', function () {
         $this->mockOptionService->shouldReceive('getSetting')
             ->andReturnUsing(function ($key, $default = null) {
                 $config = [
-                    'cookie_banner_enabled' => true,
-                    'cookie_banner_position' => 'bottom-center',
-                    'cookie_banner_text' => 'Cookie text {link1} and {link2}',
+                    'cookie_banner_enabled'     => true,
+                    'cookie_banner_position'    => 'bottom-center',
+                    'cookie_banner_text'        => 'Cookie text {link1} and {link2}',
                     'cookie_banner_button_mode' => 'two',
                 ];
 

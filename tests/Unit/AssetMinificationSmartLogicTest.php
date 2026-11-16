@@ -6,7 +6,7 @@
  * @group problematic
  */
 describe('AssetMinification Smart Logic', function () {
-    // Пропускаем эти тесты в CI из-за Patchwork конфликтов
+    // Skip these tests in CI due to Patchwork conflicts
     if (getenv('CI') === 'true' || getenv('GITHUB_ACTIONS') === 'true') {
         test('skipped in CI', function () {})->skip('Patchwork conflicts in CI');
 
@@ -22,17 +22,17 @@ describe('AssetMinification Smart Logic', function () {
         $this->mockOptionService->shouldReceive('getSetting')
             ->andReturnUsing(function ($key, $default = null) {
                 $config = [
-                    'enabled' => true,
-                    'minify_css' => true,
-                    'minify_js' => true,
-                    'combine_css' => true,
-                    'combine_js' => true,
-                    'critical_css_enabled' => true,
+                    'enabled'                => true,
+                    'minify_css'             => true,
+                    'minify_js'              => true,
+                    'combine_css'            => true,
+                    'combine_js'             => true,
+                    'critical_css_enabled'   => true,
                     'defer_non_critical_css' => true,
-                    'exclude_css' => ['admin-bar', 'dashicons'],
-                    'exclude_js' => ['jquery', 'jquery-core'],
-                    'cache_dir' => sys_get_temp_dir().'/wp_addon_cache',
-                    'version_salt' => 'wp-addon-v1',
+                    'exclude_css'            => ['admin-bar', 'dashicons'],
+                    'exclude_js'             => ['jquery', 'jquery-core'],
+                    'cache_dir'              => sys_get_temp_dir() . '/wp_addon_cache',
+                    'version_salt'           => 'wp-addon-v1',
                 ];
 
                 return $config[$key] ?? $default;
@@ -292,7 +292,7 @@ describe('AssetMinification Smart Logic', function () {
 
     it('converts URL to path', function () {
         $url = 'http://localhost/wp-content/themes/theme/style.css';
-        $expectedPath = ABSPATH.'wp-content/themes/theme/style.css';
+        $expectedPath = ABSPATH . 'wp-content/themes/theme/style.css';
 
         $reflection = new ReflectionClass($this->assetMinification);
         $method = $reflection->getMethod('urlToPath');

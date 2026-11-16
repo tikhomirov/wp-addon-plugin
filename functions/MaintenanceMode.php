@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__.'/main-settings-helpers.php';
+require_once __DIR__ . '/main-settings-helpers.php';
 
 use WpAddon\Interfaces\ModuleInterface;
 use WpAddon\Traits\HookTrait;
@@ -31,7 +31,7 @@ class MaintenanceMode implements ModuleInterface
             return;
         }
 
-        if (defined('DOING_AJAX') && DOING_AJAX) {
+        if (wp_doing_ajax()) {
             return;
         }
 

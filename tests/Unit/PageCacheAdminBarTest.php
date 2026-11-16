@@ -12,13 +12,13 @@ beforeEach(function () {
     }
 
     if (! defined('RW_PLUGIN_DIR')) {
-        define('RW_PLUGIN_DIR', dirname(__DIR__, 2).'/');
+        define('RW_PLUGIN_DIR', dirname(__DIR__, 2) . '/');
     }
     if (! defined('WP_CONTENT_DIR')) {
-        define('WP_CONTENT_DIR', sys_get_temp_dir().'/wp-addon-content');
+        define('WP_CONTENT_DIR', sys_get_temp_dir() . '/wp-addon-content');
     }
 
-    require_once RW_PLUGIN_DIR.'functions/PageCache.php';
+    require_once RW_PLUGIN_DIR . 'functions/PageCache.php';
     $optionService = Mockery::mock(OptionService::class);
     $optionService->shouldReceive('getSettings')->andReturn([]);
     $optionService->shouldReceive('updateSettings')->andReturnTrue();

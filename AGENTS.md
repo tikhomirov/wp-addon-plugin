@@ -1,34 +1,34 @@
 # AGENTS.md
 
-## Контекст
-- Это главный функциональный плагин проекта.
+## Context
+- Main functional plugin for the project.
 - Namespace: `WpAddon\`.
-- Точка входа: `wp-addon-plugin.php`.
-- Основная инициализация: `src/Core/Plugin.php`.
+- Entry point: `wp-addon-plugin.php`.
+- Core bootstrap: `src/Core/Plugin.php`.
 
-## Как искать код
-- OOP-часть и сервисы: `src/`.
-- Настройки CodeStar: `src/Config/`.
-- Модули и procedural-функции: `functions/`.
-- Тесты: `tests/`.
-- Документация по модульной системе: `MODULES_GUIDE.md`, `MODULE_DEVELOPMENT_GUIDE.md`, `SETTINGS.md`.
+## Where to look
+- OOP and services: `src/`.
+- CodeStar settings: `src/Config/`.
+- Modules and procedural code: `functions/`.
+- Tests: `tests/`.
+- Module docs: `MODULES_GUIDE.md`, `MODULE_DEVELOPMENT_GUIDE.md`, `SETTINGS.md`.
 
-## Ключевая архитектура
-- `Plugin::loadModules()` автоматически подключает `functions/*.php` и `functions/*/*.php`.
-- Классы, реализующие `WpAddon\Interfaces\ModuleInterface`, инстанцируются и вызывают `init()` автоматически.
-- Часть модулей создается с зависимостями через специальные ветки в `Plugin::loadModules()`; перед новым конструктором проверь эту логику.
-- `ControllerWP` включает функции по именам настроек через `add_action('init', ...)`, поэтому имя опции и имя функции часто связаны напрямую.
+## Architecture
+- `Plugin::loadModules()` auto-loads `functions/*.php` and `functions/*/*.php`.
+- Classes implementing `WpAddon\Interfaces\ModuleInterface` are constructed and `init()` is called automatically.
+- Some modules are constructed with dependencies in `Plugin::loadModules()`; check that logic before adding constructors.
+- `ControllerWP` enables functions by option name via `add_action('init', ...)`, so option names often match callback function names.
 
-## Практические правила
-- Не добавляй ручные `require_once` для файлов из `functions/`, если они уже должны грузиться модульной системой.
-- Если модуль должен управляться настройкой, проверь `src/Config/*.php` и фактическое имя callback-функции.
-- Для SEO и маршрутов сначала смотри `functions/seo/`.
-- Для админских улучшений чаще всего нужные файлы в `functions/posts/`, `functions/comments/`, `functions/users/`, `functions/widgets/`.
+## Practical rules
+- Do not add manual `require_once` for `functions/` files that already load via the module system.
+- If a module is option-driven, check `src/Config/*.php` and the actual callback function name.
+- SEO and routing: start in `functions/seo/`.
+- Admin tweaks: `functions/posts/`, `functions/comments/`, `functions/users/`, `functions/widgets/`.
 
-## Важный кейс
-- Иерархические URL тегов реализованы в `functions/seo/HierarchicalTagsRewrite.php`.
-- Rewrite rule должна вести на конечный slug тега, иначе WordPress вернет пустую выборку и 404.
+## Important case
+- Hierarchical tag URLs: `functions/seo/HierarchicalTagsRewrite.php`.
+- The rewrite rule must map to the leaf tag slug, or WordPress returns an empty query and 404.
 
-## Проверка изменений
-- Локальные тесты плагина: `composer test` из `wp-content/plugins/wp-addon-plugin/`.
-- При изменениях rewrite/permalink логики нужен flush rewrite rules в WordPress.
+## Verifying changes
+- Plugin tests: `composer test` from `wp-content/plugins/wp-addon-plugin/`.
+- After rewrite/permalink changes, flush rewrite rules in WordPress.

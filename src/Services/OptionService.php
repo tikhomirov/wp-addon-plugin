@@ -39,7 +39,7 @@ class OptionService
     /**
      * Get specific setting value
      *
-     * @param  mixed  $default
+     * @param  mixed $default
      * @return mixed
      */
     public function getSetting(string $key, $default = null)
@@ -50,8 +50,8 @@ class OptionService
     }
 
     /**
-     * @param  array<string, mixed>  $defaults
-     * @param  array<int, string>  $allowEmpty
+     * @param array<string, mixed> $defaults
+     * @param array<int, string>   $allowEmpty
      */
     public function mergeDefaults(array $defaults, array $allowEmpty = []): bool
     {

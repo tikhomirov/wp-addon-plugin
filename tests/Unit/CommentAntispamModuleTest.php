@@ -9,27 +9,27 @@ use WpAddon\Services\CommentAntispamScoringService;
 function antispam_spam_sample(array $overrides = []): array
 {
     return array_merge([
-        'comment_post_ID' => 7700,
-        'comment_author' => 'ztpyuOkqNTwQsQKwwkC',
+        'comment_post_ID'      => 7700,
+        'comment_author'       => 'ztpyuOkqNTwQsQKwwkC',
         'comment_author_email' => 'o.x.on.e.j.o.f.eza.96@gmail.com',
-        'comment_author_url' => '',
-        'comment_author_IP' => '203.0.113.77',
-        'comment_content' => 'IjtRwXHmcvybfzgmAiM',
-        'comment_type' => 'comment',
-        'comment_agent' => 'Mozilla/5.0',
+        'comment_author_url'   => '',
+        'comment_author_IP'    => '203.0.113.77',
+        'comment_content'      => 'IjtRwXHmcvybfzgmAiM',
+        'comment_type'         => 'comment',
+        'comment_agent'        => 'Mozilla/5.0',
     ], $overrides);
 }
 
 function antispam_real_comment(array $overrides = []): array
 {
     return array_merge([
-        'comment_post_ID' => 7700,
-        'comment_author' => 'Алексей',
+        'comment_post_ID'      => 7700,
+        'comment_author'       => 'Алексей',
         'comment_author_email' => 'a.leks@mail.ru',
-        'comment_author_url' => '',
-        'comment_author_IP' => '198.51.100.5',
-        'comment_content' => 'Спасибо, статья очень полезная!',
-        'comment_type' => 'comment',
+        'comment_author_url'   => '',
+        'comment_author_IP'    => '198.51.100.5',
+        'comment_content'      => 'Спасибо, статья очень полезная!',
+        'comment_type'         => 'comment',
     ], $overrides);
 }
 
@@ -57,7 +57,7 @@ class AntispamModuleFakeWpdb
             return (string) $this->total;
         }
 
-        return $this->tablePresent ? $this->prefix.CommentAntispamLogService::TABLE : null;
+        return $this->tablePresent ? $this->prefix . CommentAntispamLogService::TABLE : null;
     }
 
     public function get_results($query = null, $output = null)
@@ -122,14 +122,14 @@ describe('CommentAntispam gate', function () {
     function antispam_promo_sample(array $overrides = []): array
     {
         return array_merge([
-            'comment_post_ID' => 7700,
-            'comment_author' => 'RusFiner',
+            'comment_post_ID'      => 7700,
+            'comment_author'       => 'RusFiner',
             'comment_author_email' => 'rusfiner2@pil-casi.fun',
-            'comment_author_url' => '',
-            'comment_author_IP' => '65.21.233.184',
-            'comment_content' => 'Онлайн-сервис помогает подобрать займ.'
-                .' https://rus-finer.ru/zaimy-pensioneram-na-kartu/ и https://rus-finer.ru/zaim-45000-rubley-na-kartu/',
-            'comment_type' => 'comment',
+            'comment_author_url'   => '',
+            'comment_author_IP'    => '65.21.233.184',
+            'comment_content'      => 'Онлайн-сервис помогает подобрать займ.'
+                . ' https://rus-finer.ru/zaimy-pensioneram-na-kartu/ и https://rus-finer.ru/zaim-45000-rubley-na-kartu/',
+            'comment_type'  => 'comment',
             'comment_agent' => 'Mozilla/5.0',
         ], $overrides);
     }
@@ -149,19 +149,19 @@ describe('CommentAntispam gate', function () {
         global $wpdb;
 
         $borderline = antispam_spam_sample([
-            'comment_author' => 'John',
+            'comment_author'       => 'John',
             'comment_author_email' => 'john@example.com',
-            'comment_content' => 'Congrats',
+            'comment_content'      => 'Congrats',
         ]);
 
         expect((new CommentAntispam)->filterPreCommentApproved(1, $borderline))->toBe(0);
-        expect($wpdb->inserts[0]['reason'])->toStartWith(CommentAntispam::REASON_HOLD.':');
+        expect($wpdb->inserts[0]['reason'])->toStartWith(CommentAntispam::REASON_HOLD . ':');
     });
 
     it('holds every first comment when the switcher is on', function () {
         antispam_set_settings([
             'antispam_hold_first_time' => true,
-            'antispam_hold_score' => 0,
+            'antispam_hold_score'      => 0,
         ]);
 
         expect((new CommentAntispam)->filterPreCommentApproved(1, antispam_real_comment()))->toBe(0);
@@ -200,7 +200,7 @@ describe('CommentAntispam gate', function () {
         foreach ($comments as $index => $comment) {
             $result = (new CommentAntispam)->filterPreCommentApproved(1, antispam_real_comment($comment));
 
-            expect($result)->toBe(1, 'comment #'.($index + 1).' must pass');
+            expect($result)->toBe(1, 'comment #' . ($index + 1) . ' must pass');
         }
 
         expect($wpdb->inserts)->toBeEmpty();
@@ -296,9 +296,9 @@ describe('CommentAntispam gate', function () {
 
         foreach (['pingback', 'trackback'] as $type) {
             $data = antispam_spam_sample([
-                'comment_type' => $type,
+                'comment_type'       => $type,
                 'comment_author_url' => '',
-                'comment_content' => '',
+                'comment_content'    => '',
             ]);
 
             $result = (new CommentAntispam)->filterPreCommentApproved(1, $data);
@@ -312,7 +312,7 @@ describe('CommentAntispam gate', function () {
     it('blocks a pingback whose source page cannot be fetched', function () {
         global $wpdb;
         $data = antispam_spam_sample([
-            'comment_type' => 'pingback',
+            'comment_type'       => 'pingback',
             'comment_author_url' => 'https://example.org/unreachable',
         ]);
 
@@ -328,9 +328,9 @@ describe('CommentAntispam gate', function () {
         ];
 
         $data = antispam_spam_sample([
-            'comment_type' => 'pingback',
+            'comment_type'       => 'pingback',
             'comment_author_url' => 'https://example.org/good',
-            'comment_content' => 'https://example.org/good',
+            'comment_content'    => 'https://example.org/good',
         ]);
 
         expect((new CommentAntispam)->filterPreCommentApproved(1, $data))->toBe(1);
@@ -345,9 +345,9 @@ describe('CommentAntispam gate', function () {
         ];
 
         $data = antispam_spam_sample([
-            'comment_type' => 'pingback',
+            'comment_type'       => 'pingback',
             'comment_author_url' => 'https://example.org/spammy',
-            'comment_content' => 'https://example.org/spammy',
+            'comment_content'    => 'https://example.org/spammy',
         ]);
 
         expect((new CommentAntispam)->filterPreCommentApproved(1, $data))->toBeInstanceOf(WP_Error::class);
@@ -372,9 +372,9 @@ describe('CommentAntispam rest gate', function () {
 
     it('marks a borderline comment unapproved instead of rejecting it', function () {
         $comment = antispam_real_comment([
-            'comment_author' => 'John',
+            'comment_author'       => 'John',
             'comment_author_email' => 'john@example.com',
-            'comment_content' => 'Congrats',
+            'comment_content'      => 'Congrats',
         ]);
 
         $result = (new CommentAntispam)->filterRestPreInsertComment($comment);
@@ -424,8 +424,8 @@ describe('CommentAntispam honeypot markup', function () {
         $module->renderHoneypot();
         $markup = (string) ob_get_clean();
 
-        expect($markup)->toContain('name="'.CommentAntispam::HONEYPOT_FIELD.'"');
-        expect($markup)->toContain('id="'.CommentAntispam::HONEYPOT_FIELD.'"');
+        expect($markup)->toContain('name="' . CommentAntispam::HONEYPOT_FIELD . '"');
+        expect($markup)->toContain('id="' . CommentAntispam::HONEYPOT_FIELD . '"');
         expect($markup)->toContain('type="text"');
         expect($markup)->toContain('value=""');
     });

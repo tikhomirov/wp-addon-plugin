@@ -1,6 +1,6 @@
 /**
  * Markdown Editor JavaScript
- * Поддержка переключателя табов (Классический редактор / Markdown) по образцу WPBakery / YOOtheme / Divi.
+ * Classic / Markdown tab switcher (WPBakery / YOOtheme / Divi style).
  */
 jQuery(document).ready(function($) {
     var MarkdownEditor = {
@@ -25,9 +25,9 @@ jQuery(document).ready(function($) {
                 return;
             }
 
-            // Гарантируем правильный порядок в DOM: переключатель и MD-редактор
-            // должны находиться ровно над основным редактором #postdivrich,
-            // ПОСЛЕ подзаголовка и других полей edit_form_after_title.
+            // Keep switcher and MD editor directly above #postdivrich in the DOM
+            // immediately above the main editor #postdivrich,
+            // after subtitle and other edit_form_after_title fields.
             if (this.postdivrich.length && this.switcherWrap.length) {
                 this.postdivrich.before(this.switcherWrap);
             }
@@ -35,7 +35,7 @@ jQuery(document).ready(function($) {
             this.initEasyMDE();
             this.bindEvents();
 
-            // Если при загрузке режим Markdown — гарантируем скрытие TinyMCE
+            // On load in Markdown mode, hide TinyMCE
             if (this.modeInput.val() === 'markdown') {
                 this.postdivrich.hide();
                 this.container.show();
@@ -68,9 +68,9 @@ jQuery(document).ready(function($) {
                     name: "image",
                     action: function customImageAction(editor) {
                         var customUploader = wp.media.frames.file_frame = wp.media({
-                            title: 'Выберите изображение',
+                            title: (options.i18n && options.i18n.media_title) || 'Choose an image',
                             button: {
-                                text: 'Вставить в запись'
+                                text: (options.i18n && options.i18n.media_button) || 'Insert into post'
                             },
                             multiple: false
                         });
@@ -89,7 +89,7 @@ jQuery(document).ready(function($) {
                         customUploader.open();
                     },
                     className: "fa fa-picture-o",
-                    title: "Вставить изображение (WP Media)"
+                    title: (options.i18n && options.i18n.media_toolbar) || 'Insert image (WP Media)'
                 },
                 "table", "horizontal-rule", "|"
             ];
@@ -133,7 +133,7 @@ jQuery(document).ready(function($) {
                 editedInput.data('initial', initialMarkdown);
             }
 
-            // Синхронизация EasyMDE с textarea при изменении
+            // Sync EasyMDE to textarea on change
             this.easyMDE.codemirror.on("change", () => {
                 var current = this.easyMDE.value();
                 this.textarea.val(current);
@@ -146,7 +146,7 @@ jQuery(document).ready(function($) {
         bindEvents: function() {
             var self = this;
 
-            // Клик по табам переключения режимов (Классический / Markdown)
+            // Classic / Markdown tab clicks
             $('.wp-addon-builder-tab').on('click', function(e) {
                 e.preventDefault();
                 var targetMode = $(this).data('mode');
@@ -163,7 +163,7 @@ jQuery(document).ready(function($) {
                 }
             });
 
-            // Кнопка принудительного импорта HTML -> Markdown
+            // Force import HTML -> Markdown
             $('#wp-addon-btn-convert-to-md').on('click', function(e) {
                 e.preventDefault();
                 var i18n = self.getI18n();
@@ -175,7 +175,7 @@ jQuery(document).ready(function($) {
                 }
             });
 
-            // Кнопка принудительного импорта Markdown -> HTML
+            // Force import Markdown -> HTML
             $('#wp-addon-btn-convert-to-html').on('click', function(e) {
                 e.preventDefault();
                 var i18n = self.getI18n();
@@ -187,19 +187,19 @@ jQuery(document).ready(function($) {
                 }
             });
 
-            // Синхронизация перед сохранением формы
+            // Sync before form save
             $('#post').on('submit', function() {
                 var mode = self.modeInput.val() || 'classic';
 
                 if (mode === 'markdown' && self.easyMDE) {
                     var current = self.easyMDE.value();
                     self.textarea.val(current);
-                    // Для поддержки предпросмотра и ревизий WP также заполняем #content сконвертированным HTML
+                    // Fill #content with converted HTML for preview/revisions
                     if (typeof self.easyMDE.markdown === 'function') {
                         try {
                             $('#content').val(self.easyMDE.markdown(current));
                         } catch (err) {
-                            // Игнорируем ошибку рендера на клиенте
+                            // Ignore client render errors
                         }
                     }
                 } else if (mode === 'classic') {
@@ -209,7 +209,7 @@ jQuery(document).ready(function($) {
                 }
             });
 
-            // Добавление справки под Markdown-редактор
+            // Markdown help below editor
             this.addMarkdownHelp();
         },
 
@@ -219,7 +219,7 @@ jQuery(document).ready(function($) {
             var mdVal = this.easyMDE ? this.easyMDE.value().trim() : this.textarea.val().trim();
             var htmlVal = this.getClassicEditorContent().trim();
 
-            // Если Markdown пуст, а в классическом редакторе есть HTML — предлагаем конвертировать
+            // Offer conversion when MD empty but classic has HTML
             if (mdVal === '' && htmlVal !== '') {
                 if (confirm(i18n.import_html_confirm)) {
                     this.convertContent('html_to_md', htmlVal, function(md) {
@@ -228,12 +228,12 @@ jQuery(document).ready(function($) {
                 }
             }
 
-            // Переключаем активный таб
+            // Switch active tab
             $('.wp-addon-builder-tab').removeClass('is-active');
             $('.wp-addon-builder-tab[data-mode="markdown"]').addClass('is-active');
             this.modeInput.val('markdown');
 
-            // Показываем Markdown, скрываем TinyMCE
+            // Show Markdown, hide TinyMCE
             $('#wp-addon-hide-tinymce').remove();
             $('<style id="wp-addon-hide-tinymce">#postdivrich { display: none !important; }</style>').appendTo('head');
             this.postdivrich.hide();
@@ -241,7 +241,7 @@ jQuery(document).ready(function($) {
             this.btnConvertToMd.show();
             this.btnConvertToHtml.hide();
 
-            // Обновляем CodeMirror после показа
+            // Refresh CodeMirror after show
             setTimeout(function() {
                 if (self.easyMDE && self.easyMDE.codemirror) {
                     self.easyMDE.codemirror.refresh();
@@ -256,7 +256,7 @@ jQuery(document).ready(function($) {
             var mdVal = this.easyMDE ? this.easyMDE.value().trim() : this.textarea.val().trim();
             var htmlVal = this.getClassicEditorContent().trim();
 
-            // Если классический редактор пуст, а в Markdown есть текст — предлагаем конвертировать
+            // Offer conversion when classic empty but MD has text
             if (htmlVal === '' && mdVal !== '') {
                 if (confirm(i18n.import_md_confirm)) {
                     this.convertContent('md_to_html', mdVal, function(html) {
@@ -265,19 +265,19 @@ jQuery(document).ready(function($) {
                 }
             }
 
-            // Переключаем активный таб
+            // Switch active tab
             $('.wp-addon-builder-tab').removeClass('is-active');
             $('.wp-addon-builder-tab[data-mode="classic"]').addClass('is-active');
             this.modeInput.val('classic');
 
-            // Показываем TinyMCE, скрываем Markdown
+            // Show TinyMCE, hide Markdown
             $('#wp-addon-hide-tinymce').remove();
             this.container.hide();
             this.postdivrich.show();
             this.btnConvertToHtml.show();
             this.btnConvertToMd.hide();
 
-            // Обновляем визуальный редактор если доступен
+            // Refresh visual editor when available
             if (typeof tinymce !== 'undefined' && tinymce.get('content')) {
                 var editor = tinymce.get('content');
                 if (!editor.isHidden()) {
@@ -357,30 +357,31 @@ jQuery(document).ready(function($) {
         getI18n: function() {
             var options = typeof markdownAjax !== 'undefined' ? markdownAjax : {};
             return options.i18n || {
-                import_html_confirm: 'Импортировать текущий HTML контент в Markdown редактор?',
-                import_md_confirm: 'Конвертировать Markdown в HTML для классического редактора?',
-                overwrite_md_confirm: 'Заменить текущий Markdown контент результатом конвертации из HTML?',
-                overwrite_html_confirm: 'Заменить текущий HTML в классическом редакторе результатом конвертации из Markdown?',
-                convert_error: 'Ошибка при конвертации контента'
+                import_html_confirm: 'Import current HTML content into the Markdown editor?',
+                import_md_confirm: 'Convert Markdown to HTML for the classic editor?',
+                overwrite_md_confirm: 'Replace current Markdown with HTML conversion result?',
+                overwrite_html_confirm: 'Replace classic editor HTML with Markdown conversion result?',
+                convert_error: 'Content conversion error'
             };
         },
 
         addMarkdownHelp: function() {
+            var i18n = this.getI18n();
             var helpHtml = '<details class="markdown-help" style="margin: 12px 16px; padding: 8px 12px; background: #f0f6fc; border: 1px solid #d0d7de; border-radius: 6px; font-size: 12px; color: #50575e;">' +
                 '<summary style="cursor: pointer; font-weight: 600; color: #1d2327;">' +
-                'Markdown Справка (нажмите, чтобы развернуть)' +
+                (i18n.help_summary || 'Markdown help (click to expand)') +
                 '</summary>' +
                 '<ul style="margin: 8px 0 0 16px; padding: 0;">' +
-                '<li><strong># Заголовок 1</strong> — большой заголовок</li>' +
-                '<li><strong>## Заголовок 2</strong> — средний заголовок</li>' +
-                '<li><strong>**жирный**</strong> — жирный текст</li>' +
-                '<li><strong>*курсив*</strong> — курсивный текст</li>' +
-                '<li><strong>[текст](url)</strong> — ссылка</li>' +
-                '<li><strong>![alt](url)</strong> — изображение</li>' +
-                '<li><strong>`код`</strong> — inline код</li>' +
-                '<li><strong>* пункт</strong> — маркированный список</li>' +
-                '<li><strong>1. пункт</strong> — нумерованный список</li>' +
-                '<li><strong>Горячие клавиши:</strong> Ctrl+B (жирный), Ctrl+I (курсив), Ctrl+K (ссылка)</li>' +
+                '<li><strong>' + (i18n.help_h1 || '# Heading 1') + '</strong></li>' +
+                '<li><strong>' + (i18n.help_h2 || '## Heading 2') + '</strong></li>' +
+                '<li><strong>**bold**</strong> — ' + (i18n.help_bold || 'bold text') + '</li>' +
+                '<li><strong>*italic*</strong></li>' +
+                '<li><strong>[text](url)</strong> — link</li>' +
+                '<li><strong>![alt](url)</strong> — image</li>' +
+                '<li><strong>`code`</strong> — inline code</li>' +
+                '<li><strong>* item</strong> — bullet list</li>' +
+                '<li><strong>1. item</strong> — numbered list</li>' +
+                '<li><strong>' + (i18n.help_shortcuts || 'Shortcuts: Ctrl+B, Ctrl+I, Ctrl+K') + '</strong></li>' +
                 '</ul>' +
                 '</details>';
 
@@ -388,9 +389,9 @@ jQuery(document).ready(function($) {
         }
     };
 
-    // Инициализация
+    // Init
     MarkdownEditor.init();
 
-    // Глобальный доступ для отладки
+    // Expose for debugging
     window.MarkdownEditor = MarkdownEditor;
 });

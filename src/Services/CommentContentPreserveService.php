@@ -48,14 +48,14 @@ final class CommentContentPreserveService
         return (string) preg_replace_callback(
             '/<(\/?)([A-Za-z][A-Za-z0-9]*)\b[^>]*>/',
             static function (array $match) use ($allowed): string {
-                $tag = strtolower($match[2]);
+                $tag = mb_strtolower($match[2]);
                 if (isset($allowed[$tag])) {
                     return $match[0];
                 }
 
                 return htmlspecialchars($match[0], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             },
-            $content
+            $content,
         );
     }
 }

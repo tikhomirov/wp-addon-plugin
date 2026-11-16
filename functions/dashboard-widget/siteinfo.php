@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Виджет в Консоли для связи с разработчиком
+ * Dashboard widget for developer contact
  */
 function dashboard_server_info()
 {
@@ -36,25 +36,25 @@ function dashboard_server_info()
         if (! defined('WP_DEBUG') or WP_DEBUG == 0) {
             $debug = __('Off', 'wp-addon');
         } else {
-            $debug = '<strong class="text-danger">'.__('On', 'wp-addon').'</strong>';
+            $debug = '<strong class="text-danger">' . __('On', 'wp-addon') . '</strong>';
         }
         if (! defined('WP_DEBUG_LOG') or WP_DEBUG_LOG == 0) {
             $debug_log = __('Off', 'wp-addon');
         } else {
-            $debug_log = '<strong class="text-success">'.__('On', 'wp-addon').'</strong>';
+            $debug_log = '<strong class="text-success">' . __('On', 'wp-addon') . '</strong>';
         }
 
-        $html = '<div class="bg-lighht"><p>'.__('Welcome to ', 'wp-addon')."<strong> $tname</strong> </p></div>";
+        $html = '<div class="bg-lighht"><p>' . __('Welcome to ', 'wp-addon') . "<strong> $tname</strong> </p></div>";
         $html .= '<table cellpadding="10" class="wp-list-table widefat fixed striped table-view-list">';
         foreach ($indicesServer as $arg) {
             if (isset($_SERVER[$arg])) {
-                $html .= '<tr><td>'.$arg.'</td><td>'.$_SERVER[$arg].'</td></tr>';
+                $html .= '<tr><td>' . $arg . '</td><td>' . $_SERVER[$arg] . '</td></tr>';
             } else {
-                $html .= '<tr><td>'.$arg.'</td><td>-</td></tr>';
+                $html .= '<tr><td>' . $arg . '</td><td>-</td></tr>';
             }
         }
-        $html .= '<tr><td>WP_DEBUG</td><td>'.$debug.'</td></tr>';
-        $html .= '<tr><td>WP_DEBUG_LOG</td><td>'.$debug_log.'</td></tr>';
+        $html .= '<tr><td>WP_DEBUG</td><td>' . $debug . '</td></tr>';
+        $html .= '<tr><td>WP_DEBUG_LOG</td><td>' . $debug_log . '</td></tr>';
         $html .= '</table>';
         echo $html;
     }

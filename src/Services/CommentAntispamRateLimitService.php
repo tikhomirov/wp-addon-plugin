@@ -83,7 +83,7 @@ class CommentAntispamRateLimitService
     }
 
     /**
-     * @param  mixed[]  $timestamps
+     * @param  mixed[] $timestamps
      * @return int[]
      */
     private function trim(array $timestamps, int $now, int $window): array
@@ -101,6 +101,6 @@ class CommentAntispamRateLimitService
 
     private function key(string $ip, int $window): string
     {
-        return 'wp_addon_as_'.$window.'_'.md5($ip);
+        return 'wp_addon_as_' . $window . '_' . md5($ip);
     }
 }

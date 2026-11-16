@@ -50,7 +50,7 @@ class PageCache implements ModuleInterface
 
     public function syncRewriteRules(): void
     {
-        $version = hash('sha256', $this->config['cache_dir'].'|'.$this->config['ttl'].'|2');
+        $version = hash('sha256', $this->config['cache_dir'] . '|' . $this->config['ttl'] . '|2');
         if (get_option('wp_addon_page_cache_rules') === $version) {
             return;
         }
@@ -78,7 +78,7 @@ class PageCache implements ModuleInterface
         $cached = $this->cache->getCachedPage($request['host'], $request['path']);
         if ($cached !== null) {
             header('X-Page-Cache: HIT');
-            header('Cache-Control: public, max-age='.$this->config['ttl']);
+            header('Cache-Control: public, max-age=' . $this->config['ttl']);
             echo $cached;
             exit;
         }
@@ -129,11 +129,11 @@ class PageCache implements ModuleInterface
         }
 
         $adminBar->add_node([
-            'id' => 'wp-addon-clear-page-cache',
+            'id'     => 'wp-addon-clear-page-cache',
             'parent' => false,
-            'title' => 'Clear page cache',
-            'href' => wp_nonce_url(admin_url('admin-post.php?action=wp_addon_clear_page_cache'), 'wp_addon_page_cache'),
-            'meta' => ['title' => 'Clear page cache'],
+            'title'  => 'Clear page cache',
+            'href'   => wp_nonce_url(admin_url('admin-post.php?action=wp_addon_clear_page_cache'), 'wp_addon_page_cache'),
+            'meta'   => ['title' => 'Clear page cache'],
         ]);
     }
 
@@ -159,9 +159,9 @@ class PageCache implements ModuleInterface
             }
 
             wp_remote_get(home_url($path), [
-                'timeout' => 10,
+                'timeout'     => 10,
                 'redirection' => 0,
-                'headers' => ['X-WP-Addon-Preload' => '1'],
+                'headers'     => ['X-WP-Addon-Preload' => '1'],
             ]);
         }
     }
@@ -194,42 +194,42 @@ class PageCache implements ModuleInterface
 
     public static function renderAdminPanel(): string
     {
-        $defaults = require RW_PLUGIN_DIR.'src/Config/cache.php';
-        $server = stripos((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''), 'nginx') !== false ? 'Nginx' : 'Apache';
-        $htaccess = function_exists('get_home_path') ? get_home_path().'.htaccess' : ABSPATH.'.htaccess';
+        $defaults = require RW_PLUGIN_DIR . 'src/Config/cache.php';
+        $server = mb_stripos((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''), 'nginx') !== false ? 'Nginx' : 'Apache';
+        $htaccess = function_exists('get_home_path') ? get_home_path() . '.htaccess' : ABSPATH . '.htaccess';
         $htaccessStatus = is_file($htaccess) && str_contains((string) file_get_contents($htaccess), '# BEGIN WP Addon Page Cache') ? 'active' : 'not installed';
-        $cacheDirectory = rtrim($defaults['cache_dir'], '/\\').'/';
-        $nginxConfig = $cacheDirectory.'nginx.conf';
+        $cacheDirectory = rtrim($defaults['cache_dir'], '/\\') . '/';
+        $nginxConfig = $cacheDirectory . 'nginx.conf';
         $delivery = $server === 'Nginx' ? (is_file($nginxConfig) ? 'configuration generated; include and reload required' : 'configuration not generated') : $htaccessStatus;
-        $cacheFiles = glob($cacheDirectory.'*/*/index.html') ?: [];
+        $cacheFiles = glob($cacheDirectory . '*/*/index.html') ?: [];
         $nonce = wp_create_nonce('wp_addon_page_cache');
 
         return '<dl style="display:grid;grid-template-columns:max-content 1fr;gap:6px 16px">'
-            .'<dt>Server</dt><dd><code>'.esc_html($server).'</code></dd>'
-            .'<dt>Early delivery</dt><dd><code>'.esc_html($delivery).'</code></dd>'
-            .'<dt>.htaccess</dt><dd><code>'.esc_html($htaccess).'</code> ('.(is_writable($htaccess) ? 'writable' : 'not writable').')</dd>'
-            .'<dt>Nginx config</dt><dd><code>'.esc_html($nginxConfig).'</code></dd>'
-            .'<dt>Cached pages</dt><dd><code>'.count($cacheFiles).'</code></dd>'
-            .'</dl><button type="button" class="button" id="wp-addon-clear-page-cache">Clear page cache</button> <span id="wp-addon-page-cache-result"></span>'
-            .'<script>jQuery(function($){$("#wp-addon-clear-page-cache").on("click",function(){var button=$(this),result=$("#wp-addon-page-cache-result");button.prop("disabled",true);result.text("…");$.post(ajaxurl,{action:"wp_addon_clear_page_cache",nonce:"'.esc_attr($nonce).'"}).done(function(response){result.text(response.data&&response.data.message?response.data.message:"Done");}).fail(function(){result.text("Error");}).always(function(){button.prop("disabled",false);});});});</script>';
+            . '<dt>Server</dt><dd><code>' . esc_html($server) . '</code></dd>'
+            . '<dt>Early delivery</dt><dd><code>' . esc_html($delivery) . '</code></dd>'
+            . '<dt>.htaccess</dt><dd><code>' . esc_html($htaccess) . '</code> (' . (is_writable($htaccess) ? 'writable' : 'not writable') . ')</dd>'
+            . '<dt>Nginx config</dt><dd><code>' . esc_html($nginxConfig) . '</code></dd>'
+            . '<dt>Cached pages</dt><dd><code>' . count($cacheFiles) . '</code></dd>'
+            . '</dl><button type="button" class="button" id="wp-addon-clear-page-cache">Clear page cache</button> <span id="wp-addon-page-cache-result"></span>'
+            . '<script>jQuery(function($){$("#wp-addon-clear-page-cache").on("click",function(){var button=$(this),result=$("#wp-addon-page-cache-result");button.prop("disabled",true);result.text("…");$.post(ajaxurl,{action:"wp_addon_clear_page_cache",nonce:"' . esc_attr($nonce) . '"}).done(function(response){result.text(response.data&&response.data.message?response.data.message:"Done");}).fail(function(){result.text("Error");}).always(function(){button.prop("disabled",false);});});});</script>';
     }
 
     private function loadConfig(): void
     {
-        $defaults = require RW_PLUGIN_DIR.'src/Config/cache.php';
+        $defaults = require RW_PLUGIN_DIR . 'src/Config/cache.php';
         $this->migrateSettings($defaults);
         $preloadSetting = $this->optionService->getSetting('cache_preload_pages', '');
 
         $this->config = [
-            'enabled' => $this->toBool($this->optionService->getSetting('cache_enabled', $defaults['enabled'])),
-            'ttl' => max(1, (int) $this->optionService->getSetting('cache_ttl', $defaults['ttl'])),
-            'exclude_logged_in' => $this->toBool($this->optionService->getSetting('cache_exclude_logged_in', $defaults['exclude_logged_in'])),
-            'exclude_urls' => $this->normalizeLines($this->optionService->getSetting('cache_exclude_urls', implode("\n", $defaults['exclude_urls']))),
-            'preload_pages' => $preloadSetting === '' ? $defaults['preload_pages'] : $this->normalizeLines($preloadSetting),
-            'auto_preload' => $preloadSetting === '' && $defaults['preload_pages'] === [],
+            'enabled'            => $this->toBool($this->optionService->getSetting('cache_enabled', $defaults['enabled'])),
+            'ttl'                => max(1, (int) $this->optionService->getSetting('cache_ttl', $defaults['ttl'])),
+            'exclude_logged_in'  => $this->toBool($this->optionService->getSetting('cache_exclude_logged_in', $defaults['exclude_logged_in'])),
+            'exclude_urls'       => $this->normalizeLines($this->optionService->getSetting('cache_exclude_urls', implode("\n", $defaults['exclude_urls']))),
+            'preload_pages'      => $preloadSetting === '' ? $defaults['preload_pages'] : $this->normalizeLines($preloadSetting),
+            'auto_preload'       => $preloadSetting === '' && $defaults['preload_pages'] === [],
             'clear_on_post_save' => $this->toBool($this->optionService->getSetting('cache_clear_on_post_save', true)),
-            'cache_dir' => $defaults['cache_dir'],
-            'max_files' => (int) $defaults['max_files'],
+            'cache_dir'          => $defaults['cache_dir'],
+            'max_files'          => (int) $defaults['max_files'],
             'cleanup_batch_size' => (int) $defaults['cleanup_batch_size'],
         ];
     }
@@ -254,7 +254,7 @@ class PageCache implements ModuleInterface
             return false;
         }
 
-        $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? ''));
+        $method = mb_strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? ''));
         if (! in_array($method, ['GET', 'HEAD'], true) || ! empty($_SERVER['QUERY_STRING'])) {
             return false;
         }
@@ -287,17 +287,17 @@ class PageCache implements ModuleInterface
         }
 
         foreach (headers_list() as $header) {
-            if (stripos($header, 'Set-Cookie:') === 0 || stripos($header, 'Content-Type:') === 0 && stripos($header, 'text/html') === false) {
+            if (mb_stripos($header, 'Set-Cookie:') === 0 || mb_stripos($header, 'Content-Type:') === 0 && mb_stripos($header, 'text/html') === false) {
                 return false;
             }
         }
 
-        return stripos(ltrim($content), '<!doctype html') === 0 || stripos(ltrim($content), '<html') === 0;
+        return mb_stripos(ltrim($content), '<!doctype html') === 0 || mb_stripos(ltrim($content), '<html') === 0;
     }
 
     private function getRequest(): ?array
     {
-        $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+        $host = mb_strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
         $host = preg_replace('/:\d+$/', '', $host) ?? '';
         $path = $this->normalizePath((string) ($_SERVER['REQUEST_URI'] ?? ''));
 
@@ -320,15 +320,15 @@ class PageCache implements ModuleInterface
             return '/';
         }
 
-        $path = '/'.ltrim(preg_replace('#/+#', '/', $path) ?? $path, '/');
+        $path = '/' . ltrim(preg_replace('#/+#', '/', $path) ?? $path, '/');
 
-        return str_ends_with($path, '/') || pathinfo($path, PATHINFO_EXTENSION) !== '' ? $path : $path.'/';
+        return str_ends_with($path, '/') || pathinfo($path, PATHINFO_EXTENSION) !== '' ? $path : $path . '/';
     }
 
     private function isExcludedPath(string $path): bool
     {
         $customLoginSlug = trim((string) get_option('whl_page'), '/');
-        if ($customLoginSlug !== '' && $this->pathMatches($path, '/'.$customLoginSlug.'/')) {
+        if ($customLoginSlug !== '' && $this->pathMatches($path, '/' . $customLoginSlug . '/')) {
             return true;
         }
 
@@ -343,9 +343,9 @@ class PageCache implements ModuleInterface
 
     private function pathMatches(string $path, string $excluded): bool
     {
-        $excluded = '/'.trim($excluded, '/');
+        $excluded = '/' . trim($excluded, '/');
 
-        return $excluded !== '/' && ($path === $excluded || $path === $excluded.'/' || str_starts_with($path, $excluded.'/'));
+        return $excluded !== '/' && ($path === $excluded || $path === $excluded . '/' || str_starts_with($path, $excluded . '/'));
     }
 
     private function hasPrivateCookie(): bool
@@ -410,16 +410,16 @@ class PageCache implements ModuleInterface
         $contentDirectory = trailingslashit(wp_normalize_path(WP_CONTENT_DIR));
         $cacheDirectory = trailingslashit(wp_normalize_path($this->config['cache_dir']));
         $relativeDirectory = str_starts_with($cacheDirectory, $contentDirectory)
-            ? trim(substr($cacheDirectory, strlen($contentDirectory)), '/')
+            ? trim(mb_substr($cacheDirectory, mb_strlen($contentDirectory)), '/')
             : 'cache/pages';
         $contentPath = trim((string) wp_parse_url(content_url(), PHP_URL_PATH), '/');
 
-        return '/'.trim($contentPath.'/'.$relativeDirectory, '/');
+        return '/' . trim($contentPath . '/' . $relativeDirectory, '/');
     }
 
     private function isNginx(): bool
     {
-        return stripos((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''), 'nginx') !== false;
+        return mb_stripos((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''), 'nginx') !== false;
     }
 
     private function normalizeLines(string $value): array

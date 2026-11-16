@@ -4,7 +4,7 @@
  * Integration test for LazyLoading module
  */
 describe('LazyLoading Integration', function () {
-    // Пропустить тесты, если WordPress не загружен
+    // Skip tests if WordPress is not loaded
     if (! function_exists('wp_die')) {
         test('skipped - requires WordPress environment', function () {})->skip('WordPress environment not available');
 
@@ -12,21 +12,21 @@ describe('LazyLoading Integration', function () {
     }
 
     beforeEach(function () {
-        // Убираем Brain Monkey, чтобы избежать конфликтов с Patchwork
+        // Drop Brain Monkey to avoid Patchwork conflicts
         // Monkey\setUp();
 
         $this->mockOptionService = Mockery::mock('\WpAddon\Services\OptionService');
 
-        // Mock option service для настроек
+        // Mock option service for settings
         $this->mockOptionService->shouldReceive('getSetting')
             ->andReturnUsing(function ($key, $default = null) {
                 $config = [
                     'enable_lazy_loading' => true,
-                    'lazy_types' => ['img'],
-                    'blur_intensity' => 5,
-                    'root_margin' => '50px',
-                    'threshold' => 0.1,
-                    'enable_fallback' => true,
+                    'lazy_types'          => ['img'],
+                    'blur_intensity'      => 5,
+                    'root_margin'         => '50px',
+                    'threshold'           => 0.1,
+                    'enable_fallback'     => true,
                 ];
 
                 return $config[$key] ?? $default;
@@ -39,23 +39,23 @@ describe('LazyLoading Integration', function () {
     });
 
     it('activates module without errors', function () {
-        // Создаем экземпляр модуля
+        // Create module instance
         $lazyLoading = new LazyLoading($this->mockOptionService);
 
-        // Проверяем, что модуль реализует интерфейс
+        // Check module implements interface
         expect($lazyLoading)->toBeInstanceOf('\WpAddon\Interfaces\ModuleInterface');
 
-        // Инициализация не должна вызывать ошибки
+        // Init should not trigger errors
         expect(function () use ($lazyLoading) {
             $lazyLoading->init();
         })->not->toThrow(Exception::class);
     });
 
     it('loads LazyLoading class', function () {
-        // Проверяем существование класса
+        // Check class exists
         expect(class_exists('LazyLoading'))->toBeTrue();
 
-        // Проверяем реализацию интерфейса
+        // Check interface implementation
         $reflection = new ReflectionClass('LazyLoading');
         expect($reflection->implementsInterface('\WpAddon\Interfaces\ModuleInterface'))->toBeTrue();
     });
@@ -64,22 +64,22 @@ describe('LazyLoading Integration', function () {
         $lazyLoading = new LazyLoading($this->mockOptionService);
         $lazyLoading->init();
 
-        // Проверяем, что настройки загружаются
-        // Это проверяется через моки выше
-        expect(true)->toBeTrue(); // Заглушка для синтаксиса
+        // Check settings load
+        // Verified via mocks above
+        expect(true)->toBeTrue(); // Syntax placeholder
     });
 
     it('enqueues JavaScript on frontend', function () {
-        // Убираем mock для wp_enqueue_script, поскольку он не нужен для этого теста
+        // Remove wp_enqueue_script mock; not needed for this test
         $lazyLoading = new LazyLoading($this->mockOptionService);
         $lazyLoading->init();
 
-        // Просто проверяем, что init не вызывает ошибок
+        // Ensure init runs without errors
         expect(true)->toBeTrue();
     });
 
     it('generates blur placeholders correctly', function () {
-        // Новая версия не поддерживает blur placeholders
+        // Current version does not support blur placeholders
         expect(true)->toBeTrue();
     });
 
@@ -89,24 +89,24 @@ describe('LazyLoading Integration', function () {
         $lazyLoading = new LazyLoading($this->mockOptionService);
         $lazyLoading->init();
 
-        // Применяем фильтр напрямую, без WordPress hooks
+        // Apply filter directly without WordPress hooks
         $filteredContent = $lazyLoading->processContent($originalContent);
 
-        // Проверяем, что контент изменен
+        // Check content changed
         expect($filteredContent)->toContain('data-src="test.jpg"');
         expect($filteredContent)->toContain('lazy-img');
     });
 
     it('handles iframe and video elements', function () {
-        // Пропускаем, поскольку новая версия поддерживает только изображения
+        // Skip: current version supports images only
         expect(true)->toBeTrue();
     });
 
     it('maintains performance under 10ms increase', function () {
-        // Измеряем время выполнения
+        // Measure execution time
         $startTime = microtime(true);
 
-        $content = str_repeat('<img src="test'.rand().'.jpg" alt="Test">', 5);
+        $content = str_repeat('<img src="test' . rand() . '.jpg" alt="Test">', 5);
 
         $lazyLoading = new LazyLoading($this->mockOptionService);
         $lazyLoading->init();
@@ -114,26 +114,26 @@ describe('LazyLoading Integration', function () {
         $lazyLoading->processContent($content);
 
         $endTime = microtime(true);
-        $executionTime = ($endTime - $startTime) * 1000; // в миллисекундах
+        $executionTime = ($endTime - $startTime) * 1000; // in milliseconds
 
         expect($executionTime)->toBeLessThan(10);
     });
 
     it('handles errors gracefully', function () {
-        // Контент с некорректными изображениями
+        // Content with invalid images
         $contentWithErrors = '<img src="" alt="Empty"><img src="nonexistent.jpg" alt="Missing">';
 
         $lazyLoading = new LazyLoading($this->mockOptionService);
         $lazyLoading->init();
 
-        // Обработка не должна вызывать исключения
+        // Processing must not throw
         expect(function () use ($lazyLoading, $contentWithErrors) {
             $lazyLoading->processContent($contentWithErrors);
         })->not->toThrow(Exception::class);
     });
 
     it('respects lazy_types setting', function () {
-        // В новой версии поддерживаются только изображения, так что этот тест не актуален
+        // Obsolete: images-only in current version
         expect(true)->toBeTrue();
     });
 });

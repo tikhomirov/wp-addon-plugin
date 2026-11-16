@@ -77,7 +77,7 @@ describe('CommentAntispamRateLimitService', function () {
 
     it('drops timestamps that fell out of the window', function () {
         $service = new CommentAntispamRateLimitService(1, 0);
-        $key = 'wp_addon_as_'.HOUR_IN_SECONDS.'_'.md5('9.9.9.9');
+        $key = 'wp_addon_as_' . HOUR_IN_SECONDS . '_' . md5('9.9.9.9');
 
         set_transient($key, [time() - (2 * HOUR_IN_SECONDS)], HOUR_IN_SECONDS);
 

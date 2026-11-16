@@ -30,9 +30,9 @@ class FakeAntispamWpdb
         foreach ($args as $arg) {
             $query = preg_replace(
                 '/%[sd]/',
-                is_int($arg) || is_float($arg) ? (string) $arg : "'".$arg."'",
+                is_int($arg) || is_float($arg) ? (string) $arg : "'" . $arg . "'",
                 $query,
-                1
+                1,
             );
         }
 
@@ -41,7 +41,7 @@ class FakeAntispamWpdb
 
     public function get_var($query = null)
     {
-        return $this->tablePresent ? $this->prefix.CommentAntispamLogService::TABLE : null;
+        return $this->tablePresent ? $this->prefix . CommentAntispamLogService::TABLE : null;
     }
 
     public function get_results($query = null, $output = null)
@@ -136,15 +136,15 @@ describe('CommentAntispamLogService', function () {
         global $wpdb;
 
         CommentAntispamLogService::log([
-            'reason' => 'score:text_token,author_token',
-            'score' => 8,
-            'threshold' => 3,
-            'ip' => '203.0.113.77',
-            'author' => 'ztpyuOkqNTwQsQKwwkC',
-            'email' => 'o.x.on.e.j.o.f.eza.96@gmail.com',
-            'content' => 'IjtRwXHmcvybfzgmAiM',
-            'user_agent' => 'Mozilla/5.0',
-            'post_id' => 7700,
+            'reason'       => 'score:text_token,author_token',
+            'score'        => 8,
+            'threshold'    => 3,
+            'ip'           => '203.0.113.77',
+            'author'       => 'ztpyuOkqNTwQsQKwwkC',
+            'email'        => 'o.x.on.e.j.o.f.eza.96@gmail.com',
+            'content'      => 'IjtRwXHmcvybfzgmAiM',
+            'user_agent'   => 'Mozilla/5.0',
+            'post_id'      => 7700,
             'comment_type' => 'comment',
         ]);
 
@@ -186,22 +186,22 @@ describe('CommentAntispamLogService', function () {
         global $wpdb;
 
         CommentAntispamLogService::log([
-            'reason' => str_repeat('r', 250),
-            'ip' => str_repeat('9', 80),
-            'author' => str_repeat('a', 250),
-            'email' => str_repeat('e', 250),
-            'user_agent' => str_repeat('u', 400),
+            'reason'       => str_repeat('r', 250),
+            'ip'           => str_repeat('9', 80),
+            'author'       => str_repeat('a', 250),
+            'email'        => str_repeat('e', 250),
+            'user_agent'   => str_repeat('u', 400),
             'comment_type' => str_repeat('c', 40),
         ]);
 
         $row = $wpdb->inserts[0]['row'];
 
-        expect(strlen($row['reason']))->toBe(100);
-        expect(strlen($row['ip']))->toBe(45);
-        expect(strlen($row['author']))->toBe(100);
-        expect(strlen($row['email']))->toBe(100);
-        expect(strlen($row['user_agent']))->toBe(255);
-        expect(strlen($row['comment_type']))->toBe(20);
+        expect(mb_strlen($row['reason']))->toBe(100);
+        expect(mb_strlen($row['ip']))->toBe(45);
+        expect(mb_strlen($row['author']))->toBe(100);
+        expect(mb_strlen($row['email']))->toBe(100);
+        expect(mb_strlen($row['user_agent']))->toBe(255);
+        expect(mb_strlen($row['comment_type']))->toBe(20);
     });
 
     it('prunes rows older than the retention window', function () {
@@ -244,7 +244,7 @@ describe('CommentAntispamLogService', function () {
         $wpdb->resultSets = [
             [['day' => '2026-09-25', 'hits' => 4], ['day' => '2026-09-26', 'hits' => 3]],
             [['reason' => 'score:text_token', 'hits' => 5], ['reason' => 'honeypot', 'hits' => 2]],
-            [['ip' => '203.0.113.77', 'hits' => 5], ['ip' => '198.51.100.1', 'hits' => 2]],
+            [['ip' => '203.0.113.77', 'hits' => 5], ['ip'             => '198.51.100.1', 'hits' => 2]],
             [['created_at' => '2026-09-26 10:00:00', 'reason' => 'score:text_token', 'score' => 8]],
         ];
 
@@ -265,11 +265,11 @@ describe('CommentAntispamLogService', function () {
         $wpdb = antispam_fake_wpdb(false);
 
         expect(CommentAntispamLogService::getReport(30))->toBe([
-            'total' => 0,
-            'by_day' => [],
+            'total'     => 0,
+            'by_day'    => [],
             'by_reason' => [],
-            'top_ips' => [],
-            'last' => [],
+            'top_ips'   => [],
+            'last'      => [],
         ]);
     });
 

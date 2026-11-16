@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Импорт SQL-дампа обратно в базу данных WordPress.
+ * Import SQL dump back into WordPress.
  *
- * Разбор идёт построчно и потоково, без загрузки файла целиком в память.
- * Команды выполняются пачками, длинные запросы режутся по границам значений.
+ * Line-by-line streaming parse without loading the whole file.
+ * Statements run in batches; long queries split at value boundaries.
  */
 
 declare(strict_types=1);
@@ -16,33 +16,33 @@ if (! defined('ABSPATH')) {
 }
 
 /**
- * Восстанавливает базу данных из SQL-файла дампа.
+ * Restores the database from a dump SQL file.
  */
 final class Restorer
 {
-    /** Размер чтения из файла при построчном разборе. */
+    /** Read chunk size for line parsing. */
     private const READ_CHUNK = 262144;
 
-    /** @var resource|null Дескриптор файла дампа. */
+    /** @var resource|null Dump file handle. */
     private $handle = null;
 
-    /** @var int Сколько утверждений (CREATE/INSERT/DROP) выполнено. */
+    /** @var int CREATE/INSERT/DROP statements executed. */
     public int $statements = 0;
 
-    /** @var int Сколько строк данных восстановлено. */
+    /** @var int Data rows restored. */
     public int $rows = 0;
 
-    /** @var string[] Таблицы, созданные при импорте. */
+    /** @var string[] Tables created during import. */
     public array $created_tables = [];
 
-    /** @var string[] Человекочитаемые предупреждения импорта. */
+    /** @var string[] Human-readable import warnings. */
     public array $warnings = [];
 
-    /** @var int Момент последнего отчёта о прогрессе (unix-время). */
+    /** @var int Last progress report timestamp. */
     private int $last_report = 0;
 
     /**
-     * Принимает экземпляр wpdb для выполнения запросов.
+     * Accepts wpdb for queries.
      */
     public function __construct($db = null)
     {
@@ -50,32 +50,32 @@ final class Restorer
         $this->db = $db ?? $wpdb;
     }
 
-    /** @var string Префикс таблиц, записанный в дампе. */
+    /** @var string Table prefix recorded in the dump. */
     private string $dump_prefix = '';
 
-    /** @var string|null Предупреждение о несовпадении префикса. */
+    /** @var string|null Prefix mismatch warning. */
     private ?string $prefix_warning = null;
 
-    /** @var wpdb Соединение с базой данных для выполнения запросов. */
+    /** @var \wpdb Database connection for queries. */
     private $db;
 
     /**
-     * Открывает файл дампа на чтение.
+     * Open dump file for reading.
      *
-     * @param  string  $path  Полный путь к файлу дампа.
+     * @param string $path Absolute dump file path.
      *
-     * @throws \RuntimeException Если файл недоступен.
+     * @throws \RuntimeException If file is not accessible.
      */
     public function open(string $path): void
     {
         if (! is_file($path) || ! is_readable($path)) {
-            throw new \RuntimeException('Файл дампа недоступен для чтения.');
+            throw new \RuntimeException('Backup file is not readable.');
         }
 
         $handle = @fopen($path, 'rb');
 
         if ($handle === false) {
-            throw new \RuntimeException('Не удалось открыть файл дампа.');
+            throw new \RuntimeException('Could not open backup file.');
         }
 
         $this->handle = $handle;
@@ -83,7 +83,7 @@ final class Restorer
     }
 
     /**
-     * Закрывает файл дампа, если он открыт.
+     * Close dump file if open.
      */
     public function close(): void
     {
@@ -95,7 +95,7 @@ final class Restorer
     }
 
     /**
-     * Читает префикс таблиц из заголовка дампа.
+     * Read table prefix from dump header.
      */
     private function read_dump_prefix(): void
     {
@@ -117,21 +117,21 @@ final class Restorer
     }
 
     /**
-     * Выполняет импорт дампа.
+     * Run dump import.
      *
      * @return array{tables:int,rows:int,statements:int,warnings:string[]}
      *
-     * @throws \RuntimeException При нечитаемом дампе или сбое запроса.
+     * @throws \RuntimeException On unreadable dump or query failure.
      */
     public function restore(): array
     {
         if (! is_resource($this->handle)) {
-            throw new \RuntimeException('Файл дампа не открыт.');
+            throw new \RuntimeException('Backup file is not open.');
         }
         if ($this->dump_prefix !== '' && $this->dump_prefix !== $this->db->prefix) {
             throw new \RuntimeException(
-                'Префикс таблиц в дампе ('.$this->dump_prefix.') не совпадает с префиксом сайта ('.$this->db->prefix.'). '
-                .'Импорт остановлен: автоматическое переименование таблиц запрещено.'
+                'Table prefix in backup (' . $this->dump_prefix . ') does not match site prefix (' . $this->db->prefix . '). '
+                . 'Import stopped: automatic table renaming is not allowed.',
             );
         }
 
@@ -145,25 +145,25 @@ final class Restorer
         $this->execute('SET FOREIGN_KEY_CHECKS = 1');
 
         return [
-            'tables' => count($this->created_tables),
-            'rows' => $this->rows,
+            'tables'     => count($this->created_tables),
+            'rows'       => $this->rows,
             'statements' => $this->statements,
-            'warnings' => $this->warnings,
+            'warnings'   => $this->warnings,
         ];
     }
 
     /**
-     * Выполняет одно утверждение дампа.
+     * Execute one dump statement.
      *
-     * @throws \RuntimeException При сбое запроса.
+     * @throws \RuntimeException On query failure.
      */
     private function run_statement(string $statement): void
     {
         $kind = $this->statement_kind($statement);
 
         if ($kind === 'set') {
-            // Служебные SET из манифеста повторяем: часть из них (sql_mode)
-            // влияет на интерпретацию данных при импорте.
+            // Re-apply manifest SET statements (sql_mode
+            // affects data interpretation on import).
             $this->execute($statement);
 
             return;
@@ -188,25 +188,25 @@ final class Restorer
     }
 
     /**
-     * Определяет тип утверждения по его началу.
+     * Detect statement type from prefix.
      */
     private function statement_kind(string $statement): string
     {
         $head = ltrim($statement);
 
-        if (stripos($head, 'INSERT') === 0) {
+        if (mb_stripos($head, 'INSERT') === 0) {
             return 'insert';
         }
 
-        if (stripos($head, 'CREATE') === 0) {
+        if (mb_stripos($head, 'CREATE') === 0) {
             return 'create';
         }
 
-        if (stripos($head, 'SET ') === 0) {
+        if (mb_stripos($head, 'SET ') === 0) {
             return 'set';
         }
 
-        if (stripos($head, 'USE ') === 0) {
+        if (mb_stripos($head, 'USE ') === 0) {
             return 'use';
         }
 
@@ -214,17 +214,17 @@ final class Restorer
     }
 
     /**
-     * Выполняет INSERT и обновляет счётчик строк.
+     * Run INSERT and update row counter.
      *
-     * Строки считаются по вхождениям кортежей в VALUES, а не по результату
-     * запроса: так счётчик остаётся точным даже для REPLACE-подобных
-     * вариантов и для дампов, собранных сторонними инструментами.
+     * Count rows by VALUES tuples, not query result,
+     * so counts stay accurate for REPLACE-like
+     * statements and third-party dumps.
      *
-     * @throws \RuntimeException При сбое запроса.
+     * @throws \RuntimeException On query failure.
      */
     private function run_insert(string $statement): void
     {
-        $values_pos = stripos($statement, 'VALUES');
+        $values_pos = mb_stripos($statement, 'VALUES');
 
         if ($values_pos === false) {
             $this->execute($statement);
@@ -236,14 +236,14 @@ final class Restorer
 
         $this->execute($statement);
         $this->statements++;
-        $this->rows += $this->count_value_tuples(substr($statement, $values_pos + 7));
+        $this->rows += $this->count_value_tuples(mb_substr($statement, $values_pos + 7));
     }
 
     /**
-     * Считает число кортежей в теле VALUES.
+     * Count tuples in VALUES clause.
      *
-     * Разбор учитывает строковые литералы, экранирование и NULL, поэтому
-     * запятая или скобка внутри текста не сбивают счёт.
+     * Parser respects literals, escapes, NULL;
+     * commas/parens inside strings do not break counts.
      */
     public function count_value_tuples(string $values_body): int
     {
@@ -264,7 +264,7 @@ final class Restorer
                 }
 
                 if ($char === "'") {
-                    // Двойная кавычка внутри строки экранируется как ''.
+                    // Escaped quote inside string is doubled.
                     if ($index + 1 < $length && $values_body[$index + 1] === "'") {
                         $index += 2;
 
@@ -303,16 +303,16 @@ final class Restorer
     }
 
     /**
-     * Разбирает дамп на утверждения.
+     * Split dump into statements.
      *
-     * @return \Generator<int,string> Запросы в порядке следования в файле.
+     * @return \Generator<int,string> Statements in file order.
      *
-     * @throws \RuntimeException Если файл не читается.
+     * @throws \RuntimeException If file cannot be read.
      */
     public function read_statements(): \Generator
     {
         if (! is_resource($this->handle)) {
-            throw new \RuntimeException('Файл дампа не открыт.');
+            throw new \RuntimeException('Backup file is not open.');
         }
 
         $buffer = '';
@@ -321,7 +321,7 @@ final class Restorer
             $chunk = fread($this->handle, self::READ_CHUNK);
 
             if ($chunk === false) {
-                throw new \RuntimeException('Ошибка чтения файла дампа.');
+                throw new \RuntimeException('Error reading backup file.');
             }
 
             if ($chunk === '') {
@@ -347,11 +347,11 @@ final class Restorer
     }
 
     /**
-     * Отделяет полные утверждения от неполного хвоста буфера.
+     * Split complete statements from buffer tail.
      *
-     * Разделителем служит точка с запятой вне строковых литералов и комментариев.
+     * Delimiter is semicolon outside literals/comments.
      *
-     * @return array<int,array{0:string,1:string}> Пары [утверждение, остаток].
+     * @return array<int,array{0:string,1:string}> Pairs [statement, remainder].
      */
     private function split_statements(string $buffer): array
     {
@@ -470,20 +470,20 @@ final class Restorer
             $index++;
         }
 
-        // Хвост без точки с запятой — это незавершённое утверждение, его нужно
-        // дочитать следующим куском. Если внутри хвоста есть закрывающая ';'
-        // раньше, она уже была обработана выше, поэтому current — всегда
-        // недобранный кусок.
+        // Tail without semicolon is incomplete;
+        // read with next chunk.
+        // Earlier semicolons handled above; current is
+        // the unfinished fragment.
         return [$statements, $current];
     }
 
     /**
-     * Убирает комментарии из готового утверждения.
+     * Strip comments from finished statement.
      */
     public function strip_comments(string $statement): string
     {
-        // Комментарии полезны при чтении файла человеком, но MySQL их и так
-        // пропускает; удаляем, чтобы не тащить мусор в счётчик строк.
+        // Comments help humans; MySQL skips them —
+        // strip them for clean row counts.
         $statement = preg_replace('#/\*.*?\*/#s', ' ', $statement) ?? $statement;
         $statement = preg_replace('/^\s*(--|#).*$/m', '', $statement) ?? $statement;
 
@@ -491,9 +491,9 @@ final class Restorer
     }
 
     /**
-     * Отправляет запрос в базу.
+     * Send query to database.
      *
-     * @throws \RuntimeException При сбое запроса.
+     * @throws \RuntimeException On query failure.
      */
     private function execute(string $sql): void
     {
@@ -501,26 +501,26 @@ final class Restorer
 
         if ($result === false) {
             throw new \RuntimeException(
-                'Ошибка SQL при восстановлении: '.$this->short_error((string) $this->db->last_error)
-                .' [Запрос: '.substr(trim($sql), 0, 120).']'
+                'SQL error during restore: ' . $this->short_error((string) $this->db->last_error)
+                . ' [Query: ' . mb_substr(trim($sql), 0, 120) . ']',
             );
         }
     }
 
     /**
-     * Усекает текст ошибки до первой строки с причиной.
+     * Truncate error to first reason line.
      */
     private function short_error(string $error): string
     {
         $error = trim($error);
 
         if ($error === '') {
-            return 'неизвестная ошибка';
+            return 'unknown error';
         }
 
         $lines = preg_split('/\R/', $error) ?: [$error];
         $first = trim((string) $lines[0]);
 
-        return $first !== '' ? $first : 'неизвестная ошибка';
+        return $first !== '' ? $first : 'unknown error';
     }
 }

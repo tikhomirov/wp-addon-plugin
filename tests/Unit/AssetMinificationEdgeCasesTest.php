@@ -6,7 +6,7 @@
  * @group problematic
  */
 describe('AssetMinification Edge Cases', function () {
-    // Пропускаем эти тесты в CI из-за Patchwork конфликтов
+    // Skip these tests in CI due to Patchwork conflicts
     if (getenv('CI') === 'true' || getenv('GITHUB_ACTIONS') === 'true') {
         test('skipped in CI', function () {})->skip('Patchwork conflicts in CI');
 
@@ -22,17 +22,17 @@ describe('AssetMinification Edge Cases', function () {
         $this->mockOptionService->shouldReceive('getSetting')
             ->andReturnUsing(function ($key, $default = null) {
                 $config = [
-                    'enabled' => true,
-                    'minify_css' => true,
-                    'minify_js' => true,
-                    'combine_css' => true,
-                    'combine_js' => true,
-                    'critical_css_enabled' => true,
+                    'enabled'                => true,
+                    'minify_css'             => true,
+                    'minify_js'              => true,
+                    'combine_css'            => true,
+                    'combine_js'             => true,
+                    'critical_css_enabled'   => true,
                     'defer_non_critical_css' => true,
-                    'exclude_css' => [],
-                    'exclude_js' => [],
-                    'cache_dir' => sys_get_temp_dir().'/wp_addon_cache',
-                    'version_salt' => 'wp-addon-v1',
+                    'exclude_css'            => [],
+                    'exclude_js'             => [],
+                    'cache_dir'              => sys_get_temp_dir() . '/wp_addon_cache',
+                    'version_salt'           => 'wp-addon-v1',
                 ];
 
                 return $config[$key] ?? $default;
@@ -196,7 +196,7 @@ describe('AssetMinification Edge Cases', function () {
 
     it('handles empty theme CSS file', function () {
         // Create empty theme CSS file
-        $emptyCssFile = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.css';
+        $emptyCssFile = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.css';
         file_put_contents($emptyCssFile, '');
         $themeDir = dirname($emptyCssFile);
 
@@ -218,7 +218,7 @@ describe('AssetMinification Edge Cases', function () {
     it('handles corrupt theme CSS file', function () {
         // Create corrupt CSS file
         $corruptCss = 'this is not css {{{ }}} }}}';
-        $corruptCssFile = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.css';
+        $corruptCssFile = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.css';
         file_put_contents($corruptCssFile, $corruptCss);
         $themeDir = dirname($corruptCssFile);
 
@@ -252,7 +252,7 @@ describe('AssetMinification Edge Cases', function () {
 
     it('handles clearing cache with non-existent directory', function () {
         // Mock cache directory that doesn't exist
-        $nonExistentDir = '/tmp/non_existent_wp_addon_cache_'.uniqid();
+        $nonExistentDir = '/tmp/non_existent_wp_addon_cache_' . uniqid();
 
         $mockOptionService = Mockery::mock('\WpAddon\Services\OptionService');
         $mockOptionService->shouldReceive('getSetting')
@@ -272,7 +272,7 @@ describe('AssetMinification Edge Cases', function () {
 
     it('handles clearing cache with permission denied', function () {
         // Create cache directory and make it read-only
-        $cacheDir = sys_get_temp_dir().'/wp_addon_readonly_cache_'.uniqid();
+        $cacheDir = sys_get_temp_dir() . '/wp_addon_readonly_cache_' . uniqid();
         mkdir($cacheDir, 0444, true); // Read-only
 
         $mockOptionService = Mockery::mock('\WpAddon\Services\OptionService');
@@ -306,10 +306,10 @@ describe('AssetMinification Edge Cases', function () {
         $wp_styles->registered = [
             'test-style' => (object) [
                 'handle' => 'test-style',
-                'src' => 'http://example.com/style.css',
-                'deps' => [],
-                'ver' => false,
-                'args' => 'all',
+                'src'    => 'http://example.com/style.css',
+                'deps'   => [],
+                'ver'    => false,
+                'args'   => 'all',
             ],
         ];
         $wp_scripts = new stdClass;
@@ -317,10 +317,10 @@ describe('AssetMinification Edge Cases', function () {
         $wp_scripts->registered = [
             'test-script' => (object) [
                 'handle' => 'test-script',
-                'src' => 'http://example.com/script.js',
-                'deps' => [],
-                'ver' => false,
-                'args' => false,
+                'src'    => 'http://example.com/script.js',
+                'deps'   => [],
+                'ver'    => false,
+                'args'   => false,
             ],
         ];
 
@@ -343,10 +343,10 @@ describe('AssetMinification Edge Cases', function () {
         $wp_styles->registered = [
             'test-style' => (object) [
                 'handle' => 'test-style',
-                'src' => 'http://example.com/style.css',
-                'deps' => [],
-                'ver' => false,
-                'args' => 'all',
+                'src'    => 'http://example.com/style.css',
+                'deps'   => [],
+                'ver'    => false,
+                'args'   => 'all',
             ],
         ];
         $wp_scripts = new stdClass;
@@ -354,10 +354,10 @@ describe('AssetMinification Edge Cases', function () {
         $wp_scripts->registered = [
             'test-script' => (object) [
                 'handle' => 'test-script',
-                'src' => 'http://example.com/script.js',
-                'deps' => [],
-                'ver' => false,
-                'args' => false,
+                'src'    => 'http://example.com/script.js',
+                'deps'   => [],
+                'ver'    => false,
+                'args'   => false,
             ],
         ];
 

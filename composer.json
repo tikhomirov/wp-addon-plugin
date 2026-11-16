@@ -43,7 +43,8 @@
       "@format:check",
       "@static-analysis",
       "@test"
-    ]
+    ],
+    "build:zip": "bash scripts/build-release.sh"
   },
   "config": {
     "allow-plugins": {

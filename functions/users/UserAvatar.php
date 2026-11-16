@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Свой аватар для пользователей по-умолчанию.
+ * Custom default user avatar.
  *
  * @author: Aleksey Tikhomirov
  *
@@ -20,11 +20,11 @@ if (! class_exists('functions\users\UserAvatar')) {
             add_filter('avatar_defaults', [$this, 'new_default_avatar'], 10);
             add_filter('get_avatar', [$this, 'media_get_avatar'], 10, 6);
 
-            $this->url = ! empty($url) ? $url : RW_PLUGIN_URL.'assets/images/user_gray.svg';
+            $this->url = ! empty($url) ? $url : RW_PLUGIN_URL . 'assets/images/user_gray.svg';
         }
 
         /**
-         * Свой вариант аватарки по-умолчанию.
+         * Custom default avatar by default.
          *
          *
          * @return mixed
@@ -37,16 +37,18 @@ if (! class_exists('functions\users\UserAvatar')) {
         }
 
         /**
-         * Свой вариант аватарки по-умолчанию. Заменяем картинку при отображении списка аватаров.
+         * Replace the default avatar image in the avatar picker list.
          *
          *
-         * @return string - html код аватарки
+         * @return string Avatar HTML markup
          */
         public function media_get_avatar($avatar, $id_or_email, $size, $default, $alt, $args): string
         {
-            if ($default === $this->url) { // путь к файлу
-                $avatar = '<img src="'.$args['default'].'" width="32px" height="32px" class="avatar avatar-32 photo avatar-default" alt="'.__('User avatar',
-                    'wp-addon').'">';
+            if ($default === $this->url) { // default avatar URL
+                $avatar = '<img src="' . $args['default'] . '" width="32px" height="32px" class="avatar avatar-32 photo avatar-default" alt="' . __(
+                    'User avatar',
+                    'wp-addon',
+                ) . '">';
                 // $args['default']
             }
 

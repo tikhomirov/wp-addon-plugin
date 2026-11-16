@@ -66,7 +66,7 @@ final class FrontWP
                         continue;
                     }
                     foreach ($val as $item) {
-                        if (! is_array($item)) {
+                        if (! is_string($item)) {
                             continue;
                         }
                         echo $item;
@@ -79,15 +79,15 @@ final class FrontWP
     public function add_header_js()
     {
         if (! empty($this->options['rw_header_js'])) {
-            echo '<script>'.$this->options['rw_header_js'].'</script>';
+            echo '<script>' . $this->options['rw_header_js'] . '</script>';
         }
     }
 
     public function add_header_css()
     {
         if (! empty($this->options['rw_header_css'])) {
-            echo '<style type="text/css">'.
-                $this->options['rw_header_css'].
+            echo '<style type="text/css">' .
+                $this->options['rw_header_css'] .
                 '</style>';
         }
     }

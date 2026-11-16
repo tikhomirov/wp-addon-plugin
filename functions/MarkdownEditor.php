@@ -25,7 +25,7 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * Получает настройку из CSF
+     * Read setting from CSF
      */
     private function getSetting($key, $default = null)
     {
@@ -35,7 +35,7 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * Проверяет, включен ли Markdown
+     * Whether Markdown is enabled
      */
     private function isMarkdownEnabled(): bool
     {
@@ -43,7 +43,7 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * Оставлено для обратной совместимости.
+     * Kept for backward compatibility.
      */
     public function maybeDisableRichEdit($can_richedit)
     {
@@ -51,18 +51,18 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * Оставлено для обратной совместимости.
+     * Kept for backward compatibility.
      */
     public function disableVisualEditor(): void {}
 
     /**
-     * Возвращает режим редактора для поста ('classic' или 'markdown').
+     * Editor mode for a post ('classic' or 'markdown').
      *
-     * Приоритет определения:
-     * 1. Явно сохранённое значение в meta `_wp_addon_editor_mode`.
-     * 2. Наличие мета-поля `_markdown_content` (пост был создан в Markdown).
-     * 3. Наличие существующего HTML-контента — открываем в Classic, чтобы не ломать старые записи.
-     * 4. Для новых пустых записей — выбор из настройки `markdown_replace_tinymce`.
+     * Detection order:
+     * 1. Saved `_wp_addon_editor_mode` meta.
+     * 2. `_markdown_content` meta (post was created in Markdown).
+     * 3. Existing HTML content opens in Classic to avoid breaking legacy posts.
+     * 4. New empty posts use `markdown_replace_tinymce`.
      */
     public function getPostEditorMode(int $post_id, $post = null): string
     {
@@ -86,11 +86,10 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * Возвращает содержимое Markdown для редактора.
+     * Markdown source for the editor.
      *
-     * КРИТИЧЕСКИ ВАЖНО: если пост открыт в режиме Classic (HTML), возвращаем пустую строку.
-     * Это гарантирует, что редактор Markdown не будет восстанавливать контент и не затрёт HTML
-     * при последующем сохранении.
+     * IMPORTANT: in Classic (HTML) mode return empty string so Markdown does not
+     * restore content and overwrite HTML on save.
      */
     public function getPostMarkdownContent(int $post_id, $post = null, string $mode = 'classic'): string
     {
@@ -105,7 +104,7 @@ class MarkdownEditor implements ModuleInterface
             }
         }
 
-        // Fallback для старых постов при переключении в Markdown:
+        // Fallback when switching legacy posts to Markdown:
         if ($post && ! empty($post->post_content)) {
             return $this->htmlToMarkdown($post->post_content);
         }
@@ -114,8 +113,7 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * Отрисовывает переключатель табов (Классический / Markdown) в стиле билдеров (WPBakery/YOOtheme/Divi)
-     * и встроенную область Markdown-редактора.
+     * Renders Classic/Markdown tab switcher (page-builder style) and Markdown editor area.
      */
     public function renderEditorSwitcher($post): void
     {
@@ -279,23 +277,23 @@ class MarkdownEditor implements ModuleInterface
                 <div class="wp-addon-builder-tabs">
                     <button type="button" class="wp-addon-builder-tab <?php echo $current_mode === 'classic' ? 'is-active' : ''; ?>" data-mode="classic">
                         <span class="dashicons dashicons-edit-page"></span>
-                        <span class="tab-text"><?php esc_html_e('Классический редактор', 'wp-addon'); ?></span>
+                        <span class="tab-text"><?php esc_html_e('Classic editor', 'wp-addon'); ?></span>
                     </button>
                     <button type="button" class="wp-addon-builder-tab <?php echo $current_mode === 'markdown' ? 'is-active' : ''; ?>" data-mode="markdown">
                         <svg class="tab-md-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
                             <path d="M14.5 2H1.5C.7 2 0 2.7 0 3.5v9c0 .8.7 1.5 1.5 1.5h13c.8 0 1.5-.7 1.5-1.5v-9c0-.8-.7-1.5-1.5-1.5zM7 11.5H5.5V7.2L3.8 9.3 2 7.2v4.3H.8V4.5h1.2l2 2.5 2-2.5h1.2v7zM14 8.5h-2V4.5h-1.5v4h-2L11 12l3-3.5z"/>
                         </svg>
-                        <span class="tab-text"><?php esc_html_e('Markdown Редактор', 'wp-addon'); ?></span>
+                        <span class="tab-text"><?php esc_html_e('Markdown editor', 'wp-addon'); ?></span>
                     </button>
                 </div>
                 <div class="wp-addon-builder-actions">
-                    <button type="button" class="wp-addon-convert-btn" id="wp-addon-btn-convert-to-md" title="<?php esc_attr_e('Конвертировать HTML из классического редактора в Markdown', 'wp-addon'); ?>" style="<?php echo $current_mode === 'markdown' ? '' : 'display: none;'; ?>">
+                    <button type="button" class="wp-addon-convert-btn" id="wp-addon-btn-convert-to-md" title="<?php esc_attr_e('Convert HTML from the classic editor to Markdown', 'wp-addon'); ?>" style="<?php echo $current_mode === 'markdown' ? '' : 'display: none;'; ?>">
                         <span class="dashicons dashicons-update"></span>
-                        <span><?php esc_html_e('Импорт из HTML', 'wp-addon'); ?></span>
+                        <span><?php esc_html_e('Import from HTML', 'wp-addon'); ?></span>
                     </button>
-                    <button type="button" class="wp-addon-convert-btn" id="wp-addon-btn-convert-to-html" title="<?php esc_attr_e('Конвертировать Markdown в HTML для классического редактора', 'wp-addon'); ?>" style="<?php echo $current_mode === 'classic' ? '' : 'display: none;'; ?>">
+                    <button type="button" class="wp-addon-convert-btn" id="wp-addon-btn-convert-to-html" title="<?php esc_attr_e('Convert Markdown to HTML for the classic editor', 'wp-addon'); ?>" style="<?php echo $current_mode === 'classic' ? '' : 'display: none;'; ?>">
                         <span class="dashicons dashicons-update"></span>
-                        <span><?php esc_html_e('Импорт из Markdown', 'wp-addon'); ?></span>
+                        <span><?php esc_html_e('Import from Markdown', 'wp-addon'); ?></span>
                     </button>
                 </div>
             </div>
@@ -314,12 +312,12 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * Оставлено для обратной совместимости.
+     * Kept for backward compatibility.
      */
     public function addMarkdownMetaBox(): void {}
 
     /**
-     * Оставлено для обратной совместимости.
+     * Kept for backward compatibility.
      */
     public function renderMarkdownMetaBox($post): void
     {
@@ -327,7 +325,7 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * AJAX конвертация HTML <-> Markdown
+     * AJAX conversion HTML <-> Markdown
      */
     public function ajaxConvertContent(): void
     {
@@ -352,8 +350,8 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * Первое сохранение новой записи: post_updated не срабатывает,
-     * поэтому конвертация Markdown в HTML выполняется здесь.
+     * First save of a new post: post_updated does not run,
+     * so Markdown-to-HTML conversion happens here.
      */
     public function saveMarkdownOnFirstPublish(int $post_id, $post, bool $update): void
     {
@@ -365,11 +363,11 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * Сохраняет содержимое записи согласно активному режиму редактора (Markdown или Classic).
+     * Save post content according to the active editor mode (Markdown or Classic).
      *
-     * @param  int  $post_id  ID поста
-     * @param  WP_Post  $post_after  Пост после обновления
-     * @param  WP_Post|null  $post_before  Пост до обновления
+     * @param int          $post_id     Post ID
+     * @param WP_Post      $post_after  Post after update
+     * @param WP_Post|null $post_before Post before update
      */
     public function saveMarkdownContent(int $post_id, $post_after, $post_before): void
     {
@@ -399,12 +397,12 @@ class MarkdownEditor implements ModuleInterface
             return;
         }
 
-        // Режим редактора: classic или markdown
+        // Editor mode: classic or markdown
         $mode = isset($_POST['wp_addon_editor_mode'])
             ? sanitize_text_field($_POST['wp_addon_editor_mode'])
             : null;
 
-        // Fallback для прямых вызовов / unit-тестов
+        // Fallback for direct calls / unit tests
         if ($mode === null) {
             $markdown_edited = isset($_POST['markdown_edited']) && (string) $_POST['markdown_edited'] === '1';
             $new_markdown = isset($_POST['markdown_content']) ? wp_unslash($_POST['markdown_content']) : '';
@@ -427,31 +425,31 @@ class MarkdownEditor implements ModuleInterface
         if ($mode === 'markdown') {
             $new_markdown = isset($_POST['markdown_content']) ? wp_unslash($_POST['markdown_content']) : '';
 
-            // Сохраняем исходный Markdown в мета-поле, предотвращая искажения при повторном открытии
+            // Store source Markdown in meta to avoid drift on reopen
             update_post_meta($post_id, '_markdown_content', $new_markdown);
 
             $parsed_html = $new_markdown !== '' ? $this->parseMarkdown($new_markdown) : '';
 
-            // Обновляем post_content в базе данных только если сконвертированный HTML отличается
+            // Update post_content only when converted HTML differs
             if ($post_after->post_content !== $parsed_html) {
                 $this->saving = true;
 
                 wp_update_post([
-                    'ID' => $post_id,
+                    'ID'           => $post_id,
                     'post_content' => $parsed_html,
                 ]);
 
                 $this->saving = false;
             }
         } else {
-            // В режиме Classic удаляем мета Markdown: пост ведётся в HTML, и MD не должен перезаписывать или восстанавливать контент
+            // Classic mode: drop stored Markdown; HTML is canonical
             $this->purgeStoredMarkdown($post_id);
-            // post_content не перезаписываем — WordPress уже сохранил актуальный HTML из классического редактора
+            // Do not touch post_content — WordPress already saved classic HTML
         }
     }
 
     /**
-     * Удаляет сохранённый исходник Markdown при переходе в режим HTML или по запросу.
+     * Remove stored Markdown when switching to HTML or on request.
      */
     private function purgeStoredMarkdown(int $post_id, string $html_content = ''): void
     {
@@ -460,69 +458,69 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * Парсер Markdown в HTML с использованием библиотеки Parsedown
+     * Parse Markdown to HTML using Parsedown
      */
     public function parseMarkdown(string $markdown): string
     {
-        // Проверяем наличие автозагрузчика Composer
-        if (file_exists(ABSPATH.'vendor/autoload.php')) {
-            require_once ABSPATH.'vendor/autoload.php';
-        } elseif (file_exists(dirname(ABSPATH).'/vendor/autoload.php')) {
-            require_once dirname(ABSPATH).'/vendor/autoload.php';
+        // Check presence autoloader Composer
+        if (file_exists(ABSPATH . 'vendor/autoload.php')) {
+            require_once ABSPATH . 'vendor/autoload.php';
+        } elseif (file_exists(dirname(ABSPATH) . '/vendor/autoload.php')) {
+            require_once dirname(ABSPATH) . '/vendor/autoload.php';
         }
 
-        // Используем Parsedown если доступен
+        // Use Parsedown when available
         if (class_exists('Parsedown')) {
             $parsedown = new Parsedown;
 
-            // Настройка безопасности
-            $parsedown->setSafeMode(false); // Разрешаем HTML для WordPress
+            // Security settings
+            $parsedown->setSafeMode(false); // Allow HTML for WordPress
             $parsedown->setMarkupEscaped(false);
             $parsedown->setUrlsLinked(true);
             $parsedown->setBreaksEnabled(false);
 
             $html = $parsedown->text($markdown);
 
-            // Дополнительная обработка для WordPress-специфичных элементов
+            // WordPress-specific post-processing
             $html = $this->processWordPressElements($html);
 
             return $html;
         }
 
-        // Fallback на простой парсер если Parsedown недоступен
+        // Fallback parser when Parsedown is unavailable
         return $this->fallbackMarkdownParser($markdown);
     }
 
     /**
-     * Дополнительная обработка WordPress-специфичных элементов
+     * WordPress-specific element processing
      */
     private function processWordPressElements(string $html): string
     {
-        // Добавляем классы для таблиц
+        // Add table classes
         $html = str_replace('<table>', '<table class="markdown-table">', $html);
 
-        // Обрабатываем чекбоксы задач
+        // Task list checkboxes
         $html = preg_replace('/\[x\]/', '<input type="checkbox" checked disabled>', $html);
         $html = preg_replace('/\[ \]/', '<input type="checkbox" disabled>', $html);
 
-        // Добавляем target="_blank" для внешних ссылок
+        // External links: target="_blank"
         $html = preg_replace('/<a href="(https?:\/\/[^"]*)"/', '<a href="$1" target="_blank" rel="noopener"', $html);
 
-        // Стилизация изображений
+        // Image styling
         $html = preg_replace('/<img([^>]*src="[^"]*"[^>]*)>/', '<img$1 style="max-width: 100%; height: auto;">', $html);
 
         return $html;
     }
 
     /**
-     * Простой fallback парсер на случай отсутствия Parsedown
+     * Simple fallback parser when Parsedown is missing
      */
     private function fallbackMarkdownParser(string $markdown): string
     {
         $html = $markdown;
 
-        // Базовая обработка основных элементов
-        // Заголовки
+        // Basic element handling
+        // Headings
         $html = preg_replace('/^###### (.*$)/m', '<h6>$1</h6>', $html);
         $html = preg_replace('/^##### (.*$)/m', '<h5>$1</h5>', $html);
         $html = preg_replace('/^#### (.*$)/m', '<h4>$1</h4>', $html);
@@ -530,21 +528,21 @@ class MarkdownEditor implements ModuleInterface
         $html = preg_replace('/^## (.*$)/m', '<h2>$1</h2>', $html);
         $html = preg_replace('/^# (.*$)/m', '<h1>$1</h1>', $html);
 
-        // Жирный и курсив
+        // Bold and italic
         $html = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $html);
         $html = preg_replace('/\*(.+?)\*/', '<em>$1</em>', $html);
 
-        // Ссылки и изображения
+        // Links and images
         $html = preg_replace('/!\[([^\]]*)\]\(([^)]+)\)/', '<img src="$2" alt="$1" style="max-width: 100%; height: auto;">', $html);
         $html = preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" target="_blank" rel="noopener">$1</a>', $html);
 
-        // Inline код
+        // Inline code
         $html = preg_replace('/`([^`]+)`/', '<code>$1</code>', $html);
 
-        // Горизонтальные линии
+        // Horizontal rules
         $html = preg_replace('/^---$/m', '<hr>', $html);
 
-        // Параграфы
+        // Paragraphs
         $paragraphs = preg_split('/\n\s*\n/', $html);
         $html_paragraphs = [];
 
@@ -552,7 +550,7 @@ class MarkdownEditor implements ModuleInterface
             $paragraph = trim($paragraph);
             if (! empty($paragraph)) {
                 if (! preg_match('/^<(h[1-6]|hr)/', $paragraph)) {
-                    $paragraph = '<p>'.$paragraph.'</p>';
+                    $paragraph = '<p>' . $paragraph . '</p>';
                 }
                 $html_paragraphs[] = $paragraph;
             }
@@ -562,13 +560,13 @@ class MarkdownEditor implements ModuleInterface
     }
 
     /**
-     * Простое преобразование HTML в Markdown (для миграции)
+     * Simple HTML-to-Markdown conversion (for migration)
      */
     private function htmlToMarkdown(string $html): string
     {
         $markdown = $html;
 
-        // Заголовки
+        // Headings
         $markdown = preg_replace('/<h1[^>]*>(.*?)<\/h1>/i', '# $1', $markdown);
         $markdown = preg_replace('/<h2[^>]*>(.*?)<\/h2>/i', '## $1', $markdown);
         $markdown = preg_replace('/<h3[^>]*>(.*?)<\/h3>/i', '### $1', $markdown);
@@ -576,42 +574,42 @@ class MarkdownEditor implements ModuleInterface
         $markdown = preg_replace('/<h5[^>]*>(.*?)<\/h5>/i', '##### $1', $markdown);
         $markdown = preg_replace('/<h6[^>]*>(.*?)<\/h6>/i', '###### $1', $markdown);
 
-        // Жирный и курсив
+        // Bold and italic
         $markdown = preg_replace('/<strong[^>]*>(.*?)<\/strong>/i', '**$1**', $markdown);
         $markdown = preg_replace('/<b[^>]*>(.*?)<\/b>/i', '**$1**', $markdown);
         $markdown = preg_replace('/<em[^>]*>(.*?)<\/em>/i', '*$1*', $markdown);
         $markdown = preg_replace('/<i[^>]*>(.*?)<\/i>/i', '*$1*', $markdown);
 
-        // Ссылки
+        // Links
         $markdown = preg_replace('/<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/i', '[$2]($1)', $markdown);
 
-        // Изображения
+        // Images
         $markdown = preg_replace('/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/i', '![$2]($1)', $markdown);
         $markdown = preg_replace('/<img[^>]*src="([^"]*)"[^>]*>/i', '![]($1)', $markdown);
 
-        // Код
+        // Code blocks
         $markdown = preg_replace('/<code[^>]*>(.*?)<\/code>/i', '`$1`', $markdown);
         $markdown = preg_replace('/<pre[^>]*><code[^>]*>(.*?)<\/code><\/pre>/s', "```\n$1\n```", $markdown);
 
-        // Списки
+        // Lists
         $markdown = preg_replace('/<li[^>]*>(.*?)<\/li>/i', '* $1', $markdown);
         $markdown = preg_replace('/<ul[^>]*>(.*?)<\/ul>/s', '$1', $markdown);
         $markdown = preg_replace('/<ol[^>]*>(.*?)<\/ol>/s', '$1', $markdown);
 
-        // Цитаты
+        // Blockquotes
         $markdown = preg_replace('/<blockquote[^>]*>(.*?)<\/blockquote>/s', '> $1', $markdown);
 
-        // Параграфы
-        $markdown = preg_replace('/<p[^>]*>(.*?)<\/p>/i', '$1'."\n\n", $markdown);
+        // Paragraphs
+        $markdown = preg_replace('/<p[^>]*>(.*?)<\/p>/i', '$1' . "\n\n", $markdown);
 
-        // Убираем лишние HTML теги
+        // Strip remaining HTML tags
         $markdown = strip_tags($markdown);
 
         return trim($markdown);
     }
 
     /**
-     * Подключает стили и скрипты для Markdown редактора
+     * Enqueue styles and scripts for the Markdown editor
      */
     public function enqueueMarkdownAssets($hook): void
     {
@@ -637,61 +635,75 @@ class MarkdownEditor implements ModuleInterface
             return;
         }
 
-        // Подключаем EasyMDE
+        // EasyMDE
         wp_enqueue_script(
             'easymde',
             'https://unpkg.com/easymde/dist/easymde.min.js',
             [],
             '2.18.0',
-            true
+            true,
         );
 
         wp_enqueue_style(
             'easymde',
             'https://unpkg.com/easymde/dist/easymde.min.css',
             [],
-            '2.18.0'
+            '2.18.0',
         );
 
-        // Подключаем WordPress Media Uploader
+        // WordPress media uploader
         wp_enqueue_media();
 
         wp_enqueue_script(
             'markdown-editor',
-            RW_PLUGIN_URL.'assets/js/markdown-editor.js',
+            RW_PLUGIN_URL . 'assets/js/markdown-editor.js',
             ['jquery', 'easymde'],
             '1.3.0',
-            true
+            true,
         );
 
         wp_localize_script('markdown-editor', 'markdownAjax', [
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('markdown_preview'),
+            'ajax_url'         => admin_url('admin-ajax.php'),
+            'nonce'            => wp_create_nonce('markdown_preview'),
             'enable_shortcuts' => (bool) $this->getSetting('markdown_enable_shortcuts', true),
-            'enable_preview' => (bool) $this->getSetting('markdown_enable_preview', true),
-            'i18n' => [
-                'import_html_confirm' => __('Импортировать текущий HTML контент в Markdown редактор?', 'wp-addon'),
-                'import_md_confirm' => __('Конвертировать Markdown в HTML для классического редактора?', 'wp-addon'),
-                'overwrite_md_confirm' => __('Заменить текущий Markdown контент результатом конвертации из HTML?', 'wp-addon'),
-                'overwrite_html_confirm' => __('Заменить текущий HTML в классическом редакторе результатом конвертации из Markdown?', 'wp-addon'),
-                'convert_error' => __('Ошибка при конвертации контента', 'wp-addon'),
+            'enable_preview'   => (bool) $this->getSetting('markdown_enable_preview', true),
+            'i18n'             => [
+                'import_html_confirm'    => __('Import current HTML content into the Markdown editor?', 'wp-addon'),
+                'import_md_confirm'      => __('Convert Markdown to HTML for the classic editor?', 'wp-addon'),
+                'overwrite_md_confirm'   => __('Replace current Markdown with HTML conversion result?', 'wp-addon'),
+                'overwrite_html_confirm' => __('Replace classic editor HTML with Markdown conversion result?', 'wp-addon'),
+                'convert_error'          => __('Content conversion error', 'wp-addon'),
+                'media_title'            => __('Choose an image', 'wp-addon'),
+                'media_button'           => __('Insert into post', 'wp-addon'),
+                'media_toolbar'          => __('Insert image (WP Media)', 'wp-addon'),
+                'help_summary'           => __('Markdown help (click to expand)', 'wp-addon'),
+                'help_h1'                => __('# Heading 1 — large heading', 'wp-addon'),
+                'help_h2'                => __('## Heading 2 — medium heading', 'wp-addon'),
+                'help_bold'              => __('**bold** — bold text', 'wp-addon'),
+                'help_italic'            => __('*italic* — italic text', 'wp-addon'),
+                'help_link'              => __('[text](url) — link', 'wp-addon'),
+                'help_image'             => __('![alt](url) — image', 'wp-addon'),
+                'help_code'              => __('`code` — inline code', 'wp-addon'),
+                'help_ul'                => __('* item — bullet list', 'wp-addon'),
+                'help_ol'                => __('1. item — numbered list', 'wp-addon'),
+                'help_shortcuts'         => __('Shortcuts: Ctrl+B (bold), Ctrl+I (italic), Ctrl+K (link)', 'wp-addon'),
             ],
         ]);
 
-        // Подключаем стили GitHub Markdown для предпросмотра
+        // GitHub Markdown styles for preview
         wp_enqueue_style(
             'github-markdown-css',
             'https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown.min.css',
             [],
-            '5.5.0'
+            '5.5.0',
         );
 
-        // Подключаем Highlight.js для подсветки синтаксиса
+        // Highlight.js for syntax highlighting
         wp_enqueue_style(
             'highlightjs-github',
             'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css',
             [],
-            '11.9.0'
+            '11.9.0',
         );
 
         wp_enqueue_script(
@@ -699,22 +711,22 @@ class MarkdownEditor implements ModuleInterface
             'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js',
             [],
             '11.9.0',
-            true
+            true,
         );
 
-        $css_file = defined('RW_PLUGIN_DIR') ? RW_PLUGIN_DIR.'assets/css/markdown-editor.css' : '';
+        $css_file = defined('RW_PLUGIN_DIR') ? RW_PLUGIN_DIR . 'assets/css/markdown-editor.css' : '';
         $css_version = ($css_file && file_exists($css_file)) ? (string) filemtime($css_file) : '1.5.2';
 
         wp_enqueue_style(
             'markdown-editor',
-            RW_PLUGIN_URL.'assets/css/markdown-editor.css',
+            RW_PLUGIN_URL . 'assets/css/markdown-editor.css',
             [],
-            $css_version
+            $css_version,
         );
 
-        // Добавляем дополнительные стили для новых элементов Markdown
+        // Extra styles for Markdown elements
         wp_add_inline_style('markdown-editor', '
-            /* Стили для таблиц Markdown */
+            /* Markdown tables */
             .markdown-table {
                 border-collapse: collapse;
                 width: 100%;
@@ -735,7 +747,7 @@ class MarkdownEditor implements ModuleInterface
                 background-color: #f9f9f9;
             }
             
-            /* Стили для списков задач */
+            /* Task lists */
             .task-list {
                 list-style: none;
                 padding-left: 0;
@@ -748,7 +760,7 @@ class MarkdownEditor implements ModuleInterface
                 margin-left: 0;
             }
             
-            /* Стили для блоков кода с подсветкой синтаксиса */
+            /* Code blocks with syntax highlighting */
             pre code[class*="language-"] {
                 background: #f8f8f8;
                 border: 1px solid #e1e1e8;
@@ -763,7 +775,7 @@ class MarkdownEditor implements ModuleInterface
             pre code.language-html { border-left: 4px solid #e34f26; }
             pre code.language-sql { border-left: 4px solid #336791; }
             
-            /* Улучшение цитат */
+            /* Blockquotes */
             blockquote {
                 border-left: 4px solid #ddd;
                 margin: 15px 0;
@@ -775,7 +787,7 @@ class MarkdownEditor implements ModuleInterface
                 margin: 5px 0;
             }
             
-            /* Стили для inline кода */
+            /* Inline code */
             code {
                 background: #f4f4f4;
                 border: 1px solid #ddd;
@@ -785,7 +797,7 @@ class MarkdownEditor implements ModuleInterface
                 color: #c7254e;
             }
             
-            /* Горизонтальные линии */
+            /* Horizontal rules */
             hr {
                 border: none;
                 border-top: 2px solid #eee;

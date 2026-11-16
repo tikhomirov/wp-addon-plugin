@@ -12,7 +12,7 @@ describe('Smoke Test', function () {
         expect(class_exists('WpAddon\Autoloader'))->toBeTrue();
         expect(class_exists('WpAddon\Services\OptionService'))->toBeTrue();
         expect(class_exists('WpAddon\Services\MediaCleanupService'))->toBeTrue();
-        expect(class_exists('WpAddon\Controllers\MediaCleanupController'))->toBeFalse(); // Удален, логика в модуле
+        expect(class_exists('WpAddon\Controllers\MediaCleanupController'))->toBeFalse(); // Removed; logic lives in module
     });
 
     it('tests services instantiation', function () {

@@ -10,35 +10,35 @@
                     title: 'Shortcode params',
                     body: [
                         {
-                            type: 'textbox', // тип textbox = текстовое поле
-                            name: 'title', // ID, будет использоваться ниже
-                            label: 'Title', // лейбл
-                            value: '' // значение по умолчанию
+                            type: 'textbox',
+                            name: 'title',
+                            label: 'Title',
+                            value: ''
                         },
                         {
-                            type: 'textbox', // тип textbox = текстовое поле
-                            name: 'headings', // ID, будет использоваться ниже
-                            label: 'Headings', // лейбл
-                            value: 'h2,h3,h4' // значение по умолчанию
+                            type: 'textbox',
+                            name: 'headings',
+                            label: 'Headings',
+                            value: 'h2,h3,h4'
                         },
                         {
-                            type: 'textbox', // тип textbox = текстовое поле
-                            name: 'content', // ID, будет использоваться ниже
-                            label: 'jQuery Selector of content', // лейбл
-                            value: 'div.post-content' // значение по умолчанию
+                            type: 'textbox',
+                            name: 'content',
+                            label: 'jQuery Selector of content',
+                            value: 'div.post-content'
                         },
                         {
-                            type: 'listbox', // тип listbox = выпадающий список select
+                            type: 'listbox',
                             name: 'style',
                             label: 'Choose style',
-                            'values': [ // значения выпадающего списка
-                                {text: 'Default', value: 'default'}, // лейбл, значение
-                                {text: 'Style 1', value: 'style1'}, // лейбл, значение
+                            'values': [
+                                {text: 'Default', value: 'default'},
+                                {text: 'Style 1', value: 'style1'},
                                 {text: 'Style 2', value: 'style2'}
                             ]
                         }
                     ],
-                    onsubmit: function( e ) { // это будет происходить после заполнения полей и нажатии кнопки отправки
+                    onsubmit: function( e ) {
                         //editor.insertContent( '<h3 class="toc-title">' + e.data.title + '</h3>');
                         editor.insertContent( '<p>[table_of_contents style="' + e.data.style + '" headings="' + e.data.headings + '" content="' + e.data.content + '" title="' + e.data.title + '"]</p>');
                         editor.insertContent( '<hr>');

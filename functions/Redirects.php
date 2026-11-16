@@ -10,7 +10,9 @@ class Redirects implements ModuleInterface
 
     public function init(): void
     {
-        $this->addHook('csf_wp-addon_save', [$this, 'importCsvOnSave'], 10, 2);
+        $this->addHook('csf_wp-addon_save', [$this, 'sanitizeRulesOnSave'], 10, 2);
+        $this->addHook('wp_ajax_wp_addon_redirects_import', [$this, 'importRulesAjax']);
+        $this->addHook('option_wp-addon', [$this, 'prepareRulesForAdminForm'], 5);
 
         if (! $this->isEnabled()) {
             return;
@@ -20,7 +22,16 @@ class Redirects implements ModuleInterface
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    public function sanitizeRulesOnSave(array $data, mixed $instance): array
+    {
+        return $this->importCsvOnSave($data, $instance);
+    }
+
+    /**
+     * @param  array<string, mixed> $data
      * @return array<string, mixed>
      */
     public function importCsvOnSave(array $data, mixed $instance): array
@@ -35,6 +46,82 @@ class Redirects implements ModuleInterface
         }
 
         return $data;
+    }
+
+    /**
+     * @param  mixed $value
+     * @return mixed
+     */
+    public function prepareRulesForAdminForm($value)
+    {
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        if (! is_admin() || ! isset($_GET['page']) || $_GET['page'] !== 'wp-addon') {
+            return $value;
+        }
+
+        return RedirectRulesService::prepareOptionsForRedirectsAdmin($value);
+    }
+
+    public function importRulesAjax(): void
+    {
+        check_ajax_referer('wp_addon_redirects_import');
+
+        if (! current_user_can('manage_options')) {
+            wp_send_json_error([
+                'message' => __('You do not have permission to import redirect rules.', 'wp-addon'),
+            ], 403);
+        }
+
+        $csv = isset($_POST['csv']) ? trim(wp_unslash((string) $_POST['csv'])) : '';
+
+        if ($csv === '') {
+            wp_send_json_error([
+                'message' => __('Paste rules into the field or choose a file.', 'wp-addon'),
+            ]);
+        }
+
+        $existingJson = isset($_POST['rules']) ? wp_unslash((string) $_POST['rules']) : '';
+        $existing = [];
+
+        if ($existingJson !== '') {
+            $decoded = json_decode($existingJson, true);
+            if (is_array($decoded)) {
+                $existing = $decoded;
+            }
+        }
+
+        $imported = RedirectRulesService::parseCsv($csv);
+
+        if ($imported === []) {
+            wp_send_json_error([
+                'message' => __('No valid rules found. Check the format: source,destination — one rule per line.', 'wp-addon'),
+            ]);
+        }
+
+        $merged = RedirectRulesService::mergeRules($existing, $imported);
+
+        $options = get_option('wp-addon', []);
+        if (! is_array($options)) {
+            $options = [];
+        }
+
+        $options['redirects_rules'] = $merged;
+        $options['redirects_csv_import'] = '';
+        update_option('wp-addon', $options);
+
+        wp_send_json_success([
+            'message' => sprintf(
+                /* translators: 1: imported count, 2: total count */
+                __('Imported %1$d rule(s). Total in list: %2$d.', 'wp-addon'),
+                count($imported),
+                count($merged),
+            ),
+            'imported' => count($imported),
+            'total'    => count($merged),
+        ]);
     }
 
     public function processRedirects(): void
@@ -66,7 +153,7 @@ class Redirects implements ModuleInterface
 
             $location = $this->buildRedirectLocation($matched);
             header('HTTP/1.1 301 Moved Permanently');
-            header('Location: '.$location);
+            header('Location: ' . $location);
             exit;
         }
     }
@@ -79,7 +166,7 @@ class Redirects implements ModuleInterface
             }
 
             $patternRequest = str_replace('*', '(.*)', $storedrequest);
-            $pattern = '/^'.str_replace('/', '\/', rtrim($patternRequest, '/')).'/';
+            $pattern = '/^' . str_replace('/', '\/', rtrim($patternRequest, '/')) . '/';
             $target = str_replace('*', '$1', $destination);
             $output = preg_replace($pattern, $target, $userrequest);
 
@@ -110,7 +197,7 @@ class Redirects implements ModuleInterface
             return home_url($destination);
         }
 
-        return home_url('/'.ltrim($destination, '/'));
+        return home_url('/' . ltrim($destination, '/'));
     }
 
     private function getRequestPath(): string
@@ -122,10 +209,10 @@ class Redirects implements ModuleInterface
         $homePath = rtrim((string) $homePath, '/');
 
         if ($homePath !== '' && str_starts_with($path, $homePath)) {
-            $path = substr($path, strlen($homePath));
+            $path = mb_substr($path, mb_strlen($homePath));
         }
 
-        $path = '/'.ltrim((string) $path, '/');
+        $path = '/' . ltrim((string) $path, '/');
 
         return rtrim($path, '/') ?: '/';
     }

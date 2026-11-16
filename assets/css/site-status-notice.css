@@ -1,0 +1,17 @@
+.wp-addon-site-status-notice {
+    background: #f87171;
+    color: #fff;
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.wp-addon-site-status-notice__icon {
+    flex-shrink: 0;
+}

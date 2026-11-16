@@ -3,8 +3,8 @@
 use WpAddon\ControllerWP;
 use WpAddon\Services\OptionService;
 
-// Запуск: make wp c='eval-file wp-content/plugins/wp-addon-plugin/tests/Integration/tweaks.php'
-// Меняет только хуки текущего процесса, не настройки и не данные сайта.
+// Run: make wp c='eval-file wp-content/plugins/wp-addon-plugin/tests/Integration/tweaks.php'
+// Only changes hooks in the current process, not settings or site data.
 
 $check = static function (string $name, bool $condition): void {
     if (! $condition) {
@@ -23,14 +23,14 @@ $links = [home_url('/test'), "https://example.org/?next={$host}", "https://{$hos
 wptweaker_remove_self_pingbacks($links);
 $check('Self pingbacks only', array_keys($links) === [1, 2]);
 
-require_once ABSPATH.WPINC.'/class-IXR.php';
-require_once ABSPATH.WPINC.'/class-wp-xmlrpc-server.php';
+require_once ABSPATH . WPINC . '/class-IXR.php';
+require_once ABSPATH . WPINC . '/class-wp-xmlrpc-server.php';
 $server = new wp_xmlrpc_server;
 $check('XML-RPC publishing and pingbacks', ! isset($server->methods['pingback.ping']) && ! isset($server->methods['wp.getPosts']));
 
 $_SERVER['HTTP_USER_AGENT'] = 'WpAddonRegressionTest';
 wptweaker_setting_36();
-require_once ABSPATH.'wp-admin/includes/dashboard.php';
+require_once ABSPATH . 'wp-admin/includes/dashboard.php';
 $check('Browser check short circuit', wp_check_browser_version() === []);
 
 add_action('login_footer', 'wp_shake_js', 12);

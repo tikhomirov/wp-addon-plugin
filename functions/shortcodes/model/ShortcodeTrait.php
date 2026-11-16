@@ -19,8 +19,8 @@ trait ShortcodeTrait
         $this->title = $title;
         $this->description = $description;
 
-        $icon_def = file_exists(get_stylesheet_directory().'/img/black_color.svg') ?
-            get_stylesheet_directory_uri().'/img/black_color.svg' :
+        $icon_def = file_exists(get_stylesheet_directory() . '/img/black_color.svg') ?
+            get_stylesheet_directory_uri() . '/img/black_color.svg' :
             'https://cdn1.iconfinder.com/data/icons/sugar-glyph/64/174_sugar-white-cubes-512.png';
         $this->icon = $icon ?? $icon_def;
 

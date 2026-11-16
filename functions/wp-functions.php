@@ -24,7 +24,7 @@
 22: Add VK, OK to profile
 23: Show usages memory and time to generate page
 24: Deregister widgets
-25: Remove license.txt и readme.html files
+25: Remove license.txt and readme.html files
 26: Add filter to metabox of post taxonomies
 27: Disable select taxonomy in top of metabox in post-edit page
 28: If posts have status "pending" show numbers it in menu
@@ -146,10 +146,10 @@ function wptweaker_block_wordpress_org_requests($preempt, $parsed_args, $url)
     $blocked_hosts = ['api.wordpress.org', 'downloads.wordpress.org'];
 
     foreach ($blocked_hosts as $host) {
-        if (strtolower((string) wp_parse_url($url, PHP_URL_HOST)) === $host) {
+        if (mb_strtolower((string) wp_parse_url($url, PHP_URL_HOST)) === $host) {
             return new WP_Error(
                 'wptweaker_http_blocked',
-                __('WordPress.org update request blocked by wp-addon tweak.', 'wp-addon')
+                __('WordPress.org update request blocked by wp-addon tweak.', 'wp-addon'),
             );
         }
     }
@@ -183,7 +183,7 @@ function wptweaker_setting_11()
      *
      * @since 1.0
      *
-     * @param  WP_Scripts  $scripts  WP_Scripts object.
+     * @param WP_Scripts $scripts WP_Scripts object.
      */
     function rw_remove_jquery_migrate($scripts)
     {
@@ -256,7 +256,7 @@ function wptweaker_setting_19()
 {
     function upload_allow_types($mimes)
     {
-        // разрешаем новые типы
+        // Allow extra MIME types
         $mimes['svg'] = 'image/svg+xml';
         $mimes['svgz'] = 'image/svg+xml';
         $mimes['doc'] = 'application/msword';
@@ -265,7 +265,7 @@ function wptweaker_setting_19()
         $mimes['djv'] = 'image/vnd.djvu';
         $mimes['djvu'] = 'image/vnd.djvu';
         $mimes['webp'] = 'image/webp';
-        // отключаем имеющиеся
+        // Remove unused MIME types
         unset($mimes['mp4a']);
 
         return $mimes;
@@ -280,14 +280,14 @@ function wptweaker_setting_20()
 
 function wptweaker_remove_self_pingbacks(&$links)
 {
-    $host = preg_replace('/^www\./', '', strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST)));
+    $host = preg_replace('/^www\./', '', mb_strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST)));
 
     if ($host === '') {
         return;
     }
 
     foreach ($links as $key => $url) {
-        $targetHost = preg_replace('/^www\./', '', strtolower((string) wp_parse_url($url, PHP_URL_HOST)));
+        $targetHost = preg_replace('/^www\./', '', mb_strtolower((string) wp_parse_url($url, PHP_URL_HOST)));
         if ($targetHost === $host) {
             unset($links[$key]);
         }
@@ -325,7 +325,7 @@ function wptweaker_hide_admin_bar_settings()
 
 function wptweaker_setting_22()
 {
-    // удаляет из профиля поля: AIM, Yahoo IM, Jabber / Add VK, OK
+    // Remove legacy profile fields; add VK and OK
     add_filter('user_contactmethods', 'new_contactmethod', 10, 2);
     function new_contactmethod($methods, $user)
     {
@@ -355,7 +355,7 @@ function wptweaker_render_performance_info()
         '<!-- %1$s: %2$s s, %3$s -->',
         esc_html__('Page generated', 'wp-addon'),
         esc_html((string) $time),
-        esc_html((string) $memory)
+        esc_html((string) $memory),
     );
 }
 
@@ -365,28 +365,28 @@ function wptweaker_setting_24()
     add_action('widgets_init', 'unregister_basic_widgets');
     function unregister_basic_widgets()
     {
-        unregister_widget('WP_Widget_Pages');            // Виджет страниц
-        unregister_widget('WP_Widget_Calendar');         // Календарь
-        unregister_widget('WP_Widget_Archives');         // Архивы
-        unregister_widget('WP_Widget_Links');            // Ссылки
-        unregister_widget('WP_Widget_Meta');             // Мета виджет
-        unregister_widget('WP_Widget_Search');           // Поиск
-        unregister_widget('WP_Widget_Text');             // Текст
-        unregister_widget('WP_Widget_Categories');       // Категории
-        unregister_widget('WP_Widget_Recent_Posts');     // Последние записи
-        unregister_widget('WP_Widget_Recent_Comments');  // Последние комментарии
-        unregister_widget('WP_Widget_RSS');              // RSS
-        unregister_widget('WP_Widget_Tag_Cloud');        // Облако меток
-        unregister_widget('WP_Nav_Menu_Widget');         // Меню
+        unregister_widget('WP_Widget_Pages');
+        unregister_widget('WP_Widget_Calendar');
+        unregister_widget('WP_Widget_Archives');
+        unregister_widget('WP_Widget_Links');
+        unregister_widget('WP_Widget_Meta');
+        unregister_widget('WP_Widget_Search');
+        unregister_widget('WP_Widget_Text');
+        unregister_widget('WP_Widget_Categories');
+        unregister_widget('WP_Widget_Recent_Posts');
+        unregister_widget('WP_Widget_Recent_Comments');
+        unregister_widget('WP_Widget_RSS');
+        unregister_widget('WP_Widget_Tag_Cloud');
+        unregister_widget('WP_Nav_Menu_Widget');
     }
 }
 
 function wptweaker_setting_25()
 {
-    // # Удаление файлов license.txt и readme.html для защиты
+    // Remove license.txt and readme.html from web root
     if (is_admin() && ! defined('DOING_AJAX')) {
-        $license_file = ABSPATH.'/license.txt';
-        $readme_file = ABSPATH.'/readme.html';
+        $license_file = ABSPATH . '/license.txt';
+        $readme_file = ABSPATH . '/readme.html';
 
         if (current_user_can('manage_options')) {
             $deleted = [];
@@ -410,7 +410,7 @@ function wptweaker_setting_25()
             }
 
             add_action('admin_notices', function () {
-                echo '<div class="error is-dismissible"><p>'.$GLOBALS['readmedel'].'</p></div>';
+                echo '<div class="error is-dismissible"><p>' . $GLOBALS['readmedel'] . '</p></div>';
             });
         }
     }
@@ -418,8 +418,7 @@ function wptweaker_setting_25()
 
 function wptweaker_setting_26()
 {
-    // # Фильтр элементо втаксономии для метабокса таксономий в админке.
-    // # Позволяет удобно фильтровать (искать) элементы таксономии по назанию, когда их очень много
+    // Taxonomy metabox search filter on the post edit screen
     add_action('admin_print_scripts', 'my_admin_term_filter', 99);
     function my_admin_term_filter()
     {
@@ -427,7 +426,7 @@ function wptweaker_setting_26()
 
         if ($screen === null || $screen->base !== 'post') {
             return;
-        } // только для страницы редактирвоания любой записи
+        } // Post edit screen only
         ?>
         <script>
             jQuery(document).ready(function ($) {
@@ -453,11 +452,11 @@ function wptweaker_setting_26()
 
 function wptweaker_setting_27()
 {
-    // #  отменим показ выбранного термина наверху в checkbox списке терминов
+    // Do not float checked terms to the top of checklist
     add_filter('wp_terms_checklist_args', 'set_checked_ontop_default', 10);
     function set_checked_ontop_default($args)
     {
-        // изменим параметр по умолчанию на false
+        // Default checked_ontop to false
         $args['checked_ontop'] = false;
 
         return $args;
@@ -470,11 +469,11 @@ function wptweaker_setting_28()
     function add_user_menu_bubble()
     {
         global $menu;
-        $count = wp_count_posts()->pending; // на утверждении
+        $count = wp_count_posts()->pending; // Pending posts
         if ($count) {
             foreach ($menu as $key => $value) {
                 if ($menu[$key][2] === 'edit.php') {
-                    $menu[$key][0] .= ' <span class="awaiting-mod"><span class="pending-count">'.$count.'</span></span>';
+                    $menu[$key][0] .= ' <span class="awaiting-mod"><span class="pending-count">' . $count . '</span></span>';
                     break;
                 }
             }
@@ -484,7 +483,7 @@ function wptweaker_setting_28()
 
 function wptweaker_setting_29()
 {
-    // Удаляем уведомление об обновлении WordPress для всех кроме админа
+    // Hide WordPress update nag for non-admins
     function disable_notice_for_users()
     {
         if (! current_user_can('manage_options')) {
@@ -497,13 +496,13 @@ function wptweaker_setting_29()
 
 function wptweaker_setting_30()
 {
-    // # Ссылка «Читать далее...» после цитаты в цикле. Замена `[...]`
+    // Replace [...] excerpt suffix with "Read more" link
     add_filter('excerpt_more', 'replace_excerpt_func', 99);
     function replace_excerpt_func($more)
     {
         global $post;
 
-        return '<a class="read_more" href="'.get_permalink($post).'">'.__('Read more ...', 'wp-addon').'</a>';
+        return '<a class="read_more" href="' . get_permalink($post) . '">' . __('Read more ...', 'wp-addon') . '</a>';
     }
 }
 
@@ -518,7 +517,7 @@ function wptweaker_setting_31()
 
 function wptweaker_setting_32()
 {
-    // # Изменяет URL расположения jQuery файла только для фронт-энда
+    // Load jQuery from Google CDN on the frontend
     add_action('rw_enqueue_scripts', 'jquery_enqueue_func');
     function jquery_enqueue_func()
     {
@@ -560,7 +559,7 @@ function wptweaker_setting_34()
 
 function wptweaker_setting_35()
 {
-    // Формирует данные для отображения SVG как изображения в медиабиблиотеке.
+    // Prepare SVG attachments for the media library grid
     add_filter('wp_prepare_attachment_for_js', function ($response) {
         if ($response['mime'] === 'image/svg+xml') {
             $response['sizes'] = [
@@ -572,7 +571,7 @@ function wptweaker_setting_35()
                 ],
             ];
 
-            /* С выводом названия файла
+            /* Optional: include filename in preview
             $response['image'] = [
                 'src' => $response['url'],
             ]; */
@@ -588,7 +587,7 @@ function wptweaker_setting_36()
     if ($user_agent === '') {
         return;
     }
-    add_filter('pre_site_transient_browser_'.md5($user_agent), '__return_empty_array');
+    add_filter('pre_site_transient_browser_' . md5($user_agent), '__return_empty_array');
 }
 
 function wptweaker_setting_37()
@@ -598,7 +597,7 @@ function wptweaker_setting_37()
 
 function wptweaker_generic_login_error_message()
 {
-    return '<strong>'.esc_html__('Error:', 'wp-addon').'</strong> '.
+    return '<strong>' . esc_html__('Error:', 'wp-addon') . '</strong> ' .
         esc_html__('Incorrect username or password.', 'wp-addon');
 }
 
@@ -654,7 +653,7 @@ function wptweaker_restrict_rest_api($result)
         return new WP_Error(
             'rest_not_logged_in',
             __('You must be logged in to access the REST API.', 'wp-addon'),
-            ['status' => 401]
+            ['status' => 401],
         );
     }
 
@@ -760,7 +759,7 @@ function wptweaker_setting_48()
 
 function wptweaker_is_wp_tracking_url($url)
 {
-    $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+    $host = mb_strtolower((string) wp_parse_url($url, PHP_URL_HOST));
     $path = (string) wp_parse_url($url, PHP_URL_PATH);
 
     return in_array($host, ['pixel.wp.com', 'stats.wp.com'], true)
@@ -775,7 +774,7 @@ function wptweaker_block_wp_tracking_requests($preempt, $parsed_args, $url)
 
     return new WP_Error(
         'wptweaker_tracking_blocked',
-        __('WordPress tracking request blocked by wp-addon tweak.', 'wp-addon')
+        __('WordPress tracking request blocked by wp-addon tweak.', 'wp-addon'),
     );
 }
 

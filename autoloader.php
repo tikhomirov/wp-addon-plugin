@@ -13,15 +13,15 @@ add_action('admin_head', function () {
 /**
  *  Include all php file in subfolder
  */
-foreach (glob(RW_PLUGIN_DIR.'functions/*.php') as $file) {
+foreach (glob(RW_PLUGIN_DIR . 'functions/*.php') as $file) {
     $file = basename($file);
-    require RW_PLUGIN_DIR.'functions/'.$file;
+    require RW_PLUGIN_DIR . 'functions/' . $file;
 }
 
 /**
  *  Include all php file in subfolder
  */
-foreach (glob(RW_PLUGIN_DIR.'functions/*/*.php') as $file) {
+foreach (glob(RW_PLUGIN_DIR . 'functions/*/*.php') as $file) {
     include_once $file;
 }
 

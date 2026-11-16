@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__DIR__).'/main-settings-helpers.php';
+require_once dirname(__DIR__) . '/main-settings-helpers.php';
 
 /**
  * Hide selected Polylang languages on the frontend.

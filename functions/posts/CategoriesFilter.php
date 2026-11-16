@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__DIR__).'/main-settings-helpers.php';
+require_once dirname(__DIR__) . '/main-settings-helpers.php';
 
 /**
  * CategoriesFilter
@@ -58,7 +58,7 @@ final class CategoriesFilter
     }
 
     /**
-     * @param  array<int, int>|null  $excluded_terms
+     * @param  array<int, int>|null $excluded_terms
      * @return array<int, int>|null
      */
     public function exclude_cat($excluded_terms = null)

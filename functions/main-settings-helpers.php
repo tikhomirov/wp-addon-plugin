@@ -154,8 +154,8 @@ function wp_addon_get_category_checkbox_options(): array
 
     $categories = get_categories([
         'hide_empty' => false,
-        'orderby' => 'name',
-        'order' => 'ASC',
+        'orderby'    => 'name',
+        'order'      => 'ASC',
     ]);
 
     $options = [];
@@ -251,7 +251,7 @@ function wp_addon_is_ip_whitelisted(string $ip, array $whitelist): bool
 }
 
 /**
- * @param  array<int, string>  $allowedRoles
+ * @param array<int, string> $allowedRoles
  */
 function wp_addon_user_has_allowed_role(array $allowedRoles): bool
 {
@@ -291,8 +291,8 @@ function wp_addon_should_bypass_maintenance(array $settings): bool
 }
 
 /**
- * @param  array<string, mixed>  $newSettings
- * @param  array<string, mixed>  $oldSettings
+ * @param array<string, mixed> $newSettings
+ * @param array<string, mixed> $oldSettings
  */
 function wp_addon_should_flush_rewrite_rules_on_settings_change(array $newSettings, array $oldSettings): bool
 {
@@ -366,7 +366,7 @@ function wp_addon_get_tinymce_framework_stylesheet(string $framework): ?string
     switch ($framework) {
         case 'bootstrap3':
             if (defined('RW_PLUGIN_URL')) {
-                return RW_PLUGIN_URL.'assets/css/min/bootstrap.min.css';
+                return RW_PLUGIN_URL . 'assets/css/min/bootstrap.min.css';
             }
 
             return null;

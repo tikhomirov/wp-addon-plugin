@@ -139,8 +139,8 @@ function tiny_table_plugin()
 
     add_filter('mce_external_plugins', function ($plugins) {
         global $tinymce_version;
-        $plugins['icofonts'] = RW_PLUGIN_URL.'functions/TinyMCE/plugins/icofonts/plugin.min.js';
-        $plugins['table'] = RW_PLUGIN_URL.'functions/TinyMCE/plugins/table/plugin.min.js';
+        $plugins['icofonts'] = RW_PLUGIN_URL . 'functions/TinyMCE/plugins/icofonts/plugin.min.js';
+        $plugins['table'] = RW_PLUGIN_URL . 'functions/TinyMCE/plugins/table/plugin.min.js';
 
         return $plugins;
     }, 10, 1);
@@ -231,7 +231,7 @@ function tiny_visual_block()
         return $in;
     });
     add_filter('mce_external_plugins', function ($plugins) {
-        $plugins['visualblocks'] = RW_PLUGIN_URL.'functions/TinyMCE/plugins/visualblocks/plugin.min.js';
+        $plugins['visualblocks'] = RW_PLUGIN_URL . 'functions/TinyMCE/plugins/visualblocks/plugin.min.js';
 
         return $plugins;
     }, 10, 1);
@@ -246,7 +246,7 @@ function upload_feature()
     });
 
     // call the new tab with wp_iframe
-    add_action('media_upload_'.'g_drive', function () {
+    add_action('media_upload_' . 'g_drive', function () {
         wp_iframe('my_new_form');
     });
 

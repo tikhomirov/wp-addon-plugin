@@ -10,14 +10,14 @@ class AssetFactory extends Factory
     protected function definition(): array
     {
         return [
-            'handle' => $this->faker->word().'-asset',
-            'src' => $this->faker->url().'/assets/'.$this->faker->word().'.'.$this->faker->randomElement(['css', 'js']),
-            'deps' => [],
-            'ver' => $this->faker->randomFloat(1, 1, 9),
-            'media' => 'all',
-            'type' => $this->attributes['type'] ?? $this->faker->randomElement(['style', 'script']),
+            'handle'  => $this->faker->word() . '-asset',
+            'src'     => $this->faker->url() . '/assets/' . $this->faker->word() . '.' . $this->faker->randomElement(['css', 'js']),
+            'deps'    => [],
+            'ver'     => $this->faker->randomFloat(1, 1, 9),
+            'media'   => 'all',
+            'type'    => $this->attributes['type'] ?? $this->faker->randomElement(['style', 'script']),
             'content' => $this->generateAssetContent(),
-            'size' => $this->faker->numberBetween(1000, 50000),
+            'size'    => $this->faker->numberBetween(1000, 50000),
         ];
     }
 
@@ -53,7 +53,7 @@ class AssetFactory extends Factory
             $this->faker->numberBetween(12, 24),
             $this->faker->numberBetween(0, 20),
             $this->faker->word(),
-            $this->faker->hexColor()
+            $this->faker->hexColor(),
         );
     }
 
@@ -71,7 +71,7 @@ class AssetFactory extends Factory
             $this->faker->word(),
             $this->faker->word(),
             $this->faker->word(),
-            $this->faker->word()
+            $this->faker->word(),
         );
     }
 
@@ -81,8 +81,8 @@ class AssetFactory extends Factory
     public function asCss(): self
     {
         return $this->state([
-            'type' => 'style',
-            'src' => $this->faker->url().'/assets/'.$this->faker->word().'.css',
+            'type'    => 'style',
+            'src'     => $this->faker->url() . '/assets/' . $this->faker->word() . '.css',
             'content' => $this->generateCssContent(),
         ]);
     }
@@ -93,10 +93,10 @@ class AssetFactory extends Factory
     public function asJs(): self
     {
         return $this->state([
-            'type' => 'script',
-            'src' => $this->faker->url().'/assets/'.$this->faker->word().'.js',
+            'type'    => 'script',
+            'src'     => $this->faker->url() . '/assets/' . $this->faker->word() . '.js',
             'content' => $this->generateJsContent(),
-            'media' => null,
+            'media'   => null,
         ]);
     }
 
@@ -110,7 +110,7 @@ class AssetFactory extends Factory
 
         return $this->state([
             'content' => $minifiedContent,
-            'src' => str_replace('.css', '.min.css', $this->attributes['src'] ?? $this->faker->url().'/assets/'.$this->faker->word().'.css'),
+            'src'     => str_replace('.css', '.min.css', $this->attributes['src'] ?? $this->faker->url() . '/assets/' . $this->faker->word() . '.css'),
         ]);
     }
 
@@ -120,7 +120,7 @@ class AssetFactory extends Factory
     public function large(): self
     {
         return $this->state([
-            'size' => $this->faker->numberBetween(50000, 200000),
+            'size'    => $this->faker->numberBetween(50000, 200000),
             'content' => str_repeat($this->generateAssetContent(), 5),
         ]);
     }
@@ -131,8 +131,8 @@ class AssetFactory extends Factory
     public function small(): self
     {
         return $this->state([
-            'size' => $this->faker->numberBetween(100, 999),
-            'content' => $this->faker->word().'{}',
+            'size'    => $this->faker->numberBetween(100, 999),
+            'content' => $this->faker->word() . '{}',
         ]);
     }
 

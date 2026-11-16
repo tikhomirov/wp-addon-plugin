@@ -9,7 +9,7 @@ use WpAddon\Services\OptionService;
  * Integration test for AssetMinification module
  */
 describe('AssetMinification Integration', function () {
-    // Пропустить тесты, если WordPress не загружен (integration среда)
+    // Skip tests if WordPress is not loaded (integration environment)
     if (! function_exists('wp_die')) {
         test('skipped - requires WordPress environment', function () {})->skip('WordPress environment not available');
 
@@ -18,7 +18,7 @@ describe('AssetMinification Integration', function () {
     beforeEach(function () {
         Monkey\setUp();
 
-        $this->cacheDir = sys_get_temp_dir().'/wp_addon_integration_cache_'.uniqid();
+        $this->cacheDir = sys_get_temp_dir() . '/wp_addon_integration_cache_' . uniqid();
         mkdir($this->cacheDir, 0755, true);
 
         $this->mockOptionService = Mockery::mock('\WpAddon\Services\OptionService');
@@ -27,17 +27,17 @@ describe('AssetMinification Integration', function () {
         $this->mockOptionService->shouldReceive('getSetting')
             ->andReturnUsing(function ($key, $default = null) {
                 $config = [
-                    'enabled' => true,
-                    'minify_css' => true,
-                    'minify_js' => true,
-                    'combine_css' => true,
-                    'combine_js' => true,
-                    'critical_css_enabled' => true,
+                    'enabled'                => true,
+                    'minify_css'             => true,
+                    'minify_js'              => true,
+                    'combine_css'            => true,
+                    'combine_js'             => true,
+                    'critical_css_enabled'   => true,
                     'defer_non_critical_css' => true,
-                    'exclude_css' => ['admin-bar', 'dashicons'],
-                    'exclude_js' => ['jquery', 'jquery-core'],
-                    'cache_dir' => $this->cacheDir,
-                    'version_salt' => 'wp-addon-v1',
+                    'exclude_css'            => ['admin-bar', 'dashicons'],
+                    'exclude_js'             => ['jquery', 'jquery-core'],
+                    'cache_dir'              => $this->cacheDir,
+                    'version_salt'           => 'wp-addon-v1',
                 ];
 
                 return $config[$key] ?? $default;
@@ -50,7 +50,7 @@ describe('AssetMinification Integration', function () {
     afterEach(function () {
         // Clean up cache directory
         if (is_dir($this->cacheDir)) {
-            $files = glob($this->cacheDir.'/*');
+            $files = glob($this->cacheDir . '/*');
             foreach ($files as $file) {
                 unlink($file);
             }
@@ -65,14 +65,14 @@ describe('AssetMinification Integration', function () {
         // Setup: Mock CSS files in queue
         $cssFiles = [
             'theme-style' => [
-                'src' => 'http://localhost/wp-content/themes/theme/style.css',
+                'src'  => 'http://localhost/wp-content/themes/theme/style.css',
                 'deps' => [],
-                'ver' => '1.0.0',
+                'ver'  => '1.0.0',
             ],
             'plugin-style' => [
-                'src' => 'http://localhost/wp-content/plugins/plugin/style.css',
+                'src'  => 'http://localhost/wp-content/plugins/plugin/style.css',
                 'deps' => [],
-                'ver' => '1.0.0',
+                'ver'  => '1.0.0',
             ],
         ];
 
@@ -84,17 +84,17 @@ describe('AssetMinification Integration', function () {
         foreach ($cssFiles as $handle => $style) {
             $wp_styles->registered[$handle] = (object) array_merge([
                 'handle' => $handle,
-                'src' => '',
-                'deps' => [],
-                'ver' => false,
-                'args' => 'all',
+                'src'    => '',
+                'deps'   => [],
+                'ver'    => false,
+                'args'   => 'all',
             ], $style);
         }
 
         // Create temporary CSS files
-        $tempCss1 = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.css';
+        $tempCss1 = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.css';
         file_put_contents($tempCss1, 'body { color: red; }');
-        $tempCss2 = tempnam(sys_get_temp_dir(), 'wp_addon_test_').'.css';
+        $tempCss2 = tempnam(sys_get_temp_dir(), 'wp_addon_test_') . '.css';
         file_put_contents($tempCss2, '.small { margin: 0; }');
 
         // Mock file paths
@@ -134,14 +134,14 @@ describe('AssetMinification Integration', function () {
         // Setup: Mock JS files in queue
         $jsFiles = [
             'theme-script' => [
-                'src' => 'http://example.com/wp-content/themes/theme/script.js',
+                'src'  => 'http://example.com/wp-content/themes/theme/script.js',
                 'deps' => [],
-                'ver' => '1.0.0',
+                'ver'  => '1.0.0',
             ],
             'plugin-script' => [
-                'src' => 'http://example.com/wp-content/plugins/plugin/script.js',
+                'src'  => 'http://example.com/wp-content/plugins/plugin/script.js',
                 'deps' => [],
-                'ver' => '1.0.0',
+                'ver'  => '1.0.0',
             ],
         ];
 
@@ -189,14 +189,14 @@ describe('AssetMinification Integration', function () {
         // Setup: Mock system assets in queue
         $systemAssets = [
             'jquery' => [
-                'src' => 'http://example.com/wp-includes/js/jquery.js',
+                'src'  => 'http://example.com/wp-includes/js/jquery.js',
                 'deps' => [],
-                'ver' => '3.6.0',
+                'ver'  => '3.6.0',
             ],
             'admin-bar' => [
-                'src' => 'http://example.com/wp-includes/css/admin-bar.css',
+                'src'  => 'http://example.com/wp-includes/css/admin-bar.css',
                 'deps' => [],
-                'ver' => '1.0.0',
+                'ver'  => '1.0.0',
             ],
         ];
 
@@ -230,9 +230,9 @@ describe('AssetMinification Integration', function () {
 
         $cssFiles = [
             'minified-style' => [
-                'src' => 'http://example.com/wp-content/themes/theme/minified.css',
+                'src'  => 'http://example.com/wp-content/themes/theme/minified.css',
                 'deps' => [],
-                'ver' => '1.0.0',
+                'ver'  => '1.0.0',
             ],
         ];
 
@@ -257,9 +257,9 @@ describe('AssetMinification Integration', function () {
         // Setup: Mock small CSS file
         $cssFiles = [
             'small-style' => [
-                'src' => 'http://example.com/wp-content/themes/theme/small.css',
+                'src'  => 'http://example.com/wp-content/themes/theme/small.css',
                 'deps' => [],
-                'ver' => '1.0.0',
+                'ver'  => '1.0.0',
             ],
         ];
 
@@ -334,8 +334,8 @@ describe('AssetMinification Integration', function () {
 
     it('clears cache files', function () {
         // Create test cache files
-        $testFile1 = $this->cacheDir.'/test1.gz';
-        $testFile2 = $this->cacheDir.'/test2.gz';
+        $testFile1 = $this->cacheDir . '/test1.gz';
+        $testFile2 = $this->cacheDir . '/test2.gz';
 
         file_put_contents($testFile1, 'test content 1');
         file_put_contents($testFile2, 'test content 2');
@@ -358,9 +358,9 @@ describe('AssetMinification Integration', function () {
         $this->mockOptionService->method('getSetting')
             ->willReturnCallback(function ($key, $default = null) {
                 $config = [
-                    'enabled' => false, // Disabled
+                    'enabled'    => false, // Disabled
                     'minify_css' => true,
-                    'minify_js' => true,
+                    'minify_js'  => true,
                 ];
 
                 return $config[$key] ?? $default;
@@ -400,10 +400,10 @@ describe('AssetMinification Integration', function () {
         expect($registeredActions)->toContain('upgrader_process_complete');
     });
 
-    // ===== НОВЫЕ ТЕСТЫ ДЛЯ ПРОВЕРКИ РЕАЛЬНОЙ РАБОТЫ =====
+    // ===== REAL-WORLD BEHAVIOR TESTS =====
 
     it('checks real plugin activation', function () {
-        // Проверяем активацию плагина в реальной среде
+        // Check plugin activation in real environment
         if (function_exists('get_option')) {
             $active_plugins = get_option('active_plugins', []);
             expect($active_plugins)->toContain('wp-addon-plugin/wp-addon-plugin.php');
@@ -413,13 +413,13 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real plugin constants', function () {
-        // Проверяем константы плагина в реальной среде
+        // Check plugin constants in real environment
         if (defined('RW_PLUGIN_DIR')) {
             expect(defined('RW_PLUGIN_DIR'))->toBeTrue();
             expect(defined('RW_PLUGIN_URL'))->toBeTrue();
             expect(defined('RW_FILE'))->toBeTrue();
 
-            // Проверяем что пути существуют
+            // Check paths exist
             expect(is_dir(RW_PLUGIN_DIR))->toBeTrue();
             expect(file_exists(RW_FILE))->toBeTrue();
         } else {
@@ -428,9 +428,9 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real cache directory', function () {
-        // Проверяем директорию кэша в реальной среде
+        // Check cache directory in real environment
         if (defined('WP_CONTENT_DIR')) {
-            $cacheDir = WP_CONTENT_DIR.'/cache/assets/';
+            $cacheDir = WP_CONTENT_DIR . '/cache/assets/';
             expect(is_dir($cacheDir))->toBeTrue();
             expect(is_writable($cacheDir))->toBeTrue();
         } else {
@@ -439,12 +439,12 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real settings persistence', function () {
-        // Проверяем настройки в реальной среде
+        // Check settings in real environment
         if (function_exists('get_option')) {
             $settings = get_option('wp-addon', []);
             expect($settings)->toBeArray();
 
-            // Проверяем ключевые настройки AssetMinification
+            // Check AssetMinification settings
             $criticalKeys = [
                 'asset_minification_enabled',
                 'asset_minify_css',
@@ -460,18 +460,18 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real module loading', function () {
-        // Проверяем загрузку модуля в реальной среде
+        // Check module loading in real environment
         expect(class_exists('AssetMinification'))->toBeTrue();
 
         expect(is_subclass_of('AssetMinification', 'WpAddon\\Interfaces\\ModuleInterface'))->toBeTrue();
     });
 
     it('checks real WordPress hooks', function () {
-        // Проверяем хуки WordPress в реальной среде
+        // Check WordPress hooks in real environment
         if (isset($GLOBALS['wp_filter'])) {
             global $wp_filter;
 
-            // Проверяем наличие хуков от AssetMinification
+            // Check AssetMinification hooks exist
             $assetHooks = ['wp_enqueue_scripts', 'wp_head', 'wp_footer'];
             $foundAssetHooks = 0;
 
@@ -481,7 +481,7 @@ describe('AssetMinification Integration', function () {
                 }
             }
 
-            // Хотя бы основные хуки должны быть зарегистрированы
+            // At least core hooks should be registered
             expect($foundAssetHooks)->toBeGreaterThan(0);
         } else {
             skip('WordPress hooks not available');
@@ -489,17 +489,17 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real asset processing', function () {
-        // Проверяем обработку реальных активов
+        // Check real asset processing
         if (function_exists('wp_styles') && isset($GLOBALS['wp_styles'])) {
             global $wp_styles;
 
-            // Запоминаем оригинальное состояние
+            // Remember original state
             $originalQueue = $wp_styles->queue;
 
-            // Имитируем вызов processAssets (в реальной среде это происходит через хуки)
+            // Simulate processAssets (hooks in production)
             $this->assetMinification->processAssets();
 
-            // Проверяем что очередь изменилась или остались оригинальные стили
+            // Check queue changed or original styles remain
             expect(! empty($wp_styles->queue) || $wp_styles->queue === $originalQueue)->toBeTrue();
         } else {
             skip('WordPress styles not available');
@@ -507,17 +507,17 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real critical CSS injection', function () {
-        // Проверяем инъекцию критического CSS
+        // Check critical CSS injection
         if (function_exists('get_template_directory')) {
-            $themeCss = get_template_directory().'/style.css';
+            $themeCss = get_template_directory() . '/style.css';
 
             if (file_exists($themeCss)) {
                 ob_start();
                 $this->assetMinification->injectCriticalCss();
                 $output = ob_get_clean();
 
-                // Должен быть какой-то вывод или пустая строка (если отключено)
-                expect(strpos($output, '<style') !== false || empty($output))->toBeTrue();
+                // Output or empty string when disabled
+                expect(mb_strpos($output, '<style') !== false || empty($output))->toBeTrue();
             } else {
                 skip('Theme style.css not found');
             }
@@ -527,25 +527,25 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real HTTP output', function () {
-        // Тест HTTP вывода (если возможно)
+        // HTTP output test when possible
         if (function_exists('home_url') && function_exists('wp_remote_get')) {
             $homeUrl = home_url('/');
 
-            // Пробуем получить главную страницу
+            // Fetch home page
             $response = wp_remote_get($homeUrl, ['timeout' => 5]);
 
             if (! is_wp_error($response)) {
                 $html = wp_remote_retrieve_body($response);
 
-                // Проверяем наличие признаков оптимизации
+                // Check optimization markers
                 $hasOptimizationSigns = (
-                    strpos($html, 'wp-addon-critical-css') !== false ||
-                    strpos($html, 'cache/assets') !== false ||
-                    strpos($html, 'AssetMinification') !== false
+                    mb_strpos($html, 'wp-addon-critical-css') !== false ||
+                    mb_strpos($html, 'cache/assets') !== false ||
+                    mb_strpos($html, 'AssetMinification') !== false
                 );
 
-                // Если плагин работает, должны быть признаки оптимизации
-                // Если не работает - тест не должен падать, просто пропускаем
+                // If plugin runs, expect optimization markers
+                // If inactive, test should not fail
                 if ($hasOptimizationSigns) {
                     expect(true)->toBeTrue();
                 } else {
@@ -560,31 +560,31 @@ describe('AssetMinification Integration', function () {
     });
 
     it('checks real file system operations', function () {
-        // Проверяем файловые операции в реальной среде
+        // Check file operations in real environment
         $service = new AssetOptimizationService([
-            'cache_dir' => sys_get_temp_dir().'/test_real_cache/',
-            'version_salt' => 'real_test',
-            'minify_css' => true,
-            'minify_js' => true,
-            'combine_css' => true,
-            'combine_js' => true,
+            'cache_dir'            => sys_get_temp_dir() . '/test_real_cache/',
+            'version_salt'         => 'real_test',
+            'minify_css'           => true,
+            'minify_js'            => true,
+            'combine_css'          => true,
+            'combine_js'           => true,
             'critical_css_enabled' => true,
-            'exclude_css' => [],
-            'exclude_js' => [],
+            'exclude_css'          => [],
+            'exclude_js'           => [],
         ]);
 
         $testContent = 'body { color: red; }';
-        $cacheKey = 'real_test_'.time();
+        $cacheKey = 'real_test_' . time();
 
-        // Тест сохранения
+        // Save test
         $service->saveToCache($cacheKey, $testContent);
 
-        // Тест чтения
+        // Read test
         $cached = $service->getFromCache($cacheKey);
         expect($cached)->toBe($testContent);
 
-        // Очистка
-        $cacheFile = sys_get_temp_dir().'/test_real_cache/'.$cacheKey.'.gz';
+        // Cleanup
+        $cacheFile = sys_get_temp_dir() . '/test_real_cache/' . $cacheKey . '.gz';
         if (file_exists($cacheFile)) {
             unlink($cacheFile);
         }

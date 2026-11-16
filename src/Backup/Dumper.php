@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Потоковый дамп базы данных MySQL/MariaDB в переносимый SQL-файл.
+ * Streaming MySQL/MariaDB database dump to a portable SQL file.
  *
- * Формат: заголовок-манифест, затем для каждой таблицы DROP/CREATE и данные
- * батчевыми INSERT. Данные читаются курсором по одной строке, поэтому файл
- * не держится в памяти: дамп таблицы на сотни мегабайт проходит при обычном
- * memory_limit хостинга.
+ * Format: manifest header, then per-table DROP/CREATE and data
+ * as batched INSERTs. Rows are read one at a time so the file
+ * stays memory-efficient: large tables work with normal
+ * hosting memory_limit.
  */
 
 declare(strict_types=1);
@@ -20,52 +20,52 @@ if (! defined('ABSPATH')) {
 }
 
 /**
- * Пишет переносимый SQL-дамп базы данных.
+ * Writes a portable SQL database dump.
  *
- * Префикс таблиц берётся из конфига WordPress ($table_prefix), поэтому дамп
- * восстанавливается на том же префиксе, на котором был снят.
+ * Table prefix comes from WordPress ($table_prefix); the dump
+ * restores on the same prefix it was taken from.
  */
 final class Dumper
 {
-    /** Версия формата дампа. Повышается при несовместимых изменениях. */
+    /** Dump format version; bump on incompatible changes. */
     public const FORMAT_VERSION = '2.0';
 
-    /** Сколько строк склеивать в один многострочный INSERT. */
+    /** Rows per multi-row INSERT batch. */
     private const ROWS_PER_INSERT = 200;
 
-    /** @var resource|null Дескриптор файла дампа. */
+    /** @var resource|null Dump file handle. */
     private $handle = null;
 
-    /** @var int Сколько таблиц попало в дамп. */
+    /** @var int Tables written to the dump. */
     private int $table_count = 0;
 
-    /** @var int Сколько строк данных суммарно записано. */
+    /** @var int Total data rows written. */
     private int $row_count = 0;
 
-    /** @var string Префикс таблиц текущего сайта. */
+    /** @var string Current site table prefix. */
     private string $prefix;
 
-    /** @var string Имя набора символов соединения (utf8mb4). */
+    /** @var string Connection charset name (utf8mb4). */
     private string $charset;
 
-    /** @var string Сопоставление соединения (utf8mb4_unicode_520_ci) или пустая строка. */
+    /** @var string Connection collation or empty string. */
     private string $collate = '';
 
     /**
-     * @throws \RuntimeException Если префикс или соединение недоступны.
+     * @throws \RuntimeException If prefix or connection is unavailable.
      */
     public function __construct()
     {
         global $wpdb;
 
         if (! isset($wpdb) || ! is_object($wpdb)) {
-            throw new \RuntimeException('Нет подключения к WordPress (нет $wpdb).');
+            throw new \RuntimeException('No WordPress database connection ($wpdb missing).');
         }
 
         $prefix = isset($wpdb->prefix) ? (string) $wpdb->prefix : '';
 
         if ($prefix === '') {
-            throw new \RuntimeException('Не удалось определить префикс таблиц ($table_prefix).');
+            throw new \RuntimeException('Could not determine table prefix ($table_prefix).');
         }
 
         $this->prefix = $prefix;
@@ -73,12 +73,12 @@ final class Dumper
     }
 
     /**
-     * Разбирает результат get_charset_collate() на имя charset и collation.
+     * Parse get_charset_collate() into charset and collation names.
      *
-     * WordPress отдаёт строку вида
+     * WordPress returns a string like
      * "DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci",
-     * а SET NAMES принимает только имя набора символов. Подставлять строку
-     * целиком нельзя — такой дамп не импортируется.
+     * SET NAMES accepts only the charset name; do not pass
+     * the full string — imports would fail.
      */
     private function resolve_charset(): void
     {
@@ -97,8 +97,8 @@ final class Dumper
             $collate = $m[1];
         }
 
-        // Значение приходит из конфигурации, но всё же приводим к безопасному
-        // виду: в SQL допустимы только буквы, цифры и подчёркивание.
+        // Sanitize values from config for SQL identifiers:
+        // letters, digits, and underscore only.
         $charset = (string) preg_replace('/[^A-Za-z0-9_]/', '', $charset);
         $collate = (string) preg_replace('/[^A-Za-z0-9_]/', '', $collate);
 
@@ -111,11 +111,11 @@ final class Dumper
     }
 
     /**
-     * Пишет дамп всех таблиц базы данных.
+     * Write dump of all database tables.
      *
-     * @return array{tables:int,rows:int,bytes:int} Итоги дампа для интерфейса.
+     * @return array{tables:int,rows:int,bytes:int} Dump totals for the UI.
      *
-     * @throws \RuntimeException При ошибке записи или чтения базы.
+     * @throws \RuntimeException On write/read failure.
      */
     public function dump(): array
     {
@@ -131,31 +131,31 @@ final class Dumper
 
         return [
             'tables' => $this->table_count,
-            'rows' => $this->row_count,
-            'bytes' => (int) $this->size(),
+            'rows'   => $this->row_count,
+            'bytes'  => (int) $this->size(),
         ];
     }
 
     /**
-     * Открывает файл дампа на запись.
+     * Open dump file for writing.
      *
-     * @param  string  $path  Полный путь к файлу.
+     * @param string $path Absolute file path.
      *
-     * @throws \RuntimeException Если каталог недоступен или файл не открылся.
+     * @throws \RuntimeException If directory or file open fails.
      */
     public function open(string $path): void
     {
         $handle = @fopen($path, 'wb');
 
         if ($handle === false) {
-            throw new \RuntimeException('Не удалось открыть файл дампа для записи.');
+            throw new \RuntimeException('Could not open backup file for writing.');
         }
 
         $this->handle = $handle;
     }
 
     /**
-     * Закрывает файл дампа, если он открыт.
+     * Close dump file if open.
      */
     public function close(): void
     {
@@ -167,7 +167,7 @@ final class Dumper
     }
 
     /**
-     * Список таблиц базы в устойчивом алфавитном порядке.
+     * List tables in stable alphabetical order.
      *
      * @return string[]
      */
@@ -178,7 +178,7 @@ final class Dumper
         $tables = $wpdb->get_col('SHOW TABLES');
 
         if (! is_array($tables)) {
-            throw new \RuntimeException('Не удалось получить список таблиц (SHOW TABLES).');
+            throw new \RuntimeException('Could not list tables (SHOW TABLES).');
         }
 
         $tables = array_values(array_filter(array_map('strval', $tables)));
@@ -188,31 +188,31 @@ final class Dumper
     }
 
     /**
-     * Заголовок файла: версия формата, префикс, источник, кодировка.
+     * File header: format version, prefix, source, charset.
      *
-     * Строки манифеста читает восстановитель, поэтому формат стабилен.
+     * Manifest lines are read by the restorer; keep format stable.
      */
     private function write_manifest(): void
     {
         $lines = [
             '-- Woo2iiko WordPress database backup',
-            '-- Format: '.self::FORMAT_VERSION,
-            '-- Prefix: '.$this->prefix,
-            '-- Source: '.$this->site_url(),
-            '-- WordPress: '.$this->wordpress_version(),
-            '-- Charset: '.$this->charset.($this->collate !== '' ? ' '.$this->collate : ''),
-            '-- Generated: '.gmdate('Y-m-d H:i:s').' UTC',
+            '-- Format: ' . self::FORMAT_VERSION,
+            '-- Prefix: ' . $this->prefix,
+            '-- Source: ' . $this->site_url(),
+            '-- WordPress: ' . $this->wordpress_version(),
+            '-- Charset: ' . $this->charset . ($this->collate !== '' ? ' ' . $this->collate : ''),
+            '-- Generated: ' . gmdate('Y-m-d H:i:s') . ' UTC',
             '',
-            'SET NAMES '.$this->charset.';',
+            'SET NAMES ' . $this->charset . ';',
             'SET FOREIGN_KEY_CHECKS = 0;',
         ];
 
-        $this->write(implode("\n", $lines)."\n");
+        $this->write(implode("\n", $lines) . "\n");
     }
 
     /**
-     * Сохраняет и восстанавливает sql_mode, чтобы дамп одинаково
-     * интерпретировался на любом сервере при импорте.
+     * Save/restore sql_mode so dumps
+     * interpret consistently on import.
      */
     private function write_session(): void
     {
@@ -224,14 +224,14 @@ final class Dumper
         $lines = ['SET @OLD_SQL_MODE = @@SESSION.sql_mode;'];
 
         if ($sql_mode !== '') {
-            $lines[] = 'SET SESSION sql_mode = '.ValueEncoder::quote($sql_mode).';';
+            $lines[] = 'SET SESSION sql_mode = ' . ValueEncoder::quote($sql_mode) . ';';
         }
 
-        $this->write(implode("\n", $lines)."\n\n");
+        $this->write(implode("\n", $lines) . "\n\n");
     }
 
     /**
-     * URL сайта-источника — только для отчёта, в SQL не попадает.
+     * Source site URL is metadata only, not in SQL.
      */
     private function site_url(): string
     {
@@ -239,7 +239,7 @@ final class Dumper
     }
 
     /**
-     * Версия WordPress для отчёта.
+     * WordPress version for reporting.
      */
     private function wordpress_version(): string
     {
@@ -247,7 +247,7 @@ final class Dumper
     }
 
     /**
-     * Пишет схему и данные одной таблицы.
+     * Write schema and data for one table.
      */
     private function dump_table(string $table): void
     {
@@ -255,36 +255,36 @@ final class Dumper
 
         $this->write(
             "\n-- --------------------------------------------------------\n"
-            .'-- Table: '.$table."\n"
-            ."-- --------------------------------------------------------\n\n"
+            . '-- Table: ' . $table . "\n"
+            . "-- --------------------------------------------------------\n\n",
         );
 
         $create_sql = $this->create_table_sql($table);
 
         if ($create_sql === null) {
-            // Без схемы таблица не восстановится. Пишем явную пометку, чтобы
-            // импорт не выглядел успешным, потеряв таблицу молча.
+            // Without schema the table cannot restore; write a warning so
+            // import does not look successful while missing a table.
             $this->write(
-                '-- WARNING: не удалось получить CREATE TABLE для '.$table."; таблица пропущена.\n\n"
+                '-- WARNING: could not get CREATE TABLE for ' . $table . "; table skipped.\n\n",
             );
 
             return;
         }
 
-        $this->write('DROP TABLE IF EXISTS `'.$table."`;\n");
-        $this->write($create_sql.";\n\n");
+        $this->write('DROP TABLE IF EXISTS `' . $table . "`;\n");
+        $this->write($create_sql . ";\n\n");
 
         $this->dump_rows($table);
     }
 
     /**
-     * CREATE TABLE для таблицы.
+     * CREATE TABLE for a table.
      */
     private function create_table_sql(string $table): ?string
     {
         global $wpdb;
 
-        $row = $wpdb->get_row('SHOW CREATE TABLE `'.$table.'`', ARRAY_N);
+        $row = $wpdb->get_row('SHOW CREATE TABLE `' . $table . '`', ARRAY_N);
 
         if (! is_array($row) || ! isset($row[1])) {
             return null;
@@ -296,12 +296,12 @@ final class Dumper
     }
 
     /**
-     * Пишет данные таблицы батчевыми INSERT.
+     * Write table data as batched INSERTs.
      *
-     * Основной путь — потоковое чтение через mysqli без буферизации: одна
-     * выборка, строки забираются по одной, память ограничена размером батча.
-     * Запасной путь — батчинг по первичному ключу, если соединение не mysqli
-     * (например, подменено db.php-дропином).
+     * Primary path: unbuffered mysqli read, one
+     * query, rows one-by-one, memory bounded by batch size.
+     * Fallback: batched reads by primary key when mysqli
+     * is unavailable (e.g. db.php drop-in).
      */
     private function dump_rows(string $table): void
     {
@@ -311,8 +311,8 @@ final class Dumper
             return;
         }
 
-        $quoted = implode(', ', array_map(static fn (string $c): string => '`'.$c.'`', $columns));
-        $prefix_sql = 'INSERT INTO `'.$table.'` ('.$quoted.') VALUES';
+        $quoted = implode(', ', array_map(static fn (string $c): string => '`' . $c . '`', $columns));
+        $prefix_sql = 'INSERT INTO `' . $table . '` (' . $quoted . ') VALUES';
 
         if ($this->stream_rows($table, $columns, $prefix_sql)) {
             $this->write("\n");
@@ -325,9 +325,9 @@ final class Dumper
     }
 
     /**
-     * Потоковое чтение строк через небуферизованный mysqli-запрос.
+     * Stream rows via unbuffered mysqli query.
      *
-     * @return bool True, если данные записаны этим путём.
+     * @return bool True if data was written via this path.
      */
     private function stream_rows(string $table, array $columns, string $prefix_sql): bool
     {
@@ -335,18 +335,17 @@ final class Dumper
 
         $dbh = isset($wpdb->dbh) ? $wpdb->dbh : null;
 
-        if (! $dbh instanceof mysqli) {
+        if (! $dbh instanceof \mysqli) {
             return false;
         }
 
-        $select = 'SELECT '.implode(', ', array_map(static fn (string $c): string => '`'.$c.'`', $columns))
-            .' FROM `'.$table.'`';
+        $select = 'SELECT ' . implode(', ', array_map(static fn (string $c): string => '`' . $c . '`', $columns))
+            . ' FROM `' . $table . '`';
 
         $result = @$dbh->query($select, MYSQLI_USE_RESULT);
 
         if ($result === false) {
-            // Запрос не прошёл — молча деградируем до батчинга, чтобы не
-            // потерять таблицу целиком из-за одного сбоя выборки.
+            // Query failed — fall back to batching so one failed select does not drop the table.
             return false;
         }
 
@@ -356,14 +355,14 @@ final class Dumper
             $batch[] = $this->row_values($row, $columns);
 
             if (count($batch) >= self::ROWS_PER_INSERT) {
-                $this->write($prefix_sql."\n".implode(",\n", $batch).";\n");
+                $this->write($prefix_sql . "\n" . implode(",\n", $batch) . ";\n");
                 $this->row_count += count($batch);
                 $batch = [];
             }
         }
 
         if ($batch !== []) {
-            $this->write($prefix_sql."\n".implode(",\n", $batch).";\n");
+            $this->write($prefix_sql . "\n" . implode(",\n", $batch) . ";\n");
             $this->row_count += count($batch);
         }
 
@@ -373,12 +372,11 @@ final class Dumper
     }
 
     /**
-     * Запасной путь: выборка порциями по первичному ключу.
+     * Fallback: batched reads by primary key.
      *
-     * OFFSET на больших таблицах даёт O(n²), поэтому по возможности курсор
-     * ведётся по первичному ключу, а не по смещению.
+     * OFFSET is O(n²) on large tables; prefer keyset pagination when possible.
      *
-     * @param  string[]  $columns
+     * @param string[] $columns
      */
     private function chunk_rows(string $table, array $columns, string $prefix_sql): void
     {
@@ -389,17 +387,17 @@ final class Dumper
             $where = '';
 
             if ($keys !== [] && $last !== null) {
-                $where = ' WHERE '.$this->key_cursor_condition($keys, $last);
+                $where = ' WHERE ' . $this->key_cursor_condition($keys, $last);
             }
 
-            $select = 'SELECT '.implode(', ', array_map(static fn (string $c): string => '`'.$c.'`', $columns))
-                .' FROM `'.$table.'`'.$where;
+            $select = 'SELECT ' . implode(', ', array_map(static fn (string $c): string => '`' . $c . '`', $columns))
+                . ' FROM `' . $table . '`' . $where;
 
             if ($keys !== []) {
-                $select .= ' ORDER BY '.implode(', ', array_map(static fn (string $k): string => '`'.$k.'`', $keys));
+                $select .= ' ORDER BY ' . implode(', ', array_map(static fn (string $k): string => '`' . $k . '`', $keys));
             }
 
-            $select .= ' LIMIT '.self::ROWS_PER_INSERT;
+            $select .= ' LIMIT ' . self::ROWS_PER_INSERT;
 
             $rows = $this->select_rows($select);
 
@@ -414,9 +412,9 @@ final class Dumper
                 $this->row_count++;
             }
 
-            $this->write($prefix_sql."\n".implode(",\n", $batch).";\n");
+            $this->write($prefix_sql . "\n" . implode(",\n", $batch) . ";\n");
 
-            // Последний неполный батч означает, что таблица прочитана до конца.
+            // Partial final batch means the table is fully read.
             if ($keys === [] || count($rows) < self::ROWS_PER_INSERT) {
                 break;
             }
@@ -440,9 +438,9 @@ final class Dumper
     }
 
     /**
-     * Условие курсора по составному первичному ключу (lexicographic).
+     * Composite primary key cursor condition (lexicographic).
      *
-     * @param  string[]  $keys
+     * @param string[] $keys
      */
     private function key_cursor_condition(array $keys, array $last): string
     {
@@ -453,11 +451,11 @@ final class Dumper
             $equals = [];
 
             for ($i = 0; $i < $index; $i++) {
-                $equals[] = '`'.$keys[$i].'` = '.$this->value_literal($last[$i]);
+                $equals[] = '`' . $keys[$i] . '` = ' . $this->value_literal($last[$i]);
             }
 
-            $equals[] = '`'.$key.'` > '.$this->value_literal($last[$index]);
-            $acc[] = '('.implode(' AND ', $equals).')';
+            $equals[] = '`' . $key . '` > ' . $this->value_literal($last[$index]);
+            $acc[] = '(' . implode(' AND ', $equals) . ')';
         }
 
         $clauses = $acc;
@@ -466,7 +464,7 @@ final class Dumper
     }
 
     /**
-     * Выполняет SELECT через $wpdb.
+     * Run SELECT via $wpdb.
      *
      * @return array<int,array<string,mixed>>
      */
@@ -477,14 +475,14 @@ final class Dumper
         $rows = $wpdb->get_results($sql, ARRAY_A);
 
         if (! is_array($rows)) {
-            throw new \RuntimeException('Ошибка чтения данных таблицы: '.$wpdb->last_error);
+            throw new \RuntimeException('Error reading table data: ' . $wpdb->last_error);
         }
 
         return $rows;
     }
 
     /**
-     * Колонки первичного ключа в порядке индекса.
+     * Primary key columns in index order.
      *
      * @return string[]
      */
@@ -492,7 +490,7 @@ final class Dumper
     {
         global $wpdb;
 
-        $rows = $wpdb->get_results('SHOW KEYS FROM `'.$table."` WHERE Key_name = 'PRIMARY'", ARRAY_A);
+        $rows = $wpdb->get_results('SHOW KEYS FROM `' . $table . "` WHERE Key_name = 'PRIMARY'", ARRAY_A);
 
         if (! is_array($rows) || $rows === []) {
             return [];
@@ -527,7 +525,7 @@ final class Dumper
     }
 
     /**
-     * Колонки таблицы в порядке объявления в схеме.
+     * Table columns in schema declaration order.
      *
      * @return string[]
      */
@@ -535,7 +533,7 @@ final class Dumper
     {
         global $wpdb;
 
-        $rows = $wpdb->get_results('SHOW COLUMNS FROM `'.$table.'`', ARRAY_A);
+        $rows = $wpdb->get_results('SHOW COLUMNS FROM `' . $table . '`', ARRAY_A);
 
         if (! is_array($rows)) {
             return [];
@@ -553,13 +551,12 @@ final class Dumper
     }
 
     /**
-     * Формирует список значений одной строки.
+     * Build one row value list.
      *
-     * Правила кодирования вынесены в ValueEncoder: их важно проверять
-     * тестами независимо от подключения к базе.
+     * Encoding lives in ValueEncoder and should be tested without a DB.
      *
-     * @param  array<string,mixed>  $row
-     * @param  string[]  $columns
+     * @param array<string,mixed> $row
+     * @param string[]            $columns
      */
     private function row_values(array $row, array $columns): string
     {
@@ -567,9 +564,9 @@ final class Dumper
     }
 
     /**
-     * SQL-литерал для одного значения ячейки.
+     * SQL literal for one cell value.
      *
-     * @param  mixed  $value
+     * @param mixed $value
      */
     private function value_literal($value): string
     {
@@ -577,19 +574,19 @@ final class Dumper
     }
 
     /**
-     * Закрывающая секция файла.
+     * Closing section of the dump file.
      */
     private function write_footer(): void
     {
         $this->write(
             "\nSET SESSION sql_mode = @OLD_SQL_MODE;\n"
-            ."SET FOREIGN_KEY_CHECKS = 1;\n"
-            .'-- End of backup. Tables: '.$this->table_count.', rows: '.$this->row_count."\n"
+            . "SET FOREIGN_KEY_CHECKS = 1;\n"
+            . '-- End of backup. Tables: ' . $this->table_count . ', rows: ' . $this->row_count . "\n",
         );
     }
 
     /**
-     * Текущий размер файла дампа в байтах.
+     * Current dump file size in bytes.
      */
     private function size(): int
     {
@@ -603,7 +600,7 @@ final class Dumper
     }
 
     /**
-     * Сбрасывает буфер записи на диск.
+     * Flush write buffer to disk.
      */
     public function flush(): void
     {
@@ -613,14 +610,14 @@ final class Dumper
     }
 
     /**
-     * Пишет строку в файл дампа.
+     * Write a line to the dump file.
      *
-     * @throws \RuntimeException Если файл не открыт или запись не удалась.
+     * @throws \RuntimeException If the file is not open or write fails.
      */
     private function write(string $chunk): void
     {
         if (! is_resource($this->handle)) {
-            throw new \RuntimeException('Файл дампа не открыт для записи.');
+            throw new \RuntimeException('Backup file is not open for writing.');
         }
 
         $length = strlen($chunk);
@@ -630,7 +627,7 @@ final class Dumper
             $written = fwrite($this->handle, substr($chunk, $offset));
 
             if ($written === false || $written === 0) {
-                throw new \RuntimeException('Не удалось записать данные в файл дампа (диск переполнен или нет прав).');
+                throw new \RuntimeException('Could not write to backup file (disk full or permission denied).');
             }
 
             $offset += $written;
@@ -638,10 +635,9 @@ final class Dumper
     }
 
     /**
-     * Удаляет частично записанный файл дампа.
+     * Delete a partially written dump file.
      *
-     * Используется, если дамп прервался: незавершённый файл нельзя
-     * предлагать к восстановлению.
+     * Used when a dump aborts; incomplete files must not be offered for restore.
      */
     public function discard(): void
     {

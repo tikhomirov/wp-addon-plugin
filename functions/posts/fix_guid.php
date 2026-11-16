@@ -1,9 +1,9 @@
 <?php
 /**
-Plugin Name: Ремонтирует Guid
+Plugin Name: Repair Guid
 Version: 1.2
 Plugin URI: http://wp-kama.ru/
-Description: Плагин нужен для просмотра/редактирования поля guid в базе данных WordPress. В это поле будет записаны постоянные ссылки (permalink) на статью. Бонус: просмотр/грамотное удаление всевозможных ревизий :)
+Description: View and edit the guid field in WordPress. Stores permalinks; includes revision cleanup helpers.
 Author: Kama
 Author URI: http://wp-kama.ru/
 */
@@ -31,7 +31,7 @@ function fix_guid()
             __('Guid repair', 'wp-addon'),
             'manage_options',
             'krg_admin_page',
-            'krg_admin_page'
+            'krg_admin_page',
         );
     });
 
@@ -152,12 +152,12 @@ function fix_guid()
             FROM {$wpdb->posts}
             WHERE post_type IN ($placeholders)
             AND post_status = 'publish'",
-            ...array_values($postTypes)
+            ...array_values($postTypes),
         );
         $results = $wpdb->get_results($sql);
 
         if (! $results) {
-            echo '<p>'.esc_html__('The query returned no results.', 'wp-addon').'</p>';
+            echo '<p>' . esc_html__('The query returned no results.', 'wp-addon') . '</p>';
 
             return null;
         }
@@ -173,15 +173,15 @@ function fix_guid()
                 $updated = $wpdb->update(
                     $wpdb->posts,
                     ['guid' => $permalink],
-                    ['ID' => (int) $reslt->ID],
+                    ['ID'   => (int) $reslt->ID],
                     ['%s'],
-                    ['%d']
+                    ['%d'],
                 );
 
                 if ($updated !== false) {
-                    echo '<li>'.esc_html__('Updated:', 'wp-addon').' <span>id: '.esc_html((string) $reslt->ID).'</span> <a href="'.esc_url($permalink).'" title="'.esc_attr(sprintf(__('Previous GUID: %s', 'wp-addon'), $guid)).'">'.esc_html($permalink).'</a></li>';
+                    echo '<li>' . esc_html__('Updated:', 'wp-addon') . ' <span>id: ' . esc_html((string) $reslt->ID) . '</span> <a href="' . esc_url($permalink) . '" title="' . esc_attr(sprintf(__('Previous GUID: %s', 'wp-addon'), $guid)) . '">' . esc_html($permalink) . '</a></li>';
                 } else {
-                    echo '<li>'.esc_html__('Not updated:', 'wp-addon').' id: '.esc_html((string) $reslt->ID).': <a href="'.esc_url($permalink).'" title="'.esc_attr(sprintf(__('Previous GUID: %s', 'wp-addon'), $guid)).'">'.esc_html($permalink).'</a></li>';
+                    echo '<li>' . esc_html__('Not updated:', 'wp-addon') . ' id: ' . esc_html((string) $reslt->ID) . ': <a href="' . esc_url($permalink) . '" title="' . esc_attr(sprintf(__('Previous GUID: %s', 'wp-addon'), $guid)) . '">' . esc_html($permalink) . '</a></li>';
                 }
             }
             echo '</ol></div>';
@@ -197,11 +197,11 @@ function fix_guid()
             foreach ($results as $reslt) {
                 $ID = (int) $reslt->ID;
                 $guid = $reslt->guid;
-                $style = (strpos($guid, '?p=') !== false || strpos($guid, '?page_id=') !== false)
+                $style = (mb_strpos($guid, '?p=') !== false || mb_strpos($guid, '?page_id=') !== false)
                     ? " style='color:#f00;'"
                     : " style='color:green;'";
 
-                echo '<li><span title="'.esc_attr__('Post or page ID', 'wp-addon').'">id: '.esc_html((string) $ID).'</span>  <a'.$style.' href="'.esc_url($guid).'">'.esc_html($guid).'</a></li>';
+                echo '<li><span title="' . esc_attr__('Post or page ID', 'wp-addon') . '">id: ' . esc_html((string) $ID) . '</span>  <a' . $style . ' href="' . esc_url($guid) . '">' . esc_html($guid) . '</a></li>';
             }
             echo '</ol></div>';
         }
@@ -221,7 +221,7 @@ function fix_guid()
 	WHERE a.post_type = 'revision'";
         $wpdb->query($sql);
 
-        echo '<p style="color:green;">'.esc_html__('All revisions were removed from posts and related rows in term_relationships, postmeta, and comments.', 'wp-addon').'</p>';
+        echo '<p style="color:green;">' . esc_html__('All revisions were removed from posts and related rows in term_relationships, postmeta, and comments.', 'wp-addon') . '</p>';
     }
 
     function look_all_revision()
@@ -231,14 +231,14 @@ function fix_guid()
         $results = $wpdb->get_results("SELECT ID, post_date, post_title, post_status, guid, post_type FROM {$wpdb->posts} WHERE post_type = 'revision'");
 
         if (! $results) {
-            echo '<p style="color:green;">'.esc_html__('No revisions found.', 'wp-addon').'</p>';
+            echo '<p style="color:green;">' . esc_html__('No revisions found.', 'wp-addon') . '</p>';
 
             return null;
         }
 
         echo '<ul>';
         foreach ($results as $index => $reslt) {
-            echo '<li><span style="color:green;">'.esc_html((string) ($index + 1)).'.</span> id: '.esc_html((string) $reslt->ID).' | guid: <span style="color:red;">'.esc_html($reslt->guid).'</span></li>';
+            echo '<li><span style="color:green;">' . esc_html((string) ($index + 1)) . '.</span> id: ' . esc_html((string) $reslt->ID) . ' | guid: <span style="color:red;">' . esc_html($reslt->guid) . '</span></li>';
         }
         echo '</ul>';
 

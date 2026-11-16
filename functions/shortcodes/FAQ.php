@@ -34,8 +34,8 @@ class FAQ implements ShortcodeInterface
         $this->title = __('FAQ', 'wp-addon');
         $this->description = __('FAQ', 'wp-addon');
 
-        $this->icon = file_exists(get_stylesheet_directory().'/img/black_color.svg') ?
-            get_stylesheet_directory_uri().'/img/black_color.svg' :
+        $this->icon = file_exists(get_stylesheet_directory() . '/img/black_color.svg') ?
+            get_stylesheet_directory_uri() . '/img/black_color.svg' :
             'https://cdn1.iconfinder.com/data/icons/sugar-glyph/64/174_sugar-white-cubes-512.png';
 
         add_shortcode($this->tag, [$this, 'html']);
@@ -79,49 +79,49 @@ class FAQ implements ShortcodeInterface
         }
 
         vc_map([
-            'name' => __('FAQ Accordion', 'gillion'),
-            'base' => $this->parent_tag,
-            'description' => __('Accordion Collapse.js', 'gillion'),
-            'category' => __('Elements', 'wp-addon'),
-            'icon' => get_stylesheet_directory_uri().'/img/elements/tabs.svg', // https://www.flaticon.com/packs/website-7
-            'as_parent' => ['only' => $this->single_tag],
-            'js_view' => 'VcColumnView',
-            'content_element' => true,
+            'name'                    => __('FAQ Accordion', 'gillion'),
+            'base'                    => $this->parent_tag,
+            'description'             => __('Accordion Collapse.js', 'gillion'),
+            'category'                => __('Elements', 'wp-addon'),
+            'icon'                    => get_stylesheet_directory_uri() . '/img/elements/tabs.svg', // https://www.flaticon.com/packs/website-7
+            'as_parent'               => ['only' => $this->single_tag],
+            'js_view'                 => 'VcColumnView',
+            'content_element'         => true,
             'show_settings_on_create' => true,
-            'is_container' => true,
-            'params' => [
+            'is_container'            => true,
+            'params'                  => [
                 [
-                    'type' => 'textfield',
-                    'holder' => 'div',
+                    'type'        => 'textfield',
+                    'holder'      => 'div',
                     'admin_label' => true,
-                    'heading' => esc_html__('Section Title', 'rw-addon'),
-                    'param_name' => 'section_title',
+                    'heading'     => esc_html__('Section Title', 'rw-addon'),
+                    'param_name'  => 'section_title',
                     'description' => esc_html__('Section Title', 'rw-addon'),
-                    'value' => '',
+                    'value'       => '',
                 ],
                 [
-                    'type' => 'dropdown',
+                    'type'        => 'dropdown',
                     'admin_label' => true,
-                    'heading' => esc_html__('Tabs Style', 'wdo-tabs'),
-                    'param_name' => 'style',
-                    'value' => [
+                    'heading'     => esc_html__('Tabs Style', 'wdo-tabs'),
+                    'param_name'  => 'style',
+                    'value'       => [
                         'Select Style' => 'style',
-                        'Style1' => 'style1',
-                        'Style2' => 'style2',
+                        'Style1'       => 'style1',
+                        'Style2'       => 'style2',
                     ],
                 ],
                 [
-                    'type' => 'dropdown',
+                    'type'        => 'dropdown',
                     'admin_label' => true,
-                    'heading' => esc_html__('Color Scheme', 'wdo-tabs'),
-                    'param_name' => 'wdo_color_scheme',
-                    'group' => esc_html__('Color Scheme', 'wdo-tabs'),
-                    'value' => [
+                    'heading'     => esc_html__('Color Scheme', 'wdo-tabs'),
+                    'param_name'  => 'wdo_color_scheme',
+                    'group'       => esc_html__('Color Scheme', 'wdo-tabs'),
+                    'value'       => [
                         'Select Color Scheme' => '',
-                        'Blue' => 'blue',
-                        'Green' => 'green',
-                        'MidNight Blue' => 'midnightblue',
-                        'Orange' => 'orange',
+                        'Blue'                => 'blue',
+                        'Green'               => 'green',
+                        'MidNight Blue'       => 'midnightblue',
+                        'Orange'              => 'orange',
                     ],
                 ],
             ],

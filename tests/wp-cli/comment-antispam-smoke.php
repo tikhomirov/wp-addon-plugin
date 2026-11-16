@@ -37,7 +37,7 @@ function reason_of($result): string
 
 global $wpdb, $wp;
 
-$table = $wpdb->prefix.'wp_addon_antispam_log';
+$table = $wpdb->prefix . 'wp_addon_antispam_log';
 $saved = get_option('wp-addon', []);
 $saved = is_array($saved) ? $saved : [];
 
@@ -75,18 +75,18 @@ $post_id = (int) $wpdb->get_var("SELECT ID FROM {$wpdb->posts} WHERE post_status
 t('found a published post', $post_id > 0, (string) $post_id);
 
 $base = [
-    'comment_post_ID' => $post_id,
+    'comment_post_ID'    => $post_id,
     'comment_author_url' => '',
-    'comment_author_IP' => '203.0.113.77',
-    'comment_type' => 'comment',
-    'comment_agent' => 'integration-test',
+    'comment_author_IP'  => '203.0.113.77',
+    'comment_type'       => 'comment',
+    'comment_agent'      => 'integration-test',
 ];
 
 $_POST = [];
 $spam = array_merge($base, [
-    'comment_author' => 'ztpyuOkqNTwQsQKwwkC',
+    'comment_author'       => 'ztpyuOkqNTwQsQKwwkC',
     'comment_author_email' => 'o.x.on.e.j.o.f.eza.96@gmail.com',
-    'comment_content' => 'IjtRwXHmcvybfzgmAiM',
+    'comment_content'      => 'IjtRwXHmcvybfzgmAiM',
 ]);
 $before = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->comments}");
 $res = apply_filters('pre_comment_approved', 1, $spam);
@@ -114,21 +114,21 @@ $legit = [
 ];
 $ip = 198;
 foreach ($legit as $i => $case) {
-    $case['comment_author_IP'] = '198.51.100.'.$ip++;
+    $case['comment_author_IP'] = '198.51.100.' . $ip++;
     $case['comment_post_ID'] = $post_id;
     $case['comment_type'] = 'comment';
     $result = apply_filters('pre_comment_approved', 1, $case);
-    t('real comment #'.($i + 1).' passes', ! is_wp_error($result), $case['comment_author'].' => '.reason_of($result));
+    t('real comment #' . ($i + 1) . ' passes', ! is_wp_error($result), $case['comment_author'] . ' => ' . reason_of($result));
 }
 
 echo "== honeypot and time trap ==\n";
 $clean = [
-    'comment_post_ID' => $post_id,
-    'comment_author' => 'Гость',
+    'comment_post_ID'      => $post_id,
+    'comment_author'       => 'Гость',
     'comment_author_email' => 'guest@example.com',
-    'comment_content' => 'Нормальный комментарий для проверки.',
-    'comment_author_IP' => '198.51.100.50',
-    'comment_type' => 'comment',
+    'comment_content'      => 'Нормальный комментарий для проверки.',
+    'comment_author_IP'    => '198.51.100.50',
+    'comment_type'         => 'comment',
 ];
 
 $_POST = [];
@@ -150,13 +150,13 @@ $_POST = [];
 
 echo "== pingback / trackback ==\n";
 $ping = [
-    'comment_post_ID' => $post_id,
-    'comment_author' => 'Pingback',
+    'comment_post_ID'      => $post_id,
+    'comment_author'       => 'Pingback',
     'comment_author_email' => '',
-    'comment_author_url' => 'https://example.org/no-link-here',
-    'comment_content' => 'https://example.org/no-link-here',
-    'comment_author_IP' => '203.0.113.99',
-    'comment_type' => 'pingback',
+    'comment_author_url'   => 'https://example.org/no-link-here',
+    'comment_content'      => 'https://example.org/no-link-here',
+    'comment_author_IP'    => '203.0.113.99',
+    'comment_type'         => 'pingback',
 ];
 t('pingback with unreachable source is blocked', is_wp_error(apply_filters('pre_comment_approved', 1, $ping)), reason_of(apply_filters('pre_comment_approved', 1, $ping)));
 
@@ -176,7 +176,7 @@ echo "== WordPress short-circuit integration ==\n";
 $before = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->comments}");
 $_POST = [];
 $err = wp_new_comment($spam, true);
-t('wp_new_comment refuses spam', is_wp_error($err), is_wp_error($err) ? $err->get_error_code() : 'inserted id '.var_export($err, true));
+t('wp_new_comment refuses spam', is_wp_error($err), is_wp_error($err) ? $err->get_error_code() : 'inserted id ' . var_export($err, true));
 $after = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->comments}");
 t('nothing was written to wp_comments', $after === $before, "{$before} -> {$after}");
 
@@ -197,7 +197,7 @@ echo "== honeypot markup ==\n";
 ob_start();
 do_action('comment_form_after_fields');
 $markup = (string) ob_get_clean();
-t('honeypot field rendered', str_contains($markup, 'name="antispam_website"'), substr($markup, 0, 120));
+t('honeypot field rendered', str_contains($markup, 'name="antispam_website"'), mb_substr($markup, 0, 120));
 t('honeypot is hidden inline', str_contains($markup, 'left:-9999px'));
 t('honeypot is aria-hidden', str_contains($markup, 'aria-hidden="true"'));
 t('honeypot is not focusable', str_contains($markup, 'tabindex="-1"'));
@@ -227,18 +227,18 @@ wp_reset_postdata();
 $wpdb->update($wpdb->posts, ['comment_status' => (string) $oldStatus], ['ID' => $post_id]);
 clean_post_cache($post_id);
 
-t('form was rendered', $form !== '', 'len '.strlen($form));
+t('form was rendered', $form !== '', 'len ' . mb_strlen($form));
 t('form posts to wp-comments-post.php', str_contains($form, 'wp-comments-post.php'));
 t('form contains the honeypot', str_contains($form, 'name="antispam_website"'));
 t('form does not contain a prefilled timestamp', ! str_contains($form, 'name="antispam_ts"'));
-t('honeypot sits inside the form tag', strpos($form, 'antispam_website') > strpos($form, '<form') && strpos($form, 'antispam_website') < strpos($form, '</form>'));
-t('honeypot comes after the identity fields', strpos($form, 'antispam_website') > strpos($form, 'name="email"'));
-t('honeypot comes before the submit button', strpos($form, 'antispam_website') < strpos($form, 'id="submit"'));
+t('honeypot sits inside the form tag', mb_strpos($form, 'antispam_website') > mb_strpos($form, '<form') && mb_strpos($form, 'antispam_website') < mb_strpos($form, '</form>'));
+t('honeypot comes after the identity fields', mb_strpos($form, 'antispam_website') > mb_strpos($form, 'name="email"'));
+t('honeypot comes before the submit button', mb_strpos($form, 'antispam_website') < mb_strpos($form, 'id="submit"'));
 
 echo "== asset files ==\n";
-$css = file_get_contents(RW_PLUGIN_DIR.'assets/css/comment-antispam.css');
+$css = file_get_contents(RW_PLUGIN_DIR . 'assets/css/comment-antispam.css');
 t('css hides the honeypot', is_string($css) && str_contains($css, 'wp-addon-antispam-hp'));
-$js = file_get_contents(RW_PLUGIN_DIR.'assets/js/comment-antispam.js');
+$js = file_get_contents(RW_PLUGIN_DIR . 'assets/js/comment-antispam.js');
 t('js stamps the timestamp', is_string($js) && str_contains($js, 'antispam_ts'));
 t('js removes the honeypot', is_string($js) && str_contains($js, 'antispam_website'));
 
@@ -257,10 +257,10 @@ $rows = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
 $staleIds = $wpdb->get_col("SELECT id FROM {$table} ORDER BY id DESC LIMIT 5");
 $aged = $staleIds === []
     ? 0
-    : $wpdb->query("UPDATE {$table} SET created_gmt = created_gmt - INTERVAL 10 YEAR WHERE id IN (".implode(',', array_map('intval', $staleIds)).')');
+    : $wpdb->query("UPDATE {$table} SET created_gmt = created_gmt - INTERVAL 10 YEAR WHERE id IN (" . implode(',', array_map('intval', $staleIds)) . ')');
 t('stale rows prepared for the test', (int) $aged === 5 && $rows > 5, "aged={$aged} total={$rows}");
 do_action('wp_addon_antispam_rotate');
-t('rotation removed exactly the stale rows', (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}") === $rows - 5, 'now '.$wpdb->get_var("SELECT COUNT(*) FROM {$table}"));
+t('rotation removed exactly the stale rows', (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}") === $rows - 5, 'now ' . $wpdb->get_var("SELECT COUNT(*) FROM {$table}"));
 t('rotation left the fresh rows in place', (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} WHERE created_gmt > UTC_TIMESTAMP() - INTERVAL 10 YEAR") === $rows - 5);
 
 echo "\n== totals ==\n";

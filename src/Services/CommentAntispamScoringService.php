@@ -129,7 +129,7 @@ class CommentAntispamScoringService
             $reasons[] = self::REASON_NO_CYRILLIC;
         }
 
-        if (substr_count(self::localPart($email), '.') >= self::EMAIL_DOTS_LIMIT) {
+        if (mb_substr_count(self::localPart($email), '.') >= self::EMAIL_DOTS_LIMIT) {
             $score += self::WEIGHT_EMAIL_DOTS;
             $reasons[] = self::REASON_EMAIL_DOTS;
         }
@@ -179,7 +179,7 @@ class CommentAntispamScoringService
         }
 
         return [
-            'score' => $score,
+            'score'   => $score,
             'reasons' => $reasons,
         ];
     }
@@ -254,7 +254,7 @@ class CommentAntispamScoringService
             'esli', 'tolko', 'prosto', 'mozhno', 'nado', 'nuzhno', 'est', 'net', 'budet', 'byl',
         ];
 
-        $wordPattern = '/\b(?:'.implode('|', $commonTranslitWords).')\b/i';
+        $wordPattern = '/\b(?:' . implode('|', $commonTranslitWords) . ')\b/i';
         if (preg_match($wordPattern, $normalized) === 1) {
             return true;
         }
@@ -295,9 +295,9 @@ class CommentAntispamScoringService
         $rest = preg_replace('/(?:https?:\/\/|www\.)[^\s<>"\']+/iu', ' ', $rawContent);
 
         if (is_string($rest) && preg_match_all(
-            '/(?<![\p{L}\p{N}@.\-])[a-z0-9][a-z0-9\-]*\.(?:'.self::TLD_ALTERNATION.')(?![\p{L}\p{N}@])/i',
+            '/(?<![\p{L}\p{N}@.\-])[a-z0-9][a-z0-9\-]*\.(?:' . self::TLD_ALTERNATION . ')(?![\p{L}\p{N}@])/i',
             $rest,
-            $bare
+            $bare,
         )) {
             $urls = array_merge($urls, $bare[0]);
         }
@@ -322,17 +322,17 @@ class CommentAntispamScoringService
         $host = preg_replace('#^\w+://#i', '', trim($url, '\'"<>')) ?? $url;
         $host = preg_split('%[/?#<>"\']%', (string) $host)[0] ?? '';
 
-        $host = strtolower(rtrim((string) $host, '.'));
+        $host = mb_strtolower(rtrim((string) $host, '.'));
 
-        return str_starts_with($host, 'www.') ? substr($host, 4) : $host;
+        return str_starts_with($host, 'www.') ? mb_substr($host, 4) : $host;
     }
 
     public static function emailDomain(string $email): string
     {
         $email = trim($email);
-        $position = strrpos($email, '@');
+        $position = mb_strrpos($email, '@');
 
-        return $position === false ? '' : strtolower(substr($email, $position + 1));
+        return $position === false ? '' : mb_strtolower(mb_substr($email, $position + 1));
     }
 
     /**
@@ -345,7 +345,7 @@ class CommentAntispamScoringService
             return '';
         }
 
-        $withoutTld = substr($host, 0, (int) strrpos($host, '.'));
+        $withoutTld = mb_substr($host, 0, (int) mb_strrpos($host, '.'));
 
         return self::alnumLetters($withoutTld);
     }
@@ -389,7 +389,7 @@ class CommentAntispamScoringService
         $found = 0;
 
         foreach (self::SPAM_KEYWORDS as $keyword) {
-            $pattern = '/(?<!\p{L})'.preg_quote($keyword, '/').'/iu';
+            $pattern = '/(?<!\p{L})' . preg_quote($keyword, '/') . '/iu';
 
             if (preg_match($pattern, $text) === 1) {
                 $found++;
@@ -401,7 +401,7 @@ class CommentAntispamScoringService
 
     public static function isSuspiciousTld(string $tld): bool
     {
-        return in_array(strtolower($tld), self::SUSPICIOUS_TLDS, true);
+        return in_array(mb_strtolower($tld), self::SUSPICIOUS_TLDS, true);
     }
 
     public static function hasSuspiciousTld(string $email, array $hosts): bool
@@ -431,17 +431,17 @@ class CommentAntispamScoringService
 
     private static function tldOf(string $host): string
     {
-        $position = strrpos($host, '.');
+        $position = mb_strrpos($host, '.');
 
-        return $position === false ? '' : substr($host, $position + 1);
+        return $position === false ? '' : mb_substr($host, $position + 1);
     }
 
     public static function localPart(string $email): string
     {
         $email = trim($email);
-        $position = strrpos($email, '@');
+        $position = mb_strrpos($email, '@');
 
-        return $position === false ? $email : substr($email, 0, $position);
+        return $position === false ? $email : mb_substr($email, 0, $position);
     }
 
     public static function plainText(string $content): string

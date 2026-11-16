@@ -1,9 +1,9 @@
 # WP Excellence Addon
 
-[![Version](https://img.shields.io/badge/version-1.5.3-blue.svg)](https://github.com/rwsite/wp-addon-plugin/releases)
+[![Version](https://img.shields.io/badge/version-1.6.1-blue.svg)](https://github.com/rwsite/wp-addon-plugin/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-purple.svg)](https://php.net/)
-[![Tests](https://img.shields.io/badge/tests-265%20passed-green.svg)](https://github.com/rwsite/wp-addon-plugin/actions)
+[![Tests](https://img.shields.io/badge/tests-309%20passed-green.svg)](https://github.com/rwsite/wp-addon-plugin/actions)
 
 Transforms a standard WordPress site into a faster, safer, and easier-to-manage installation. The plugin bundles **WP Tweaker** (48 performance and security tweaks), **Redirects**, **Cookie Banner**, **Markdown editor**, **Plugin catalog**, **Comment spam protection**, and admin utilities in one place.
 
@@ -100,12 +100,24 @@ If every source fails, an admin notice shows the underlying download or filesyst
 
 ```bash
 composer install
-composer test          # 265 unit tests
+composer test          # unit tests (Pest)
 composer test:coverage
-composer analyse       # PHPStan level 2
-composer lint          # Pint
-composer quality       # lint + analyse + test
+composer static-analysis
+composer format:check    # Pint
+composer quality       # validate + lint + analyse + test
+make release           # dist/wp-addon-plugin-<version>.zip
 ```
+
+### Release package
+
+Production ZIP is built with **`git archive`** (respects [`.gitattributes`](.gitattributes) `export-ignore` — no tests, CI, or dev tooling):
+
+```bash
+make release
+# or: composer run build:zip
+```
+
+Publish on GitHub: push tag `v1.6.1` (must match `Version` in `wp-addon-plugin.php`). The [`.github/workflows/release.yml`](.github/workflows/release.yml) workflow attaches `wp-addon-plugin-<version>.zip` to the GitHub Release.
 
 ## Architecture
 
@@ -139,36 +151,3 @@ GPL-2.0-or-later
 
 Aleksey Tikhomirov — [rwsite.ru](https://rwsite.ru)
 
----
-
-## Русский
-
-**WP Excellence Addon** — плагин для оптимизации, безопасности и удобства администрирования WordPress.
-
-### Совместимость
-
-- **WordPress:** от 6.6, протестировано на 6.6 – 6.8
-- **PHP:** от 8.2, протестировано на 8.2, 8.3, 8.4
-
-PHP 7.x и WordPress ниже 6.6 **не поддерживаются**.
-
-### Что входит
-
-- **WP Tweaker** — 48 переключателей (производительность, безопасность, админка, SEO)
-- **Редиректы** — правила с exact/prefix/regex, импорт/экспорт
-- **Cookie Banner** — баннер согласия на cookies
-- **Markdown-редактор** для записей и страниц
-- **Каталог плагинов** с данными GitHub
-
-Установка: скачать [релиз](https://github.com/rwsite/wp-addon-plugin/releases) или подключить как git submodule. После активации настройки доступны в админке WordPress.
-
-### CodeStar Framework
-
-Экран настроек построен на [CodeStar Framework](https://github.com/Codestar/codestar-framework). Фреймворк ищется и подключается автоматически, в таком порядке:
-
-1. **Уже загружен** — например, активен отдельный плагин `codestar-framework` (в этом репозитории он идёт submodule'ом в `wp-content/plugins/codestar-framework/`).
-2. **Копия в плагине** — `wp-addon-plugin/lib/codestar-framework/` (каталог создаётся установщиком, в git не входит).
-3. **Автоматическая установка** — при первой загрузке админки, и далее не чаще раза в час, плагин скачивает закреплённый релиз `2.3.1` с GitHub в `lib/`. Нужен пользователь с capability `install_plugins` и права записи в `wp-content/plugins/`.
-4. **Установка вручную** — кнопка **Install CodeStar Framework now** в админском уведомлении либо отдельный плагин `codestar-framework`.
-
-Если ни один источник не сработал, в админке показывается уведомление с текстом ошибки загрузки или записи файлов, а экран настроек скрыт до тех пор, пока `CSF` не станет доступен.

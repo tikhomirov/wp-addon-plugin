@@ -36,7 +36,7 @@ class CommentAntispamLogService
     {
         global $wpdb;
 
-        return $wpdb->prefix.self::TABLE;
+        return $wpdb->prefix . self::TABLE;
     }
 
     public static function maybeInstall(): void
@@ -75,7 +75,7 @@ class CommentAntispamLogService
         ) {$charsetCollate};";
 
         if (! function_exists('dbDelta')) {
-            require_once ABSPATH.'wp-admin/includes/upgrade.php';
+            require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         }
 
         dbDelta($sql);
@@ -102,7 +102,7 @@ class CommentAntispamLogService
     }
 
     /**
-     * @param  array{reason?: string, score?: int, threshold?: int, ip?: string, author?: string, email?: string, content?: string, user_agent?: string, post_id?: int, comment_type?: string}  $data
+     * @param array{reason?: string, score?: int, threshold?: int, ip?: string, author?: string, email?: string, content?: string, user_agent?: string, post_id?: int, comment_type?: string} $data
      */
     public static function log(array $data): void
     {
@@ -114,18 +114,18 @@ class CommentAntispamLogService
 
         $now = time();
         $row = [
-            'created_gmt' => gmdate('Y-m-d H:i:s', $now),
-            'created_at' => date('Y-m-d H:i:s', $now),
-            'reason' => substr((string) ($data['reason'] ?? ''), 0, 100),
-            'score' => (int) ($data['score'] ?? 0),
-            'threshold' => (int) ($data['threshold'] ?? 0),
-            'ip' => substr((string) ($data['ip'] ?? ''), 0, 45),
-            'author' => substr((string) ($data['author'] ?? ''), 0, 100),
-            'email' => substr((string) ($data['email'] ?? ''), 0, 100),
-            'content' => substr((string) ($data['content'] ?? ''), 0, 2000),
-            'user_agent' => substr((string) ($data['user_agent'] ?? ''), 0, 255),
-            'post_id' => (int) ($data['post_id'] ?? 0),
-            'comment_type' => substr((string) ($data['comment_type'] ?? ''), 0, 20),
+            'created_gmt'  => gmdate('Y-m-d H:i:s', $now),
+            'created_at'   => date('Y-m-d H:i:s', $now),
+            'reason'       => mb_substr((string) ($data['reason'] ?? ''), 0, 100),
+            'score'        => (int) ($data['score'] ?? 0),
+            'threshold'    => (int) ($data['threshold'] ?? 0),
+            'ip'           => mb_substr((string) ($data['ip'] ?? ''), 0, 45),
+            'author'       => mb_substr((string) ($data['author'] ?? ''), 0, 100),
+            'email'        => mb_substr((string) ($data['email'] ?? ''), 0, 100),
+            'content'      => mb_substr((string) ($data['content'] ?? ''), 0, 2000),
+            'user_agent'   => mb_substr((string) ($data['user_agent'] ?? ''), 0, 255),
+            'post_id'      => (int) ($data['post_id'] ?? 0),
+            'comment_type' => mb_substr((string) ($data['comment_type'] ?? ''), 0, 20),
         ];
 
         $formats = [
@@ -152,11 +152,11 @@ class CommentAntispamLogService
             return 0;
         }
 
-        $cutoff = gmdate('Y-m-d H:i:s', (int) strtotime('-'.self::RETENTION_MONTHS.' months', time()));
+        $cutoff = gmdate('Y-m-d H:i:s', (int) strtotime('-' . self::RETENTION_MONTHS . ' months', time()));
 
         return (int) $wpdb->query($wpdb->prepare(
-            'DELETE FROM '.self::tableName().' WHERE created_gmt < %s',
-            $cutoff
+            'DELETE FROM ' . self::tableName() . ' WHERE created_gmt < %s',
+            $cutoff,
         ));
     }
 
@@ -168,11 +168,11 @@ class CommentAntispamLogService
         global $wpdb;
 
         $report = [
-            'total' => 0,
-            'by_day' => [],
+            'total'     => 0,
+            'by_day'    => [],
             'by_reason' => [],
-            'top_ips' => [],
-            'last' => [],
+            'top_ips'   => [],
+            'last'      => [],
         ];
 
         if (! self::tableExists()) {
@@ -183,13 +183,13 @@ class CommentAntispamLogService
         $since = gmdate('Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS);
         $report['total'] = (int) $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM {$table} WHERE created_gmt >= %s",
-            $since
+            $since,
         ));
 
         $daily = $wpdb->get_results($wpdb->prepare(
             "SELECT DATE(created_gmt) AS day, COUNT(*) AS hits FROM {$table}
              WHERE created_gmt >= %s GROUP BY DATE(created_gmt)",
-            $since
+            $since,
         ), ARRAY_A);
 
         foreach ((array) $daily as $row) {
@@ -199,7 +199,7 @@ class CommentAntispamLogService
         $reasons = $wpdb->get_results($wpdb->prepare(
             "SELECT reason, COUNT(*) AS hits FROM {$table}
              WHERE created_gmt >= %s GROUP BY reason ORDER BY hits DESC",
-            $since
+            $since,
         ), ARRAY_A);
 
         foreach ((array) $reasons as $row) {
@@ -209,12 +209,12 @@ class CommentAntispamLogService
         $ips = $wpdb->get_results($wpdb->prepare(
             "SELECT ip, COUNT(*) AS hits FROM {$table}
              WHERE created_gmt >= %s AND ip <> '' GROUP BY ip ORDER BY hits DESC LIMIT 10",
-            $since
+            $since,
         ), ARRAY_A);
 
         foreach ((array) $ips as $row) {
             $report['top_ips'][] = [
-                'ip' => (string) $row['ip'],
+                'ip'   => (string) $row['ip'],
                 'hits' => (int) $row['hits'],
             ];
         }
@@ -222,7 +222,7 @@ class CommentAntispamLogService
         $last = $wpdb->get_results($wpdb->prepare(
             "SELECT created_at, reason, score, threshold, ip, author, email, content, post_id
              FROM {$table} WHERE created_gmt >= %s ORDER BY id DESC LIMIT 20",
-            $since
+            $since,
         ), ARRAY_A);
 
         $report['last'] = is_array($last) ? $last : [];

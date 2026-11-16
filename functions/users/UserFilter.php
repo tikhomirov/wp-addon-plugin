@@ -47,8 +47,8 @@ class UserFilter
     public function filter_by_role($which)
     {
         if (\shortcode_exists('role_list')) {
-            echo \do_shortcode('[role_list style="filter" args="'.\esc_attr((string) $which).'"]');
-            echo '<input type="submit" name="role_filter" id="role_filter" class="button action" value="'.\esc_attr__('Filter by role', 'wp-addon').'">';
+            echo \do_shortcode('[role_list style="filter" args="' . \esc_attr((string) $which) . '"]');
+            echo '<input type="submit" name="role_filter" id="role_filter" class="button action" value="' . \esc_attr__('Filter by role', 'wp-addon') . '">';
         }
 
         \add_action('admin_footer', function () {
@@ -130,11 +130,11 @@ class UserFilter
 
         if (isset($atts['style']) && $atts['style'] === 'filter') {
             $select = '<select name="role" style="float:none;margin-left:10px;">';
-            $select .= '<option value="">'.\esc_html__('Filter by role', 'wp-addon').'</option>';
+            $select .= '<option value="">' . \esc_html__('Filter by role', 'wp-addon') . '</option>';
 
             foreach ($role_names as $role => $name) {
                 $selected = $role === $selectedRole ? ' selected="selected"' : '';
-                $select .= '<option value="'.\esc_attr($role).'"'.$selected.'>'.\esc_html($name).'</option>';
+                $select .= '<option value="' . \esc_attr($role) . '"' . $selected . '>' . \esc_html($name) . '</option>';
             }
 
             $select .= '</select>';
@@ -145,7 +145,7 @@ class UserFilter
         $html = '<ol>';
 
         foreach ($role_names as $role => $name) {
-            $html .= '<li>'.\esc_html($role).' - '.\esc_html($name).'</li>';
+            $html .= '<li>' . \esc_html($role) . ' - ' . \esc_html($name) . '</li>';
         }
 
         $html .= '</ol>';

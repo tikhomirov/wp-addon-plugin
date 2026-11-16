@@ -4,11 +4,11 @@ if (! defined('RW_PLUGIN_URL')) {
     define('RW_PLUGIN_URL', 'https://example.com/wp-content/plugins/wp-addon-plugin/');
 }
 
-require_once dirname(__DIR__, 2).'/functions/main-settings-helpers.php';
+require_once dirname(__DIR__, 2) . '/functions/main-settings-helpers.php';
 
 describe('Main settings config', function () {
     it('provides beginner description for every main setting field', function () {
-        $fields = require dirname(__DIR__, 2).'/src/Config/main.php';
+        $fields = require dirname(__DIR__, 2) . '/src/Config/main.php';
 
         $walk = function (array $items) use (&$walk): array {
             $missing = [];
@@ -36,7 +36,7 @@ describe('Main settings config', function () {
     });
 
     it('uses category checkbox picker for exclusion', function () {
-        $fields = require dirname(__DIR__, 2).'/src/Config/main.php';
+        $fields = require dirname(__DIR__, 2) . '/src/Config/main.php';
         $posts = null;
 
         foreach ($fields as $field) {
@@ -60,7 +60,7 @@ describe('Main settings config', function () {
     });
 
     it('includes maintenance mode whitelist fields', function () {
-        $fields = require dirname(__DIR__, 2).'/src/Config/main.php';
+        $fields = require dirname(__DIR__, 2) . '/src/Config/main.php';
         $ids = wp_addon_collect_main_setting_ids($fields);
 
         expect($ids)->toContain('maintenance_message');
@@ -69,7 +69,7 @@ describe('Main settings config', function () {
     });
 
     it('marks cautious main settings with warning emoji', function () {
-        $fields = require dirname(__DIR__, 2).'/src/Config/main.php';
+        $fields = require dirname(__DIR__, 2) . '/src/Config/main.php';
 
         $titlesById = [];
         $walk = function (array $items) use (&$walk, &$titlesById): void {
@@ -95,7 +95,7 @@ describe('Main settings config', function () {
     });
 
     it('includes partial comment disable field', function () {
-        $fields = require dirname(__DIR__, 2).'/src/Config/main.php';
+        $fields = require dirname(__DIR__, 2) . '/src/Config/main.php';
         $comments = null;
 
         foreach ($fields as $field) {
@@ -111,7 +111,7 @@ describe('Main settings config', function () {
     });
 
     it('includes css framework selector for tinymce', function () {
-        $fields = require dirname(__DIR__, 2).'/src/Config/main.php';
+        $fields = require dirname(__DIR__, 2) . '/src/Config/main.php';
         $tiny = null;
 
         foreach ($fields as $field) {
@@ -142,7 +142,7 @@ describe('main settings helpers', function () {
         global $mock_functions;
         $mock_functions['get_option'] = fn () => [
             'comment' => [
-                'disable_comments' => '1',
+                'disable_comments'            => '1',
                 'disable_comments_post_types' => [],
             ],
         ];
@@ -156,7 +156,7 @@ describe('main settings helpers', function () {
         global $mock_functions;
         $mock_functions['get_option'] = fn () => [
             'comment' => [
-                'disable_comments' => '1',
+                'disable_comments'            => '1',
                 'disable_comments_post_types' => ['post'],
             ],
         ];
@@ -181,7 +181,7 @@ describe('main settings helpers', function () {
 
     it('resolves tinymce css framework stylesheets', function () {
         expect(wp_addon_get_tinymce_framework_stylesheet('bootstrap3'))
-            ->toBe(RW_PLUGIN_URL.'assets/css/min/bootstrap.min.css');
+            ->toBe(RW_PLUGIN_URL . 'assets/css/min/bootstrap.min.css');
         expect(wp_addon_get_tinymce_framework_stylesheet('bootstrap5'))
             ->toContain('bootstrap@5.3.3');
         expect(wp_addon_get_tinymce_framework_stylesheet('tailwind'))
@@ -192,7 +192,7 @@ describe('main settings helpers', function () {
         global $mock_functions;
         $mock_functions['get_option'] = fn () => [
             'tiny-mce' => [
-                'add_bootstrap_3' => '1',
+                'add_bootstrap_3'       => '1',
                 'tinymce_css_framework' => 'bootstrap5',
             ],
         ];
@@ -236,34 +236,34 @@ describe('main settings callbacks', function () {
 
         foreach ($callbacks as $callback) {
             $path = match ($callback) {
-                'show_all_custom_fields' => '/functions/posts/show-custom-fields.php',
-                'disable_auto_update' => '/functions/DisableAutoUpdate.php',
-                'show_id' => '/functions/posts/show-id.php',
-                'show_thumbnail' => '/functions/posts/ShowThumbnail.php',
-                'duplicate_post' => '/functions/posts/DuplicatePost.php',
-                'remove_category_url' => '/functions/seo/RemoveCategoryURL.php',
-                'hierarchical_tags_rewrite' => '/functions/seo/HierarchicalTagsRewrite.php',
-                'change_excerpt' => '/functions/posts/post-excerpt.php',
-                'exclude_cat' => '/functions/posts/CategoriesFilter.php',
-                'disable_comments' => '/functions/comments/disable-comments.php',
-                'disable_comment_nofollow' => '/functions/comments/remove-comments-nofollow.php',
-                'remove_site_field_in_comment' => '/functions/comments/comments-function.php',
-                'disable_guttenberg' => '/functions/TinyMCE/disable_guttenberg.php',
-                'tiny_custom_colors' => '/functions/TinyMCE/custom-colors.php',
-                'tiny_enable_opensans' => '/functions/TinyMCE/opensans.php',
-                'tiny_advanced', 'tiny_table_plugin' => '/functions/TinyMCE/plugins.php',
-                'add_bootstrap_3' => '/functions/TinyMCE/bootstrap-shortcodes.php',
+                'show_all_custom_fields'                                       => '/functions/posts/show-custom-fields.php',
+                'disable_auto_update'                                          => '/functions/DisableAutoUpdate.php',
+                'show_id'                                                      => '/functions/posts/show-id.php',
+                'show_thumbnail'                                               => '/functions/posts/ShowThumbnail.php',
+                'duplicate_post'                                               => '/functions/posts/DuplicatePost.php',
+                'remove_category_url'                                          => '/functions/seo/RemoveCategoryURL.php',
+                'hierarchical_tags_rewrite'                                    => '/functions/seo/HierarchicalTagsRewrite.php',
+                'change_excerpt'                                               => '/functions/posts/post-excerpt.php',
+                'exclude_cat'                                                  => '/functions/posts/CategoriesFilter.php',
+                'disable_comments'                                             => '/functions/comments/disable-comments.php',
+                'disable_comment_nofollow'                                     => '/functions/comments/remove-comments-nofollow.php',
+                'remove_site_field_in_comment'                                 => '/functions/comments/comments-function.php',
+                'disable_guttenberg'                                           => '/functions/TinyMCE/disable_guttenberg.php',
+                'tiny_custom_colors'                                           => '/functions/TinyMCE/custom-colors.php',
+                'tiny_enable_opensans'                                         => '/functions/TinyMCE/opensans.php',
+                'tiny_advanced', 'tiny_table_plugin'                           => '/functions/TinyMCE/plugins.php',
+                'add_bootstrap_3'                                              => '/functions/TinyMCE/bootstrap-shortcodes.php',
                 'img_alt_in_upload', 'transliteration_enable', 'index_disable' => '/functions/seo/seo.php',
-                'write_right_guid', 'fix_guid' => '/functions/posts/fix_guid.php',
-                'change_glance_widget' => '/functions/dashboard-widget/add-alltypes-at-a-glance.php',
-                'dashboard_plugin_list' => '/functions/dashboard-widget/plugins-list.php',
-                'dashboard_server_info' => '/functions/dashboard-widget/siteinfo.php',
-                'dashboard_role_list' => '/functions/dashboard-widget/role-list.php',
-                'pll_hide_lang' => '/functions/polylang/hide-lang.php',
-                default => null,
+                'write_right_guid', 'fix_guid'                                 => '/functions/posts/fix_guid.php',
+                'change_glance_widget'                                         => '/functions/dashboard-widget/add-alltypes-at-a-glance.php',
+                'dashboard_plugin_list'                                        => '/functions/dashboard-widget/plugins-list.php',
+                'dashboard_server_info'                                        => '/functions/dashboard-widget/siteinfo.php',
+                'dashboard_role_list'                                          => '/functions/dashboard-widget/role-list.php',
+                'pll_hide_lang'                                                => '/functions/polylang/hide-lang.php',
+                default                                                        => null,
             };
 
-            require_once dirname(__DIR__, 2).$path;
+            require_once dirname(__DIR__, 2) . $path;
             expect(function_exists($callback))->toBeTrue("Missing function {$callback}");
         }
     });

@@ -19,8 +19,8 @@ class CommentAntispamBacklinkService
         }
 
         $response = wp_safe_remote_get($url, [
-            'timeout' => 5,
-            'redirection' => 2,
+            'timeout'             => 5,
+            'redirection'         => 2,
             'limit_response_size' => 1024 * 1024,
         ]);
 
@@ -40,7 +40,7 @@ class CommentAntispamBacklinkService
         }
 
         $quotedHost = preg_quote($homeHost, '~');
-        $pattern = '~<a[^>]+href=[\'"](?:https?:)?//(?:www\.)?'.$quotedHost.'(?=[:/?#\'"\\s>])~si';
+        $pattern = '~<a[^>]+href=[\'"](?:https?:)?//(?:www\.)?' . $quotedHost . '(?=[:/?#\'"\\s>])~si';
 
         return preg_match($pattern, $html) === 1;
     }

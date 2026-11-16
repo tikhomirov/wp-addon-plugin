@@ -31,7 +31,7 @@ class CookieBanner implements ModuleInterface
 
         return filter_var(
             $this->optionService->getSetting('cookie_banner_enabled', $defaults['cookie_banner_enabled']),
-            FILTER_VALIDATE_BOOLEAN
+            FILTER_VALIDATE_BOOLEAN,
         );
     }
 
@@ -39,23 +39,23 @@ class CookieBanner implements ModuleInterface
     {
         wp_enqueue_style(
             'wp-addon-cookie-banner',
-            RW_PLUGIN_URL.'assets/css/cookie-banner.css',
+            RW_PLUGIN_URL . 'assets/css/cookie-banner.css',
             [],
-            WP_ADDON_VERSION
+            WP_ADDON_VERSION,
         );
 
         wp_enqueue_script(
             'wp-addon-cookie-banner',
-            RW_PLUGIN_URL.'assets/js/cookie-banner.js',
+            RW_PLUGIN_URL . 'assets/js/cookie-banner.js',
             [],
             WP_ADDON_VERSION,
-            true
+            true,
         );
 
         wp_localize_script('wp-addon-cookie-banner', 'wpAddonCookieBanner', [
             'buttonMode' => $this->getButtonMode(),
             'storageKey' => 'cookie_consent',
-            'dateKey' => 'cookie_consent_date',
+            'dateKey'    => 'cookie_consent_date',
         ]);
     }
 
@@ -68,7 +68,7 @@ class CookieBanner implements ModuleInterface
         $defaults = $this->getDefaults();
         $text = $this->renderText(
             (string) $this->optionService->getSetting('cookie_banner_text', $defaults['cookie_banner_text']),
-            $this->getLinks()
+            $this->getLinks(),
         );
 
         ?>
@@ -135,8 +135,8 @@ class CookieBanner implements ModuleInterface
 
     public function formatBannerText(string $text): string
     {
-        if (strpos($text, '🍪') === false) {
-            $text = '🍪 '.$text;
+        if (mb_strpos($text, '🍪') === false) {
+            $text = '🍪 ' . $text;
         }
 
         return $text;
@@ -147,14 +147,14 @@ class CookieBanner implements ModuleInterface
         $text = $template;
 
         foreach ($links as $index => $link) {
-            $placeholder = '{link'.($index + 1).'}';
+            $placeholder = '{link' . ($index + 1) . '}';
             $replacement = '';
 
             if (! empty($link['url']) && ! empty($link['text'])) {
                 $replacement = sprintf(
                     '<a href="%s" class="wp-addon-cookie-banner__link">%s</a>',
                     esc_url($link['url']),
-                    esc_html($link['text'])
+                    esc_html($link['text']),
                 );
             }
 
@@ -166,7 +166,7 @@ class CookieBanner implements ModuleInterface
         return function_exists('wp_kses')
             ? wp_kses($text, [
                 'a' => [
-                    'href' => true,
+                    'href'  => true,
                     'class' => true,
                 ],
             ])
@@ -176,7 +176,7 @@ class CookieBanner implements ModuleInterface
     private function getDefaults(): array
     {
         if (! function_exists('wp_addon_get_cookie_banner_defaults')) {
-            require_once dirname(__DIR__).'/src/Config/cookie-banner-defaults.php';
+            require_once dirname(__DIR__) . '/src/Config/cookie-banner-defaults.php';
         }
 
         return wp_addon_get_cookie_banner_defaults();
@@ -218,11 +218,11 @@ class CookieBanner implements ModuleInterface
         return [
             [
                 'text' => (string) $this->optionService->getSetting('cookie_banner_link_1_text', $defaults['cookie_banner_link_1_text']),
-                'url' => (string) $this->optionService->getSetting('cookie_banner_link_1_url', $defaults['cookie_banner_link_1_url']),
+                'url'  => (string) $this->optionService->getSetting('cookie_banner_link_1_url', $defaults['cookie_banner_link_1_url']),
             ],
             [
                 'text' => (string) $this->optionService->getSetting('cookie_banner_link_2_text', $defaults['cookie_banner_link_2_text']),
-                'url' => (string) $this->optionService->getSetting('cookie_banner_link_2_url', $defaults['cookie_banner_link_2_url']),
+                'url'  => (string) $this->optionService->getSetting('cookie_banner_link_2_url', $defaults['cookie_banner_link_2_url']),
             ],
         ];
     }

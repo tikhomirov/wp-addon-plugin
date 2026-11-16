@@ -5,7 +5,7 @@ use WpAddon\Services\AssetOptimizationService;
 describe('AssetOptimizationService', function () {
 
     it('repairs a corrupt compressed cache entry when saving', function () {
-        file_put_contents($this->cacheDir.'/broken.gz', 'broken');
+        file_put_contents($this->cacheDir . '/broken.gz', 'broken');
         // zlib warns for malformed input; the service treats it as a cache miss.
         set_error_handler(static function (int $severity, string $message): bool {
             return str_contains($message, 'gzuncompress()');
@@ -19,16 +19,16 @@ describe('AssetOptimizationService', function () {
     });
 
     it('repairs an incomplete public asset', function () {
-        file_put_contents($this->cacheDir.'/asset.css', '');
+        file_put_contents($this->cacheDir . '/asset.css', '');
         $this->service->saveAssetToCache('asset', 'body{color:red}', 'css');
-        expect(file_get_contents($this->cacheDir.'/asset.css'))->toBe('body{color:red}');
+        expect(file_get_contents($this->cacheDir . '/asset.css'))->toBe('body{color:red}');
     });
 
     it('reuses combined cache and invalidates it after a source change', function () {
-        $source = $this->cacheDir.'/source.js';
+        $source = $this->cacheDir . '/source.js';
         file_put_contents($source, 'const value = 1;');
         $first = $this->service->combineJs([$source]);
-        $files = glob($this->cacheDir.'/combined-js-*.gz');
+        $files = glob($this->cacheDir . '/combined-js-*.gz');
         expect($files)->toHaveCount(1);
         touch($files[0], 1000);
         expect($this->service->combineJs([$source]))->toBe($first);
@@ -40,19 +40,19 @@ describe('AssetOptimizationService', function () {
     });
 
     beforeEach(function () {
-        $this->cacheDir = sys_get_temp_dir().'/wp_addon_test_cache_'.uniqid();
+        $this->cacheDir = sys_get_temp_dir() . '/wp_addon_test_cache_' . uniqid();
         mkdir($this->cacheDir, 0755, true);
 
         $config = [
-            'cache_dir' => $this->cacheDir,
-            'version_salt' => 'test-salt',
-            'minify_css' => true,
-            'minify_js' => true,
-            'combine_css' => true,
-            'combine_js' => true,
+            'cache_dir'            => $this->cacheDir,
+            'version_salt'         => 'test-salt',
+            'minify_css'           => true,
+            'minify_js'            => true,
+            'combine_css'          => true,
+            'combine_js'           => true,
             'critical_css_enabled' => true,
-            'exclude_css' => [],
-            'exclude_js' => [],
+            'exclude_css'          => [],
+            'exclude_js'           => [],
         ];
 
         $this->service = new AssetOptimizationService($config);
@@ -61,7 +61,7 @@ describe('AssetOptimizationService', function () {
     afterEach(function () {
         // Clean up cache directory
         if (is_dir($this->cacheDir)) {
-            $files = glob($this->cacheDir.'/*');
+            $files = glob($this->cacheDir . '/*');
             foreach ($files as $file) {
                 unlink($file);
             }
@@ -74,7 +74,7 @@ describe('AssetOptimizationService', function () {
         $minified = $this->service->minifyCss($css);
 
         // Check that CSS is actually minified
-        expect(strlen($minified))->toBeLessThan(strlen($css));
+        expect(mb_strlen($minified))->toBeLessThan(mb_strlen($css));
 
         // Check that essential content is preserved
         expect($minified)->toContain('color:#ff0000');
@@ -102,7 +102,7 @@ describe('AssetOptimizationService', function () {
         $minified = $this->service->minifyJs($js);
 
         // Check that JS is actually minified
-        expect(strlen($minified))->toBeLessThan(strlen($js));
+        expect(mb_strlen($minified))->toBeLessThan(mb_strlen($js));
 
         // Check that essential content is preserved
         expect($minified)->toContain('testFunction');
@@ -180,7 +180,7 @@ describe('AssetOptimizationService', function () {
 
         $this->service->saveToCache($key, $content);
 
-        $cacheFile = $this->cacheDir.'/'.$key.'.gz';
+        $cacheFile = $this->cacheDir . '/' . $key . '.gz';
         // Mock file_exists to return true for this test
         $this->setMockFunction('file_exists', true);
         expect(file_exists($cacheFile))->toBeTrue();
@@ -197,7 +197,7 @@ describe('AssetOptimizationService', function () {
 
         $this->service->saveAssetToCache($key, $content, 'css');
 
-        expect(file_get_contents($this->cacheDir.'/'.$key.'.css'))->toBe($content);
+        expect(file_get_contents($this->cacheDir . '/' . $key . '.css'))->toBe($content);
     });
 
     it('rejects unsupported browser asset extensions', function () {
@@ -242,7 +242,7 @@ describe('AssetOptimizationService', function () {
         expect($criticalCss)->toContain('position:fixed');
 
         // Should be shorter than original
-        expect(strlen($criticalCss))->toBeLessThan(strlen($css));
+        expect(mb_strlen($criticalCss))->toBeLessThan(mb_strlen($css));
     });
 
     it('handles empty CSS minification', function () {

@@ -22,13 +22,23 @@ class RedirectRulesService
 
             $request = trim((string) ($rule['request'] ?? ''));
             $destination = trim((string) ($rule['destination'] ?? ''));
+            $line = trim((string) ($rule['rule'] ?? ''));
+
+            if (($request === '' || $destination === '') && $line !== '') {
+                $parts = self::parseCsvLine($line);
+
+                if (count($parts) >= 2) {
+                    $request = $parts[0];
+                    $destination = $parts[1];
+                }
+            }
 
             if ($request === '' || $destination === '') {
                 continue;
             }
 
             $normalized[] = [
-                'request' => self::normalizeRequestPath($request),
+                'request'     => self::normalizeRequestPath($request),
                 'destination' => $destination,
             ];
         }
@@ -58,11 +68,11 @@ class RedirectRulesService
         $rules = [];
 
         foreach (preg_split('/\R/', $csv) ?: [] as $line) {
-            $line = trim($line);
-
-            if ($line === '' || str_starts_with($line, '#')) {
+            if (self::isCommentOrEmptyLine($line)) {
                 continue;
             }
+
+            $line = trim($line);
 
             if (preg_match('/^(request|source|from)\s*[,;\t]/i', $line)) {
                 continue;
@@ -82,7 +92,7 @@ class RedirectRulesService
             }
 
             $rules[] = [
-                'request' => $request,
+                'request'     => $request,
                 'destination' => $destination,
             ];
         }
@@ -91,8 +101,8 @@ class RedirectRulesService
     }
 
     /**
-     * @param  array<int, array{request: string, destination: string}>  $existing
-     * @param  array<int, array{request: string, destination: string}>  $imported
+     * @param  array<int, array{request: string, destination: string}> $existing
+     * @param  array<int, array{request: string, destination: string}> $imported
      * @return array<int, array{request: string, destination: string}>
      */
     public static function mergeRules(array $existing, array $imported): array
@@ -108,6 +118,66 @@ class RedirectRulesService
         }
 
         return array_values($map);
+    }
+
+    /**
+     * @param array<string, mixed> $rule
+     */
+    public static function formatRuleLine(array $rule): string
+    {
+        $line = trim((string) ($rule['rule'] ?? ''));
+
+        if ($line !== '') {
+            return $line;
+        }
+
+        $request = trim((string) ($rule['request'] ?? ''));
+        $destination = trim((string) ($rule['destination'] ?? ''));
+
+        if ($request === '' || $destination === '') {
+            return '';
+        }
+
+        return $request . ',' . $destination;
+    }
+
+    /**
+     * @param  array<string, mixed> $options
+     * @return array<string, mixed>
+     */
+    public static function prepareOptionsForRedirectsAdmin(array $options): array
+    {
+        if (empty($options['redirects_rules']) || ! is_array($options['redirects_rules'])) {
+            return $options;
+        }
+
+        $options['redirects_rules'] = array_values(array_map(
+            static function (mixed $rule): array {
+                if (! is_array($rule)) {
+                    return ['rule' => ''];
+                }
+
+                $line = self::formatRuleLine($rule);
+
+                return ['rule' => $line];
+            },
+            $options['redirects_rules'],
+        ));
+
+        return $options;
+    }
+
+    private static function isCommentOrEmptyLine(string $line): bool
+    {
+        $trimmed = ltrim($line);
+
+        if ($trimmed === '') {
+            return true;
+        }
+
+        return str_starts_with($trimmed, '#')
+            || str_starts_with($trimmed, '//')
+            || str_starts_with($trimmed, ';');
     }
 
     /**
@@ -146,6 +216,6 @@ class RedirectRulesService
             return self::normalizeRequestPath((string) ($parsedPath ?? ''));
         }
 
-        return '/'.ltrim($path, '/');
+        return '/' . ltrim($path, '/');
     }
 }

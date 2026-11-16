@@ -7,7 +7,7 @@ use WpAddon\Core\Plugin;
  * Plugin Name:  # WP Excellence Addon
  * Plugin URL:   https://rwsite.ru
  * Description:  Performance, security, and admin enhancements for WordPress 6.6+: 48 WP Tweaker toggles, redirects, cookie banner, Markdown editor, plugin catalog, and comment spam protection.
- * Version:      1.5.3
+ * Version:      1.6.1
  * Text Domain:  wp-addon
  * Domain Path: /languages/
  * Author:       Aleksey Tikhomirov
@@ -22,7 +22,7 @@ use WpAddon\Core\Plugin;
 defined('ABSPATH') || exit;
 
 // Register autoloader
-require_once __DIR__.'/src/Autoloader.php';
+require_once __DIR__ . '/src/Autoloader.php';
 Autoloader::register();
 
 // Initialize plugin

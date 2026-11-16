@@ -5,19 +5,19 @@ use WpAddon\Services\AssetOptimizationService;
 describe('SimpleAssetOptimizationService', function () {
 
     beforeEach(function () {
-        $this->cacheDir = sys_get_temp_dir().'/wp_addon_simple_test_cache_'.uniqid();
+        $this->cacheDir = sys_get_temp_dir() . '/wp_addon_simple_test_cache_' . uniqid();
         mkdir($this->cacheDir, 0755, true);
 
         $config = [
-            'cache_dir' => $this->cacheDir,
-            'version_salt' => 'test-salt',
-            'minify_css' => true,
-            'minify_js' => true,
-            'combine_css' => true,
-            'combine_js' => true,
+            'cache_dir'            => $this->cacheDir,
+            'version_salt'         => 'test-salt',
+            'minify_css'           => true,
+            'minify_js'            => true,
+            'combine_css'          => true,
+            'combine_js'           => true,
             'critical_css_enabled' => true,
-            'exclude_css' => [],
-            'exclude_js' => [],
+            'exclude_css'          => [],
+            'exclude_js'           => [],
         ];
 
         $this->service = new AssetOptimizationService($config);
@@ -26,7 +26,7 @@ describe('SimpleAssetOptimizationService', function () {
     afterEach(function () {
         // Clean up cache directory
         if (is_dir($this->cacheDir)) {
-            $files = glob($this->cacheDir.'/*');
+            $files = glob($this->cacheDir . '/*');
             foreach ($files as $file) {
                 unlink($file);
             }
@@ -46,18 +46,18 @@ describe('SimpleAssetOptimizationService', function () {
         $minified = $this->service->minifyCss($css);
 
         // Check that CSS is minified
-        expect(strpos($minified, "\n"))->toBeFalse();
-        expect(strpos($minified, '  '))->toBeFalse();
-        expect(strpos($minified, '.test-class{color:#ff0000;font-size:14px}.another{margin:0}'))->not->toBeFalse();
+        expect(mb_strpos($minified, "\n"))->toBeFalse();
+        expect(mb_strpos($minified, '  '))->toBeFalse();
+        expect(mb_strpos($minified, '.test-class{color:#ff0000;font-size:14px}.another{margin:0}'))->not->toBeFalse();
     });
 
     it('removes comments from CSS', function () {
         $css = '/* This is a comment */ .test { color: red; } /* Another comment */';
         $minified = $this->service->minifyCss($css);
 
-        expect(strpos($minified, '/*'))->toBeFalse();
-        expect(strpos($minified, '*/'))->toBeFalse();
-        expect(strpos($minified, '.test{color:red}'))->not->toBeFalse();
+        expect(mb_strpos($minified, '/*'))->toBeFalse();
+        expect(mb_strpos($minified, '*/'))->toBeFalse();
+        expect(mb_strpos($minified, '.test{color:red}'))->not->toBeFalse();
     });
 
     it('minifies basic JS', function () {
@@ -71,19 +71,19 @@ describe('SimpleAssetOptimizationService', function () {
         $minified = $this->service->minifyJs($js);
 
         // Check that JS is minified
-        expect(strpos($minified, "\n"))->toBeFalse();
-        expect(strpos($minified, '  '))->toBeFalse();
-        expect(strpos($minified, 'function test(){var a=1;return a+2;}'))->not->toBeFalse();
+        expect(mb_strpos($minified, "\n"))->toBeFalse();
+        expect(mb_strpos($minified, '  '))->toBeFalse();
+        expect(mb_strpos($minified, 'function test(){var a=1;return a+2;}'))->not->toBeFalse();
     });
 
     it('removes comments from JS', function () {
         $js = '/* Block comment */ function test() { return 1; } // Line comment';
         $minified = $this->service->minifyJs($js);
 
-        expect(strpos($minified, '/*'))->toBeFalse();
-        expect(strpos($minified, '*/'))->toBeFalse();
-        expect(strpos($minified, '//'))->toBeFalse();
-        expect(strpos($minified, 'function test(){return 1;}'))->not->toBeFalse();
+        expect(mb_strpos($minified, '/*'))->toBeFalse();
+        expect(mb_strpos($minified, '*/'))->toBeFalse();
+        expect(mb_strpos($minified, '//'))->toBeFalse();
+        expect(mb_strpos($minified, 'function test(){return 1;}'))->not->toBeFalse();
     });
 
     it('generates version', function () {
@@ -93,7 +93,7 @@ describe('SimpleAssetOptimizationService', function () {
         $version1 = $this->service->generateVersion($content1);
         $version2 = $this->service->generateVersion($content2);
 
-        expect(strlen($version1))->toBe(8); // Should be 8 characters
+        expect(mb_strlen($version1))->toBe(8); // Should be 8 characters
         expect($version1)->toBeString();
         expect($version1)->not->toBe($version2); // Different content = different version
     });
@@ -136,12 +136,12 @@ describe('SimpleAssetOptimizationService', function () {
         $criticalCss = $this->service->extractCriticalCss($css);
 
         // Should extract header, nav and footer as critical
-        expect(strpos($criticalCss, '.header'))->not->toBeFalse();
-        expect(strpos($criticalCss, '.nav'))->not->toBeFalse();
-        expect(strpos($criticalCss, '.footer'))->not->toBeFalse();
+        expect(mb_strpos($criticalCss, '.header'))->not->toBeFalse();
+        expect(mb_strpos($criticalCss, '.nav'))->not->toBeFalse();
+        expect(mb_strpos($criticalCss, '.footer'))->not->toBeFalse();
 
         // Should not contain content
-        expect(strpos($criticalCss, '.content'))->toBeFalse();
+        expect(mb_strpos($criticalCss, '.content'))->toBeFalse();
     });
 
     it('combines CSS files', function () {
@@ -152,8 +152,8 @@ describe('SimpleAssetOptimizationService', function () {
         $combined = $this->service->combineCss([$css1, $css2]);
 
         // Should contain both classes
-        expect(strpos($combined, '.class1{color:red}'))->not->toBeFalse();
-        expect(strpos($combined, '.class2{color:blue}'))->not->toBeFalse();
+        expect(mb_strpos($combined, '.class1{color:red}'))->not->toBeFalse();
+        expect(mb_strpos($combined, '.class2{color:blue}'))->not->toBeFalse();
 
         // Clean up
         unlink($css1);
@@ -168,8 +168,8 @@ describe('SimpleAssetOptimizationService', function () {
         $combined = $this->service->combineJs([$js1, $js2]);
 
         // Should contain both functions
-        expect(strpos($combined, 'function a(){return 1;};'))->not->toBeFalse();
-        expect(strpos($combined, 'function b(){return 2;};'))->not->toBeFalse();
+        expect(mb_strpos($combined, 'function a(){return 1;};'))->not->toBeFalse();
+        expect(mb_strpos($combined, 'function b(){return 2;};'))->not->toBeFalse();
 
         // Clean up
         unlink($js1);

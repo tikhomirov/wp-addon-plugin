@@ -1,29 +1,29 @@
 # GitHub Actions CI/CD Pipeline - WP Addon Plugin
 
-## 📋 Обзор
+## SUMMARY ##
 
-Этот документ описывает настройку и работу GitHub Actions CI/CD pipeline для WP Addon Plugin. Здесь зафиксированы все шаги, зависимости и конфигурации, необходимые для восстановления работы CI в случае поломки.
+This document describes the setup and operation of the GitHub Actions CI/CD pipeline for the WP Addon Plugin. All the steps, dependencies, and configurations required to restore CI operation in the event of a failure are recorded here.
 
-## 🎯 Цели CI Pipeline
+## 🎯 CI Pipeline Objectives
 
-- **Автоматизированное тестирование** на множестве версий PHP
-- **Проверка стиля кода** через Laravel Pint с Laravel preset
-- **Статический анализ** через PHPStan и WordPress stubs
-- **Проверка совместимости** с WordPress test suite
-- **Анализ покрытия кода** и загрузка отчетов
-- **Предотвращение регрессий** перед merge в main/develop
+- **Automated testing** on multiple PHP versions
+- **Code style check** via Laravel Pint with Laravel preset
+- **Static analysis** via PHPStan and WordPress stubs
+- **Compatibility check** with the WordPress test suite
+- **Code coverage analysis** and report uploads
+- **Regression prevention** before merging into main/develop
 
-## 📁 Структура файлов
+## 📁 File structure
 
 ```
 .github/
 └── workflows/
-    └── test.yml          # Основной CI workflow
+└── test.yml          # Main CI workflow
 ```
 
-## ⚙️ Конфигурация Workflow
+## ⚙️ Workflow Configuration
 
-### Основные параметры
+Specifications
 
 ```yaml
 name: Tests
@@ -41,7 +41,7 @@ jobs:
         php: ['8.2', '8.3', '8.4']
 ```
 
-### Services (Базы данных)
+### Services (Databases)
 
 ```yaml
 services:
@@ -57,19 +57,19 @@ services:
     options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 ```
 
-## 🚀 Пошаговое выполнение CI
+## 🚀 Step-by-step CI implementation
 
-### Шаг 1: Checkout кода
+### Step 1: Code checkout
 
 ```yaml
 - uses: actions/checkout@v4
 ```
 
-**Что делает:** Клонирует репозиторий в runner.
+**What it does:** Clones the repository to the runner.
 
-**Требования:** Доступ к репозиторию.
+**Requirements:** Access to the repository.
 
-### Шаг 2: Настройка PHP
+### Step 2: Configuring PHP
 
 ```yaml
 - name: Setup PHP
@@ -81,17 +81,17 @@ services:
     tools: composer:v2
 ```
 
-**Что делает:**
-- Устанавливает указанную версию PHP
-- Включает необходимые расширения: `pdo`, `pdo_mysql`, `mbstring`, `intl`, `zip`
-- Устанавливает Xdebug для покрытия кода
-- Устанавливает Composer v2
+**What it does:**
+- Installs the specified PHP version
+- Enables the required extensions: `pdo`, `pdo_mysql`, `mbstring`, `intl`, `zip`
+- Installs Xdebug for code coverage
+- Installs Composer v2
 
-**Требования:**
+REQUIREMENTS
 - shivammathur/setup-php@v2 action
-- PHP версии 8.2, 8.3, или 8.4
+- PHP versions 8.2, 8.3, or 8.4
 
-### Шаг 3: Кэширование Composer зависимостей
+### Step 3: Caching Composer Dependencies
 
 ```yaml
 - name: Cache Composer dependencies
@@ -103,30 +103,30 @@ services:
       ${{ runner.os }}-php-${{ matrix.php }}-composer-
 ```
 
-**Что делает:**
-- Кэширует папку `vendor` для ускорения сборки
-- Ключ кэша основан на OS, PHP версии и hash composer.lock
-- Восстанавливает кэш если точное совпадение не найдено
+**What it does:**
+- Caches the `vendor` folder to speed up the build
+- The cache key is based on the OS, PHP version, and hash composer.lock
+- Restores the cache if an exact match is not found
 
-**Требования:** actions/cache@v3
+**Requirements:** actions/cache@v3
 
-### Шаг 4: Установка Composer зависимостей
+### Step 4: Installing Composer Dependencies
 
 ```yaml
 - name: Install Composer dependencies
   run: composer install --no-progress --prefer-dist --optimize-autoloader
 ```
 
-**Что делает:**
-- Устанавливает PHP зависимости из composer.json
-- Использует дистрибутивы вместо исходников (--prefer-dist)
-- Оптимизирует автолоадер для production
+**What it does:**
+- Installs PHP dependencies from composer.json
+- Uses distributions instead of source code (--prefer-dist)
+- Optimizes the autoloader for production
 
-**Требования:**
-- composer.json и composer.lock в корне проекта
-- Доступ к Packagist
+**Requirements:**
+- composer.json and composer.lock in the project root
+- Access to Packagist
 
-### Шаг 5: Настройка WordPress test environment
+### Step 5: Setting up the WordPress test environment
 
 ```yaml
 - name: Setup WordPress test environment
@@ -145,30 +145,30 @@ services:
     echo "define('WP_DEBUG_DISPLAY', true);" >> wp-tests-config.php
 ```
 
-**Что делает:**
-1. Клонирует WordPress develop репозиторий (--depth=1 для скорости)
-2. Копирует sample конфиг в рабочий
-3. Заменяет placeholders на реальные значения БД
-4. Изменяет хост на 127.0.0.1 (для Docker networking)
-5. Устанавливает префикс таблиц на 'wp_'
-6. Добавляет debug настройки
+**What it does:**
+1. Clones the WordPress develop repository (--depth=1 for speed)
+2. Copies the sample config to the working one
+3. Replaces placeholders with actual database values
+4. Changes the host to 127.0.0.1 (for Docker networking)
+5. Sets the table prefix to 'wp_'
+6. Adds debug settings
 
-**Требования:**
-- Доступ к github.com/WordPress/wordpress-develop.git
-- MySQL сервис запущен и доступен
+**Requirements:**
+- Access to github.com/WordPress/wordpress-develop.git
+- The MySQL service is running and accessible
 
-### Шаг 6: Установка переменной окружения
+### Step 6: Setting the environment variable
 
 ```yaml
 - name: Set WP_TESTS_DIR environment variable
   run: echo "WP_TESTS_DIR=/tmp/wordpress-develop" >> $GITHUB_ENV
 ```
 
-**Что делает:** Устанавливает переменную окружения WP_TESTS_DIR для тестов.
+**What it does:** Sets the WP_TESTS_DIR environment variable for tests.
 
-**Требования:** $GITHUB_ENV доступен в GitHub Actions.
+**Requirements:** $GITHUB_ENV is available in GitHub Actions.
 
-### Шаг 7: Создание тестовой базы данных
+### Step 7: Create a test database
 
 ```yaml
 - name: Create test database
@@ -176,14 +176,14 @@ services:
     mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE IF NOT EXISTS wordpress_test;"
 ```
 
-**Что делает:** Создает базу данных wordpress_test в MySQL.
+**What it does:** Creates the wordpress_test database in MySQL.
 
-**Требования:**
-- MySQL сервис запущен на 127.0.0.1:3306
-- Root пароль: 'root'
-- Пользователь 'wordpress' с паролем 'wordpress' создан
+**Requirements:**
+- The MySQL service is running on 127.0.0.1:3306
+- Root password: 'root'
+- The user 'wordpress' with the password 'wordpress' has been created
 
-### Шаг 8: Установка WordPress test suite
+### Step 8: Installing the WordPress test suite
 
 ```yaml
 - name: Install WordPress test suite
@@ -192,42 +192,42 @@ services:
     php tests/phpunit/includes/install.php wp-tests-config.php
 ```
 
-**Что делает:**
-- Запускает WordPress install script
-- Создает все необходимые таблицы в БД
-- Настраивает WordPress для тестирования
+**What it does:**
+- Runs the WordPress install script
+- Creates all the necessary tables in the database
+- Configures WordPress for testing
 
-**Требования:**
-- PHP с pdo_mysql расширением
-- wp-tests-config.php правильно настроен
-- База данных доступна
+**Requirements:**
+- PHP with the pdo_mysql extension
+- wp-tests-config.php is configured correctly
+- The database is accessible
 
-### Шаг 9: Запуск quality gate
+### Step 9: Launching the quality gate
 
 ```yaml
 - name: Run quality checks
   run: composer quality
 ```
 
-**Что делает:**
-- Проверяет `composer.json`, форматирование Laravel Pint и PHPStan
-- Запускает все тесты через Composer скрипт
+**What it does:**
+- Checks `composer.json`, Laravel Pint formatting, and PHPStan
+- Runs all tests via the Composer script
 
-**Требования:**
-- composer.json с настроенным скриптом test
-- Все зависимости установлены
-- WP_TESTS_DIR настроена
+**Requirements:**
+- composer.json with the test script configured
+- All dependencies are installed
+- WP_TESTS_DIR is configured
 
-### Локальные проверки качества
+### Local quality checks
 
 ```bash
-composer format        # исправить форматирование Laravel preset
-composer format:check  # проверить форматирование без изменений
+composer format        # Fix the formatting of the Laravel preset
+composer format:check  # check formatting without making changes
 composer static-analysis
-composer quality       # полный quality gate
+composer quality       # full quality gate
 ```
 
-### Шаг 10: Запуск тестов с покрытием (только PHP 8.2)
+### Step 10: Running Coverage Tests (PHP 8.2 Only)
 
 ```yaml
 - name: Run tests with coverage
@@ -235,15 +235,15 @@ composer quality       # полный quality gate
   if: matrix.php == '8.2'
 ```
 
-**Что делает:**
-- Запускает тесты с анализом покрытия кода
-- Генерирует clover.xml отчет
+**What it does:**
+- Runs tests with code coverage analysis
+- Generates a clover.xml report
 
-**Требования:**
-- Xdebug установлен и настроен
-- composer.json с скриптом test:coverage
+**Requirements:**
+- Xdebug is installed and configured
+- composer.json with the test:coverage script
 
-### Шаг 11: Загрузка отчетов покрытия (только PHP 8.2)
+### Step 11: Uploading Coverage Reports (PHP 8.2 Only)
 
 ```yaml
 - name: Upload coverage reports
@@ -254,75 +254,75 @@ composer quality       # полный quality gate
     fail_ci_if_error: false
 ```
 
-**Что делает:**
-- Загружает clover.xml в Codecov
-- Не падает сборка при ошибке загрузки
+**What it does:**
+- Uploads clover.xml to Codecov
+- The build does not fail if there is an upload error
 
-**Требования:**
+Requirements
 - codecov/codecov-action@v3
-- CODECOV_TOKEN в secrets (опционально)
+- CODECOV_TOKEN in secrets (optional)
 
-## 🔧 Диагностика и устранение неисправностей
+Troubleshooting
 
-### Проблема: "Could not open input file: bin/install.php"
+### Problem: "Could not open input file: bin/install.php"
 
-**Симптомы:** Ошибка в шаге "Install WordPress test suite"
+**Symptoms:** Error in the "Install WordPress test suite" step
 
-**Решение:**
-- Проверить путь к install.php
-- Должен быть: `tests/phpunit/includes/install.php`
-- А НЕ: `bin/install.php` или `tests/bin/install.php`
+**Solution:**
+- Check the path to install.php
+- It should be: `tests/phpunit/includes/install.php`
+- NOT: `bin/install.php` or `tests/bin/install.php`
 
-### Проблема: "Failed opening required 'wp-tests-config.php'"
+### Problem: "Failed opening required 'wp-tests-config.php'"
 
-**Симптомы:** Ошибка require_once в install.php
+**Symptoms:** require_once error in install.php
 
-**Решение:**
-- Убедиться что wp-tests-config.php создан в предыдущем шаге
-- Проверить что все sed команды выполнились корректно
-- Проверить права на файл
+**Solution:**
+- Make sure that wp-tests-config.php was created in the previous step.
+- Check that all sed commands have been executed correctly.
+- Check the file permissions
 
-### Проблема: "SQLSTATE[HY000] [2002] Connection refused"
+### Problem: "SQLSTATE[HY000] [2002] Connection refused"
 
-**Симптомы:** Тесты не могут подключиться к MySQL
+**Symptoms:** Tests cannot connect to MySQL
 
-**Решение:**
-- Проверить что MySQL сервис запущен
-- Проверить health checks в services.mysql.options
-- Убедиться что используется 127.0.0.1 вместо localhost
+**Solution:**
+- Check that the MySQL service is running
+- Check health checks in services.mysql.options
+- Make sure that 127.0.0.1 is used instead of localhost
 
-### Проблема: "Class 'Patchwork\...' not found"
+### Problem: "Class 'Patchwork\... ' not found"
 
-**Симптомы:** Ошибки связанные с Patchwork в тестах
+**Symptoms:** Errors related to Patchwork in tests
 
-**Решение:**
-- Проверить что Brain Monkey удален из composer.json
-- Проверить bootstrap.php на предмет mock'ов Patchwork
-- Запускать тесты с --exclude-group problematic
+**Solution:**
+- Check that Brain Monkey has been removed from composer.json
+- Check bootstrap.php for Patchwork mocks
+- Run tests with --exclude-group problematic
 
-### Проблема: Тесты висят или таймаутятся
+### Issue: Tests hang or time out
 
-**Симптомы:** Сборка прерывается по таймауту
+**Symptoms:** The build is interrupted due to a timeout.
 
-**Решение:**
-- Проверить composer test скрипт на корректность
-- Убедиться что все зависимости установлены
-- Проверить что WP_TESTS_DIR правильно установлена
+**Solution:**
+- Check the composer test script for correctness
+- Make sure that all dependencies are installed
+- Check that WP_TESTS_DIR is set correctly
 
-## 📊 Метрики и мониторинг
+## 📊 Metrics and Monitoring
 
-### Время выполнения
-- **Ожидаемое время сборки:** 1.5-2 минуты
-- **Критические шаги:** WordPress setup (30-45 сек), Tests (10-20 сек)
+### Execution time
+- **Expected build time:** 1.5–2 minutes
+- **Critical steps:** WordPress setup (30–45 sec), Tests (10–20 sec)
 
-### Покрытие кода
-- **Целевое покрытие:** > 80%
-- **Отчеты:** clover.xml -> Codecov
-- **Анализ:** Только на PHP 8.2 для оптимизации
+### Code coverage
+- **Target coverage:** > 80%
+- **Reports:** clover.xml -> Codecov
+- **Analysis:** Only on PHP 8.2 for optimization
 
-## 🚀 Масштабирование и оптимизация
+## 🚀 Scaling and Optimization
 
-### Добавление новых PHP версий
+### Adding new PHP versions
 
 ```yaml
 strategy:
@@ -330,7 +330,7 @@ strategy:
     php: ['8.1', '8.2', '8.3', '8.4']
 ```
 
-### Добавление других баз данных
+### Adding other databases
 
 ```yaml
 services:
@@ -338,10 +338,10 @@ services:
     image: mysql:8.0
   postgres:
     image: postgres:13
-    # ... конфигурация
+Configuration
 ```
 
-### Параллельные jobs
+### Parallel jobs
 
 ```yaml
 jobs:
@@ -355,75 +355,75 @@ jobs:
         run: composer lint
 ```
 
-## 🔒 Безопасность
+Safety
 
-### Secrets и переменные
+### Secrets and variables
 
-- **CODECOV_TOKEN:** Для загрузки покрытия (опционально)
-- **Другие секреты:** Не требуются для базовой работы
+- **CODECOV_TOKEN:** For uploading coverage (optional)
+- **Other secrets:** Not required for basic operation
 
-### Доступы
+### Access
 
-- **GitHub токены:** Используются автоматически
-- **Внешние сервисы:** Codecov (опционально)
+- **GitHub tokens:** Used automatically
+- **External services:** Codecov (optional)
 
-## 📝 Логи и отладка
+## 📝 Logs and debugging
 
-### Просмотр логов
+View Logs
 
 ```bash
-# В GitHub Actions UI
-# Actions -> Workflow runs -> Выбрать run -> View logs
+# In GitHub Actions UI
+# Actions -> Workflow runs -> Select run -> View logs
 ```
 
-### Локальная отладка
+### Local debugging
 
 ```bash
-# Запуск локально в Docker
+# Running locally in Docker
 docker run -it --rm \
   -v $(pwd):/app \
   -w /app \
   php:8.2-cli \
   bash
 
-# В контейнере
+containerised
 composer install
-# ... повторить шаги CI
+# ... repeat the CI steps
 ```
 
-## 🎯 Восстановление после поломки
+## 🎯 Recovery after a breakdown
 
-### Шаг 1: Проверить workflow файл
-- Убедиться что .github/workflows/test.yml существует
-- Проверить синтаксис YAML
+### Step 1: Check the workflow file
+- Make sure that .github/workflows/test.yml exists
+- Check the YAML syntax
 
-### Шаг 2: Проверить зависимости
-- Все actions должны быть доступны (checkout@v4, cache@v3 и т.д.)
-- Проверить версии actions на совместимость
+### Step 2: Check dependencies
+- All actions must be available (checkout@v4, cache@v3, etc.)
+- Check the versions of actions for compatibility
 
-### Шаг 3: Тестирование шагов
-- Запустить каждый шаг вручную локально
-- Проверить логи на ошибки
+### Step 3: Testing the steps
+- Run each step manually locally
+- Check the logs for errors
 
-### Шаг 4: Проверка окружения
-- Убедиться что MySQL сервис корректно настроен
-- Проверить переменные окружения
+### Step 4: Check the environment
+- Make sure that the MySQL service is configured correctly.
+- Check the environment variables
 
-### Шаг 5: Восстановление
-- Если workflow сломан - восстановить из git истории
-- Если внешние сервисы недоступны - найти альтернативы
+### Step 5: Recovery
+- If the workflow is broken, restore it from the Git history.
+- If external services are unavailable, find alternatives.
 
 ---
 
-## 📋 Чек-лист восстановления
+## 📋 Recovery Checklist
 
-- [ ] .github/workflows/test.yml существует
-- [ ] Все actions доступны и актуальны
-- [ ] MySQL сервис правильно настроен
-- [ ] composer.json корректен
-- [ ] tests/bootstrap.php настроен
-- [ ] WordPress develop доступен для клонирования
-- [ ] Codecov токен установлен (опционально)
+- [ ] .github/workflows/test.yml exists
+- [ ] All actions are available and up to date
+- [ ] The MySQL service is configured correctly
+- [ ] composer.json is correct
+- [ ] tests/bootstrap.php is configured
+- [ ] WordPress develop is available for cloning
+- [ ] Codecov token is set (optional)
 
-**Последнее обновление:** Ноябрь 2025
-**Статус:** ✅ Работает стабильно 🚀
+**Last Updated:** November 2025
+**Status:** ✅ Operating stably 🚀

@@ -1,9 +1,8 @@
 /**
- * Логика секции «Backup DB» на странице настроек WP Addon.
+ * Backup DB section on the WP Addon settings page.
  *
- * Долгие операции (дамп и восстановление) выполняются одним AJAX-запросом,
- * поэтому прогресс-полоса отражает факт завершения этапа, а не процент
- * обработанных строк: сервер не отдаёт статус по ходу работы.
+ * Long-running dump/restore operations use a single AJAX request, so the
+ * progress bar reflects stage completion, not row-by-row percentage.
  */
 (function ($) {
     'use strict';
@@ -59,15 +58,15 @@
         return task()
             .done(function (response) {
                 if (response && response.success) {
-                    setStatus(response.data && response.data.message ? response.data.message : 'Готово.', 'success');
+                    setStatus(response.data && response.data.message ? response.data.message : (wpAddonBackup.strings.done || 'Done.'), 'success');
                 } else {
                     var payload = response && response.data;
-                    setStatus(payload && payload.message ? payload.message : 'Операция не выполнена.', 'error');
+                    setStatus(payload && payload.message ? payload.message : (wpAddonBackup.strings.operationFailed || 'Operation failed.'), 'error');
                 }
             })
             .fail(function (xhr) {
                 var payload = xhr && xhr.responseJSON && xhr.responseJSON.data;
-                setStatus(payload && payload.message ? payload.message : 'Ошибка соединения с сервером.', 'error');
+                setStatus(payload && payload.message ? payload.message : (wpAddonBackup.strings.connectionError || 'Server connection error.'), 'error');
             })
             .always(function () {
                 setBusy(false);
@@ -95,7 +94,7 @@
         var backup = $(this).attr('data-backup');
 
         if (!backup) {
-            setStatus('Файл не указан.', 'error');
+            setStatus(wpAddonBackup.strings.fileNotSpecified || 'No file specified.', 'error');
             return;
         }
 
@@ -113,7 +112,7 @@
         var backup = $(this).attr('data-backup');
         if (!backup) return;
 
-        window.location.href = wpAddonBackup.adminUrl + '?action=wp_addon_backup_download&backup=' + encodeURIComponent(backup) + '&nonce=' + encodeURIComponent(wpAddonBackup.nonce);
+        window.location.href = wpAddonBackup.ajaxUrl + '?action=wp_addon_backup_download&backup=' + encodeURIComponent(backup) + '&nonce=' + encodeURIComponent(wpAddonBackup.nonce);
     });
 
     $('#wp-addon-backup-list').on('click', '.wp-addon-backup-delete', function () {
@@ -131,12 +130,12 @@
                 if (response && response.success) {
                     setStatus(response.data.message, 'success');
                 } else {
-                    setStatus('Не удалось удалить файл.', 'error');
+                    setStatus(wpAddonBackup.strings.deleteFailed || 'Could not delete the file.', 'error');
                 }
                 refreshList();
             })
             .fail(function () {
-                setStatus('Не удалось удалить файл.', 'error');
+                setStatus(wpAddonBackup.strings.deleteFailed || 'Could not delete the file.', 'error');
             })
             .always(function () {
                 setBusy(false);
@@ -147,7 +146,7 @@
         var input = $('#wp-addon-backup-upload');
 
         if (!input.val()) {
-            setStatus('Выберите файл дампа.', 'error');
+            setStatus(wpAddonBackup.strings.selectBackupFile || 'Choose a backup file.', 'error');
             return;
         }
 
@@ -174,12 +173,21 @@
                     refreshList();
                 } else {
                     var payloadError = response && response.data;
-                    setStatus(payloadError && payloadError.message ? payloadError.message : 'Ошибка загрузки.', 'error');
+                    setStatus(payloadError && payloadError.message ? payloadError.message : (wpAddonBackup.strings.uploadFailed || 'Upload failed.'), 'error');
                 }
             })
             .fail(function (xhr) {
-                var payloadError = xhr && xhr.responseJSON && xhr.responseJSON.data;
-                setStatus(payloadError && payloadError.message ? payloadError.message : 'Ошибка загрузки.', 'error');
+                var message = wpAddonBackup.strings.uploadFailed || 'Upload failed.';
+
+                if (xhr && xhr.status === 413) {
+                    message = wpAddonBackup.strings.uploadTooLarge || message;
+                } else if (xhr && xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+                    message = xhr.responseJSON.data.message;
+                } else if (xhr && xhr.responseText && xhr.responseText.indexOf('<html') !== -1) {
+                    message = wpAddonBackup.strings.uploadBadResponse || message;
+                }
+
+                setStatus(message, 'error');
             })
             .always(function () {
                 setBusy(false);
@@ -187,6 +195,8 @@
     });
 
     $(function () {
-        // Инициализация: ничего не требуется, таблица уже отрисована PHP.
+        if (wpAddonBackup.canRestore === false) {
+            $('.wp-addon-backup-restore').prop('disabled', true);
+        }
     });
 })(jQuery);
